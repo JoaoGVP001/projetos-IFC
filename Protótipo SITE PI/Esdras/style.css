@@ -1,0 +1,26 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+
+* {
+    font-family: "Inter", sans-serif;
+}
+
+h1 {
+    position: relative;
+    top: 80%;
+    text-align: center;
+}
+
+section.carousel {
+    display: flex;
+    justify-content: center;
+}
+
+section.carousel div.items {
+    display: inline-block;
+    border: 1px solid black;
+    border-radius: 20px;
+    margin-left: 1%;
+    margin-right: 1%;
+    width: 30%;
+    height: 30vh;
+}
