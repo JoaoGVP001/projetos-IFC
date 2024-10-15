@@ -1,0 +1,44 @@
+body {
+    margin: 0; /* Remove margin padrão do body */
+}
+
+#navbar {
+    background-color: black;
+    width: 100%;
+    height: 50px;
+}
+
+#navbar ul {
+    list-style-type: none; /* Remove os marcadores da lista */
+    margin: 0; /* Remove a margem padrão */
+    padding: 0 0 0 700px; /* Adiciona padding à esquerda */
+    display: flex; /* Exibe os itens em linha */
+}
+
+#navbar li {
+    flex-grow: 1; /* Ajusta o flex-grow para que os itens não ocupem todo o espaço */
+    flex-basis: 0; /* Ajusta o flex-basis para que os itens sejam flexíveis */
+}
+
+#navbar a {
+    display: block; /* Faz o link ocupar todo o espaço do li */
+    color: white; /* Cor do texto */
+    text-align: center; /* Centraliza o texto */
+    padding: 15px; /* Espaçamento interno */
+    text-decoration: none; /* Remove o sublinhado */
+}
+
+#navbar a:hover {
+    background-color: grey; /* Cor de fundo ao passar o mouse */
+}
+
+#logo {
+    width: 40px; /* adjust the width of the logo */
+    height: 40px; /* adjust the height of the logo */
+    margin: 5px; /* add some margin around the logo */
+    float: left; /* float the logo to the left */
+}
+
+#navbar ul {
+    padding: 0 0 0 50px; /* adjust the padding to accommodate the logo */
+}
