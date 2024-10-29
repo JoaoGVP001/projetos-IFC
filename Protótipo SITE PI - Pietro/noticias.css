@@ -1,0 +1,80 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap'); 
+
+body {
+    background-color: black;
+    height: 100%;
+}
+
+#hero {
+    background-image: url(imagensp/astronauta.jpg);
+    background-repeat: no-repeat;
+    background-position: center;
+    height: 100%;
+    background-size: cover;
+}
+
+.title-programap {
+    color: white;
+    font-family: "Inter", sans-serif;
+    margin-left: 15%;
+    top: 500px;
+    font-size: 300%;
+}
+
+.title-artemis {
+    color: white;
+    font-family: "Inter", sans-serif;
+    margin-left: 15%;
+    top: 500px;
+    size: 25;
+    font-size: 300%;
+
+}
+
+p {
+    font-family: "Inter", sans-serif;
+    font-size: 16px;
+    color: white;
+}
+
+#lunar-gateway {
+    background-image: url(imagensp/astronauta.jpg);
+    background-repeat: no-repeat;
+}
+
+.title-habitating {
+    color: white;
+    font-family: "Inter", sans-serif;
+    margin-left: 15%;
+    top: 500px;
+    font-size: 300%;
+}
+
+.title-gateway {
+    color: white;
+    font-family: "Inter", sans-serif;
+    margin-left: 15%;
+    top: 500px;
+    size: 25;
+    font-size: 300%;
+
+}
+
+#textdefault {
+    text-align: center;
+    background-color: black;
+}
+
+#apolloimg {
+    margin-left: 20%;
+    margin-right: 20%;
+    background-repeat: no-repeat;
+}
+
+#latest-news {
+    color: white;
+    font-family: "Inter", sans-serif;
+    font-size: 300%;
+    text-align: center;
+
+}
