@@ -13,7 +13,7 @@ footer#footer div {
     display: flex;
     position: relative;
     align-items: center;
-    left: 12%;
+    left: 20%;
 }
 
 footer#footer div * {
@@ -44,4 +44,12 @@ footer#footer img#icon-up-arrow {
     width: 5%;
     border: 1px solid white;
     border-radius: 50px;
+}
+
+footer#footer p {
+    color: white; /* Adicionado para garantir que o texto seja visível no fundo preto */
+}
+
+footer#footer img#icon-email {
+    width: 24px; /* Ajuste conforme necessário */
 }
