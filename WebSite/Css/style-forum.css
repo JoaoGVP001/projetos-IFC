@@ -17,8 +17,23 @@ section#forum h1 {
     color: white;
 }
 
-div.topic {
-    margin-bottom: 8%;
+div.topic-container {
+    margin-bottom: 3%;
+    border: 1px solid white;
+    border-radius: 20px;
+    background-color: rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+}
+
+div.topic-container:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    position: relative;
+    width: 105%;
+    left: -2.5%;
+}
+
+div.topic-container div.topic-content {
+    margin: 2%;
 }
 
 section#forum h2 {
@@ -26,11 +41,12 @@ section#forum h2 {
     color: white;
 }
 
-section#forum p {
+section#forum div.topic-container div.topic-content > p {
     color: var(--cinza);
 }
 
 footer.topic-info p {
     display: inline;
     margin-right: 2%;
+    color: white;
 }
