@@ -10,20 +10,12 @@ body {
     --cinza-claro: #D9D9D9;
 }
 
-#hero {
-    background-image: url(imagensp/astronauta.jpg);
-    background-repeat: no-repeat;
-    background-position: center;
-    height: 100%;
-    background-size: cover;
-}
-
 .title-programap {
     color: white;
     font-family: "Inter", sans-serif;
     margin-left: 15%;
     top: 500px;
-    font-size: 300%;
+    font-size: 400%;
 }
 
 .title-artemis {
@@ -32,7 +24,16 @@ body {
     margin-left: 15%;
     top: 500px;
     size: 25;
-    font-size: 300%;
+    font-size: 400%;
+
+}
+
+.title-exploration {
+    color: white;
+    font-family: "Inter", sans-serif;
+    margin-left: 15%;
+    top: 600px;
+    font-size: 140%;
 
 }
 
@@ -42,38 +43,18 @@ p {
     color: white;
 }
 
-#lunar-gateway {
-    background-image: url(imagensp/astronauta.jpg);
-    background-repeat: no-repeat;
-}
-
-.title-habitating {
-    color: white;
-    font-family: "Inter", sans-serif;
-    margin-left: 15%;
-    top: 500px;
-    font-size: 300%;
-}
-
-.title-gateway {
-    color: white;
-    font-family: "Inter", sans-serif;
-    margin-left: 15%;
-    top: 500px;
-    size: 25;
-    font-size: 300%;
-
-}
-
 #textdefault {
     text-align: center;
     background-color: black;
+    padding-top: 2%;
+    margin-left: 10%;
+    margin-right: 10%;
 }
 
 #apolloimg {
-    margin-left: 20%;
-    margin-right: 20%;
     background-repeat: no-repeat;
+    display: flex;
+    justify-content: center;
 }
 
 #latest-news {
@@ -82,4 +63,22 @@ p {
     font-size: 300%;
     text-align: center;
 
+}
+
+.hero {
+    width: 100%;
+    height: 750px;
+    opacity: 50%;
+    object-fit: cover;
+    object-position: center;
+}
+
+.newstitles {
+    position: absolute;
+    top: 50%;
+    right: 20%;
+    transform: translate(0, -50%);
+    color: white;
+    text-align: left;
+    width: auto;
 }
