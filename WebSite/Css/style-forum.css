@@ -7,13 +7,18 @@
 
 section#forum {
     margin: 0 auto;
-    width: 90%;
+    width: 70%;
     margin-bottom: 4%;
 }
 
 section#forum h1 {
     text-align: center;
-    font-size: 50px;
+    font-size: 30px;
+    color: white;
+}
+
+section#forum h2 {
+    font-size: 20px;
     color: white;
 }
 
@@ -21,12 +26,12 @@ div.topic-container {
     margin-bottom: 3%;
     border: 1px solid white;
     border-radius: 20px;
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: #141a26;
     cursor: pointer;
 }
 
 div.topic-container:hover {
-    background-color: rgba(255, 255, 255, 0.15);
+    background-color: #272f40;
     position: relative;
     width: 105%;
     left: -2.5%;
@@ -36,17 +41,14 @@ div.topic-container div.topic-content {
     margin: 2%;
 }
 
-section#forum h2 {
-    font-size: 30px;
-    color: white;
-}
-
 section#forum div.topic-container div.topic-content > p {
     color: var(--cinza);
+    font-size: 14px;
 }
 
 footer.topic-info p {
     display: inline;
     margin-right: 2%;
     color: white;
+    font-size: 14px;
 }
