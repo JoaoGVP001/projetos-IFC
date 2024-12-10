@@ -1,0 +1,490 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap'); 
+
+body {
+    margin: 0; 
+    font-family: "Inter", sans-serif;
+    background: url('images/2166.jpg') no-repeat center center fixed;
+    background-size: cover;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header e Navbar */
+header {
+    background-color: black; 
+}
+
+#navbar {
+    display: flex; 
+    align-items: center; 
+    padding: 0 20px; 
+    height: 50px;
+    border-bottom: 1px solid var(--cinza);
+}
+
+#navbar ul {
+    list-style-type: none; 
+    margin: 0; 
+    padding: 0; 
+    display: flex; 
+    margin-left: auto;
+}
+
+#navbar li {
+    flex-grow: 1; 
+}
+
+#navbar a {
+    display: block; 
+    color: white; 
+    text-align: center; 
+    padding: 15px; 
+    text-decoration: none; 
+}
+
+#navbar a:hover {
+    background-color: grey; 
+}
+
+#logo {
+    width: 135px; 
+    height: 20px; 
+    margin: 5px;
+    cursor: pointer;
+}
+
+/*Parte do botão de ícone/perfil */
+#profile {
+    position: relative; 
+    cursor: pointer; 
+}
+
+#profile-icon {
+    width: 30px; 
+    height: 30px; 
+    margin-left: 20px;
+}
+
+#dropdown {
+    position: absolute; 
+    right: 0; 
+    background-color: black;
+    box-shadow: 0 2px 8px black; 
+    z-index: 1000; 
+}
+
+#dropdown a {
+    display: block; 
+    padding: 10px; 
+    color: white; 
+    text-decoration: none;
+    border: solid 0.5px white;
+}
+
+#dropdown a:hover {
+    background-color: grey; 
+}
+
+/* Classe para esconder o dropdown */
+.hidden {
+    display: none; /* Esconde o dropdown */
+}
+
+#overlay {
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%; 
+    background-color: rgba(0, 0, 0, 0.90); 
+    z-index: 999;
+}
+
+
+:root {
+    --cinza: #333333;
+    --cinza-claro: #D9D9D9;
+}
+
+/* Seção Hero */
+.fundoastronauta {
+    background-color: black;
+    position: relative;
+    flex: 1;
+}
+
+.imgastronaut {
+    width: 100%;
+    height: 750px;
+    opacity: 50%;
+    object-fit: cover;
+    object-position: center;
+}
+
+.overlay-text {
+    position: absolute;
+    top: 50%;
+    right: 15%;
+    transform: translate(0, -50%);
+    color: white;
+    text-align: left;
+    width: auto;
+}
+
+.subtitle {
+    font-size: 1em;
+    margin: 0 0 5px 0;
+    font-weight: bold;
+    text-align: left;
+}
+
+.title {
+    font-size: 3em;
+    margin: 0;
+    font-weight: bold;
+    text-align: left;
+}
+
+/* Footer */
+footer#footer {
+    border-top: 1px solid var(--cinza);
+    background-color: black;
+    width: 100%;
+    padding: 20px 0;
+    margin-top: auto;
+}
+
+footer#footer div {
+    width: 80%;
+    display: flex;
+    position: relative;
+    align-items: center;
+    left: 20%;
+    padding: 15px 0;
+}
+
+footer#footer div > * {
+    margin-right: 10%;
+}
+
+footer#footer img {
+    display: inline-block;
+    cursor: pointer;
+    position: relative;
+}
+
+footer#footer img#logo-ifc {
+    width: 6%;
+}
+
+footer#footer button#artigo {
+    color: black;
+    background-color: var(--cinza-claro);
+    border-radius: 20px;
+    padding: 10px;
+    cursor: pointer;
+    border: 0;
+    font-weight: bold;
+}
+
+footer#footer img#icon-up-arrow {
+    width: 40px;  /* Tamanho fixo em pixels */
+    height: 40px; /* Mantém proporção quadrada */
+    border: 1px solid white;
+    border-radius: 50%;
+    padding: 5px;
+    transition: opacity 0.3s;
+}
+
+#back-to-top {
+    text-decoration: none;
+    cursor: pointer;
+    display: inline-block;
+    margin-right: 10%;
+}
+
+#back-to-top:hover img {
+    opacity: 0.8;
+}
+
+footer#footer p {
+    color: white; /* Adicionado para garantir que o texto seja visível no fundo preto */
+}
+
+footer#footer img#icon-email {
+    width: 3%; /* Ajuste conforme necessário */
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .overlay-text {
+        right: 15%;
+        transform: translate(0, -50%);
+        text-align: left;
+    }
+    
+    .title {
+        font-size: 2em;
+        text-align: left;
+    }
+}
+
+.info-section {
+    background-color: black;
+    color: white;
+    padding: 80px 0;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.info-section h2 {
+    font-size: 2.5em;
+    margin-bottom: 30px;
+    text-transform: uppercase;
+}
+
+.info-section p {
+    font-size: 1.2em;
+    line-height: 1.6;
+    color: #cccccc;
+    margin-bottom: 20px;
+    text-align: justify;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .info-section {
+        padding: 40px 0;
+    }
+    
+    .info-section h2 {
+        font-size: 2em;
+    }
+    
+    .info-section p {
+        font-size: 1em;
+    }
+}
+
+.info-section em {
+    font-style: italic;
+    color: white; /* Para destacar um pouco mais o texto em itálico */
+}
+
+.image-container {
+    margin-top: 40px;
+    width: 100%;
+}
+
+.apollo-image {
+    width: 100%;
+    height: 550px;
+    border-radius: 15px;
+    object-fit: cover;
+    object-position: center 10%;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .apollo-image {
+        height: 400px;
+        object-position: center 10%;
+    }
+}
+
+.gatewaysymbol-image {
+    width: 50%;
+    height: 50%;
+    object-fit: cover;
+    object-position: center 50%;
+    size: 70%;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .gatewaysymbol-image {
+        height: 400px;
+        object-position: center 10%;
+    }
+}
+
+/* Seção do Carrossel de Notícias */
+.news-carousel-section {
+    background-color: black;
+    padding: 80px 0;
+    color: white;
+}
+
+.news-carousel-section h2 {
+    text-align: center;
+    font-size: 2.5em;
+    margin-bottom: 50px;
+    text-transform: uppercase;
+}
+
+.carousel-container {
+    position: relative;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 40px;
+    overflow: hidden;
+}
+
+/* Adiciona máscaras de fade nas laterais */
+.carousel-container::before,
+.carousel-container::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    width: 100px;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.carousel-container::before {
+    left: 0;
+    background: linear-gradient(to right, rgb(0, 0, 0) 0%, rgba(0, 0, 0, 0) 100%);
+}
+
+.carousel-container::after {
+    right: 0;
+    background: linear-gradient(to left, rgb(0, 0, 0) 0%, rgba(0, 0, 0, 0) 100%);
+}
+
+.carousel {
+    display: flex;
+    gap: 30px;
+    overflow: visible;
+    transition: transform 0.5s ease;
+}
+
+.carousel-item {
+    min-width: calc((100% - 60px) / 3);
+    opacity: 1;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    position: relative;
+}
+
+.carousel-item:hover {
+    transform: translateY(-10px);
+}
+
+.carousel-item img {
+    width: 100%;
+    height: 700px;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+.news-info {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 20px;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.9));
+    border-radius: 0 0 10px 10px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.news-info h3 {
+    margin: 0 0 10px 0;
+    font-size: 1.2em;
+}
+
+.news-info p {
+    margin: 0;
+    font-size: 0.9em;
+    opacity: 0.8;
+}
+
+.carousel-button {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+    font-size: 18px;
+    transition: background-color 0.3s;
+    z-index: 2;
+}
+
+.carousel-button:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.prev {
+    left: 0;
+}
+
+.next {
+    right: 0;
+}
+
+.carousel-item:hover .news-info {
+    opacity: 1;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .carousel-container {
+        padding: 0 20px;
+    }
+    
+    .carousel-item {
+        min-width: 250px;
+    }
+    
+    .carousel-item img {
+        height: 500px;
+    }
+}
+
+.second-hero {
+    background-color: black;
+    position: relative;
+    width: 100%;
+}
+
+.hero-image {
+    width: 100%;
+    height: 750px;
+    opacity: 50%;
+    object-fit: cover;
+    object-position: center;
+}
+
+.overlay-text-right {
+    position: absolute;
+    top: 50%;
+    left: 15%;  /* Mudado para left ao invés de right */
+    transform: translate(0, -50%);
+    color: white;
+    text-align: left;
+    width: auto;
+}
+
+/* Responsividade para a nova seção */
+@media (max-width: 768px) {
+    .overlay-text-right {
+        left: 15%;
+        transform: translate(0, -50%);
+        text-align: left;
+    }
+    
+    .hero-image {
+        height: 500px;
+    }
+}
