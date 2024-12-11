@@ -17,8 +17,10 @@ body {
 .container {
   display: flex;
   justify-content: center;
+  position: relative;
   width: 100%;
-  margin-top: 100px;
+  margin-top: 10%;
+  margin-bottom: 10%;
 }
 
 .card {
@@ -62,7 +64,6 @@ h1{
 
 .label-float label{
   color: #272262;
-  pointer-event: none;
   position: absolute;
   top: 0;
   left: 0;

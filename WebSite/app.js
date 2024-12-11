@@ -1,7 +1,7 @@
 const express = require("express");
 const path = require("path");
-const User = require("./Models/user");
-const sequelize = require('./Config/database-config');
+//const User = require("./Models/user");
+//const sequelize = require('./Config/database-config');
 
 const app = express();
 
@@ -28,7 +28,7 @@ app.get("/login", (req, res) => {
   res.sendFile(path.join(__dirname, "login.html"));
 })
 
-app.get('/test', async (req, res) => {
+/* app.get('/test', async (req, res) => {
     try {
       // Recupera todos os produtos do banco de dados
       const users = await User.findAll();
@@ -39,12 +39,17 @@ app.get('/test', async (req, res) => {
       console.error('Erro ao recuperar produtos:', error);
       res.status(500).send('Erro ao recuperar produtos');
     }
-  });
+  }); */
 
-sequelize.sync().then(() => {
+/* sequelize.sync().then(() => {
     console.log('Banco de dados sincronizado!');
     const port = 3000;
     app.listen(port, () => {
       console.log(`Servidor rodando na porta ${port}`);
     });
+  }); */
+
+const port = 3000;
+  app.listen(port, () => {
+    console.log(`Servidor rodando na porta ${port}`);
   });
