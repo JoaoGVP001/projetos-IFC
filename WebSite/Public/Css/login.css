@@ -17,6 +17,8 @@ body {
 .container {
   display: flex;
   justify-content: center;
+  position: relative;
+  margin-bottom: 10%;
   width: 100%;
   margin-top: 100px;
 }
@@ -62,7 +64,6 @@ h1{
 
 .label-float label{
   color: #272262;
-  pointer-event: none;
   position: absolute;
   top: 0;
   left: 0;
@@ -323,4 +324,3 @@ footer#footer p {
 
 footer#footer img#icon-email {
   width: 3%; /* Ajuste conforme necessário */
-}
