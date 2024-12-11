@@ -1,7 +1,7 @@
 const express = require("express");
 const path = require("path");
 const User = require("./Models/user");
-const sequelize = require('./config/database-config');
+const sequelize = require('./Config/database-config');
 
 const app = express();
 
@@ -17,11 +17,15 @@ app.get("/", (req, res) => {
 });
 
 app.get("/news", (req, res) => {
-    res.sendFile(path.join(publicPath, "news.html"));
+    res.render("news");
 });
 
 app.get("/forum", (req, res) => {
-    res.sendFile(path.join(publicPath, "forum.html"));
+    res.render("forum");
+})
+
+app.get("/login", (req, res) => {
+  res.sendFile(path.join(__dirname, "login.html"));
 })
 
 app.get('/test', async (req, res) => {
@@ -30,7 +34,7 @@ app.get('/test', async (req, res) => {
       const users = await User.findAll();
       
       // Renderiza a página EJS com os produtos
-      res.render('index', { users });
+      res.render('test', { users });
     } catch (error) {
       console.error('Erro ao recuperar produtos:', error);
       res.status(500).send('Erro ao recuperar produtos');
