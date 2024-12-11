@@ -18,9 +18,9 @@ body {
   display: flex;
   justify-content: center;
   position: relative;
-  width: 100%;
-  margin-top: 10%;
   margin-bottom: 10%;
+  width: 100%;
+  margin-top: 100px;
 }
 
 .card {
@@ -324,4 +324,3 @@ footer#footer p {
 
 footer#footer img#icon-email {
   width: 3%; /* Ajuste conforme necessário */
-}
