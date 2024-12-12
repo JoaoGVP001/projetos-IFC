@@ -4,30 +4,84 @@
   margin: 0;
   padding: 0;
   font-family: 'Roboto', sans-serif;
+  box-sizing: border-box;
 }
 
 body {
   background-image: url("../images/bg-signin.jpg");
   background-repeat: no-repeat;
   background-size: cover;
-  background-attachment: fixed
-  
+  background-attachment: fixed;
+  background-color: black;
 }
 
 .container {
   display: flex;
   justify-content: center;
   position: relative;
-  margin-bottom: 10%;
-  width: 100%;
-  margin-top: 10%;
+  left: 20%;
+  margin-bottom: 5%;
+  width: 60%;
+  margin-top: 5%;
+  background-color: #ffffffd5;
+  border-radius: 4%;
 }
 
 .card {
-  background-color: #ffffff80;
-  padding: 30px;
+  padding: 1%;
   border-radius: 4%;
-  box-shadow: 3px 3px 1px 0px #00000060
+  height: 30%;
+  margin: 5%;
+  width: 40%;
+}
+
+#greetings-container {
+  position: absolute;
+  top: -7.5%;
+  height: 100%;
+  width:52%;
+  background-color: #3d2fe0;
+}
+
+.right {
+  left: 43%;
+  border-top-left-radius: 30%;
+  border-bottom-left-radius: 30%;
+}
+
+.left {
+  right: 43%;
+  border-top-right-radius: 30%;
+  border-bottom-right-radius: 30%;
+}
+
+#greetings {
+  margin: 12%;
+  margin-top: 40%;
+  margin-bottom: 40%;
+  width: 80%;
+}
+
+#greetings h1 {
+  text-align: center;
+  color: white;
+  font-size: 2em;
+}
+
+#greetings p {
+  color: white;
+  font-size: 16px;
+}
+
+#greetings button {
+  position: relative;
+  left: 30%;
+  border: 1px solid white;
+  color: white;
+  padding: 3%;
+  padding-left: 5%;
+  padding-right: 5%;
+  border-radius: 10px;
 }
 
 h1{
@@ -68,7 +122,7 @@ h1{
   top: 0;
   left: 0;
   margin-top: 13px;
-  transition: all .3s ease-out;
+  transition: all .05s ease-out;
 }
 
 .label-float input:focus + label,
@@ -80,7 +134,7 @@ h1{
 
 button{
   background-color: transparent;
-  border-color: #272262;
+  border: 1px solid #272262;
   color: #272262;
   padding: 7px;
   font-weight: bold;
@@ -106,6 +160,7 @@ hr{
   margin-top: 10%;
   margin-bottom: 10%;
   width: 60%;
+  border: 1px solid #272262;
 }
 
 p{
@@ -156,6 +211,7 @@ header {
   align-items: center; 
   padding: 0 20px; 
   height: 50px;
+  border-bottom: 1px solid white;
 }
 
 #navbar ul {

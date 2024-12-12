@@ -9,7 +9,7 @@
       href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
     />
     <link rel="stylesheet" href="Css/login.css" />
-    <title>Singin</title>
+    <title>Login</title>
   </head>
   <body>
     <header>
@@ -30,7 +30,7 @@
         </section>
     </header>
     <div class="container">
-      <div class="card">
+      <div class="card" id="login">
         <h1>Entrar</h1>
 
         <div id="msgError"></div>
@@ -61,22 +61,60 @@
           </a>
         </p>
       </div>
-    </div>
+      <div class="card" id="register">
+        <h1>Cadastrar</h1>
 
-    <footer id="footer">
-        <div>
-            <img src="Icons/icon-ifc.png" alt="Logo IFC" id="logo-ifc">
-            <img src="Icons/icon-email.png" alt="Icone Email" id="icon-email">
-            <p>lunarwaysite@gmail.com</p>
-            <a href="PI_2024___Grupo_1.pdf" id="artigo" download>Nosso Artigo</a>
-            <a href="#" id="back-to-top">
-                <img src="Icons/icon-up-arrow.png" alt="Icone voltar início" id="icon-up-arrow">
-            </a>
+        <div id="msgError"></div>
+        <div id="msgSuccess"></div>
+
+        <div class="label-float">
+          <input type="text" id="nome" placeholder=" " required />
+          <label id="labelNome" for="nome">Nome</label>
         </div>
-    </footer>
 
-    
+        <div class="label-float">
+          <input type="text" id="usuario" placeholder=" " required />
+          <label id="labelUsuario" for="usuario">Usuário</label>
+        </div>
 
+        <div class="label-float">
+          <input type="password" id="senha" placeholder=" " required />
+          <label id="labelSenha" for="senha">Senha</label>
+          <i id="verSenha" class="fa fa-eye" aria-hidden="true"></i>
+        </div>
+
+        <div class="label-float">
+          <input type="password" id="confirmSenha" placeholder=" " required />
+          <label id="labelConfirmSenha" for="confirmSenha"
+            >Confirmar Senha</label
+          >
+          <i id="verConfirmSenha" class="fa fa-eye" aria-hidden="true"></i>
+        </div>
+
+        <div class="justify-center">
+          <button onclick="cadastrar()">Cadastrar</button>
+        </div>
+
+        <div class="justify-center">
+          <hr />
+        </div>
+
+        <p>
+          Já possui uma conta?
+          <a href="./signup.html">
+            Entre
+          </a>
+        </p>
+      </div>
+      <div class="card right" id="greetings-container">
+        <div id="greetings">
+          <h1>Bem vindo de volta!</h1>
+          <p>Lorem ipsum dolor sit amet,
+          consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua</p>
+          <button>Cadastre-se</button>
+        </div>
+      </div>
+    </div>
     <script src="Js/effects.js"></script>
   </body>
 </html>

@@ -1,7 +1,7 @@
 const express = require("express");
 const path = require("path");
-//const User = require("./Models/user");
-//const sequelize = require('./Config/database-config');
+const User = require("./Models/user");
+const sequelize = require('./Config/database-config');
 
 const app = express();
 
@@ -41,15 +41,15 @@ app.get("/login", (req, res) => {
     }
   }); */
 
-/* sequelize.sync().then(() => {
+sequelize.sync().then(() => {
     console.log('Banco de dados sincronizado!');
     const port = 3000;
     app.listen(port, () => {
       console.log(`Servidor rodando na porta ${port}`);
     });
-  }); */
+  });
 
-const port = 3000;
+/* const port = 3000;
   app.listen(port, () => {
     console.log(`Servidor rodando na porta ${port}`);
-  });
+  }); */
