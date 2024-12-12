@@ -28,16 +28,22 @@ body {
 }
 
 .card {
-  padding: 1%;
+  padding: 4%;
   border-radius: 4%;
   height: 30%;
   margin: 5%;
   width: 40%;
 }
 
+#login {
+  position: relative;
+  margin-top: 10%;
+  margin-bottom: 10%;
+}
+
 #greetings-container {
   position: absolute;
-  top: -7.5%;
+  top: -8%;
   height: 100%;
   width:52%;
   background-color: #3d2fe0;
@@ -50,15 +56,15 @@ body {
 }
 
 .left {
-  right: 43%;
+  left: -5%;
   border-top-right-radius: 30%;
   border-bottom-right-radius: 30%;
 }
 
 #greetings {
   margin: 12%;
-  margin-top: 40%;
-  margin-bottom: 40%;
+  margin-top: 30%;
+  margin-bottom: 30%;
   width: 80%;
 }
 
