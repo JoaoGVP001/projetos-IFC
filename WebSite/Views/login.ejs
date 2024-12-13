@@ -10,22 +10,21 @@
     />
     <link rel="stylesheet" href="Css/login.css" />
     <title>Login</title>
-    <style></style>
   </head>
   <body>
     <header>
         <section id="navbar">
             <img src="Imgs/logo.png" alt="LunarWay Logo" id="logo">
             <ul>
-                <li><a href="home.html">Início</a></li>
-                <li><a href="news.html">Notícias</a></li>
-                <li><a href="forum.html">Fórum</a></li>
+                <li><a href="/">Início</a></li>
+                <li><a href="/news">Notícias</a></li>
+                <li><a href="/forum">Fórum</a></li>
             </ul>
             <div id="profile">
                 <img src="Icons/icon-user.png" alt="Profile Icon" id="profile-icon" onclick="toggleDropdown()">
                 <div id="dropdown" class="hidden">
-                    <a href="#">CADASTRAR</a>
-                    <a href="#">LOGIN</a>
+                    <a href="/login?mode=register">CADASTRAR</a>
+                    <a href="/login?mode=login">LOGIN</a>
                 </div>
             </div>
         </section>
@@ -37,14 +36,14 @@
         <div id="msgError"></div>
 
         <div class="label-float">
-          <input type="text" id="usuario" paceholder="" required />
-          <label id="userLabel" for="usuario">Usuario</label>
+          <input type="text" id="user" paceholder="" required />
+          <label id="userLabel" for="user">Usuario</label>
         </div>
 
         <div class="label-float">
-          <input type="password" id="senha" paceholder="" required />
-          <label id="senhaLabel" for="senha">Senha</label>
-          <i class="fa fa-eye" aria-hidden="true"></i>
+          <input type="password" id="password-login" paceholder="" required />
+          <label id="senhaLabel" for="password-login">Senha</label>
+          <i class="fa fa-eye" aria-hidden="true" id="see-password-login"></i>
         </div>
 
         <div class="justify-center">
@@ -58,39 +57,38 @@
         <div id="msgSuccess"></div>
 
         <div class="label-float">
-          <input type="text" id="nome" placeholder=" " required />
-          <label id="labelNome" for="nome">Nome</label>
+          <input type="text" id="nickname" placeholder=" " required />
+          <label id="labelNome" for="nickname">Nome</label>
         </div>
 
         <div class="label-float">
-          <input type="text" id="usuario" placeholder=" " required />
-          <label id="labelUsuario" for="usuario">Usuário</label>
+          <input type="text" id="user" placeholder=" " required />
+          <label id="labelUsuario" for="user">Usuário</label>
         </div>
 
         <div class="label-float">
-          <input type="password" id="senha" placeholder=" " required />
-          <label id="labelSenha" for="senha">Senha</label>
-          <i id="verSenha" class="fa fa-eye" aria-hidden="true"></i>
+          <input type="password" id="password-register" placeholder=" " required />
+          <label id="labelSenha" for="password-register">Senha</label>
+          <i class="fa fa-eye" aria-hidden="true" id="see-password-register"></i>
         </div>
 
         <div class="label-float">
-          <input type="password" id="confirmSenha" placeholder=" " required />
-          <label id="labelConfirmSenha" for="confirmSenha"
+          <input type="password" id="confirm-password" placeholder=" " required />
+          <label id="labelConfirmSenha" for="confirm-password"
             >Confirmar Senha</label
           >
-          <i id="verConfirmSenha" class="fa fa-eye" aria-hidden="true"></i>
+          <i id="see-confirm-password" class="fa fa-eye" aria-hidden="true"></i>
         </div>
 
         <div class="justify-center">
           <button onclick="cadastrar()">Cadastrar</button>
         </div>
       </div>
-      <div class="card right" id="greetings-container">
+      <div class="card <%= mode %>" id="greetings-container">
         <div id="greetings">
-          <h1>Bem-Vindo de Volta!</h1>
-          <p>Lorem ipsum dolor sit amet,
-          consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua</p>
-          <button id="change-mode">Cadastre-se</button>
+          <h1><%= text[0]%></h1>
+          <p><%= text[1]%></p>
+          <button id="change-mode"><%= text[2]%></button>
         </div>
       </div>
     </div>

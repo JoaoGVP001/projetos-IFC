@@ -20,8 +20,8 @@
             <div id="profile">
                 <img src="Icons/icon-user.png" alt="Profile Icon" id="profile-icon" onclick="toggleDropdown()">
                 <div id="dropdown" class="hidden">
-                    <a href="#">CADASTRAR</a>
-                    <a href="#">LOGIN</a>
+                    <a href="/login?mode=register">CADASTRAR</a>
+                    <a href="/login?mode=login">LOGIN</a>
                 </div>
             </div>
         </section>
@@ -85,15 +85,29 @@
             </div>
         </div>
     </section>
+
+    <div id="overlay" class="hidden" onclick="toggleDropdown()"></div>
+
     <footer id="footer">
         <div>
             <img src="Icons/icon-ifc.png" alt="Logo IFC" id="logo-ifc">
             <img src="Icons/icon-email.png" alt="Icone Email" id="icon-email">
             <p>lunarwaysite@gmail.com</p>
             <a href="PI_2024___Grupo_1.pdf" id="artigo" download>Nosso Artigo</a>
-            <img src="Icons/icon-up-arrow.png" alt="Icone voltar início" id="icon-up-arrow">
+            <a href="#" id="back-to-top">
+                <img src="Icons/icon-up-arrow.png" alt="Icone voltar início" id="icon-up-arrow">
+            </a>
         </div>
     </footer>
+    <script src="Js/effects.js"></script>
+    <script>
+        document.getElementById('back-to-top').addEventListener('click', function(e) {
+            e.preventDefault();
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    </script>
 </body>
-<script src="Js/effects.js"></script>
 </html>

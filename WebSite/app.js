@@ -16,8 +16,20 @@ app.get("/", (req, res) => {
     res.render("home");
 });
 
+app.get("/home", (req, res) => {
+  res.render("home");
+});
+
 app.get("/news", (req, res) => {
     res.render("news");
+});
+
+app.get("/news2", (req, res) => {
+  res.render("news2");
+});
+
+app.get("/news3", (req, res) => {
+  res.render("news3");
 });
 
 app.get("/forum", (req, res) => {
@@ -25,7 +37,26 @@ app.get("/forum", (req, res) => {
 })
 
 app.get("/login", (req, res) => {
-  res.sendFile(path.join(__dirname, "login.html"));
+  const textLogin = [
+    "Bem-Vindo de Volta!",
+    "Estamos felizes que você está de volta! Se você ainda não possui uma conta, cadastre-se.",
+    "Cadastre-se"
+  ];
+  const textRegister = [
+    "Olá, Amigo!",
+    "Seja bem-vindo a LunarWay! O portal da informação do mundo espacial. Caso já tenha uma conta cadastrada acesse o login.",
+    "Entre"
+  ]
+  const modeParameter = req.query.mode || null;
+  let mode = "right";
+  let text = textLogin;
+
+  if(modeParameter === "register"){
+    mode = "left"
+    text = textRegister;
+  }
+
+  res.render("login", { mode, text });
 })
 
 /* app.get('/test', async (req, res) => {

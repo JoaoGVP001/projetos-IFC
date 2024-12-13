@@ -248,6 +248,7 @@ header {
   width: 135px; 
   height: 20px; 
   margin: 5px; 
+  cursor: pointer;
 }
 
 /*Parte do botão de ícone/perfil */
