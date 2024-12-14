@@ -7,7 +7,28 @@ const app = express();
 
 const publicPath = path.join(__dirname, "Public");
 
+const textLogin = [
+  "Bem-Vindo de Volta!",
+  "Estamos felizes que você está de volta! Se você ainda não possui uma conta, cadastre-se.",
+  "Cadastre-se"
+];
+const textRegister = [
+  "Olá, Amigo!",
+  "Seja bem-vindo a LunarWay! O portal da informação do mundo espacial. Caso já tenha uma conta cadastrada acesse o login.",
+  "Entre"
+]
+const numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+let username = undefined;
+let modeSide = "right";
+let text = textLogin;
+let visibilityErrorLogin = "invisible";
+let visibilityErrorRegister = "invisible";
+let visibilitySuccess = "invisible";
+let msgError = "";
+
 app.use(express.static(publicPath));
+app.use(express.urlencoded({ extended: true }));
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
@@ -37,27 +58,68 @@ app.get("/forum", (req, res) => {
 })
 
 app.get("/login", (req, res) => {
-  const textLogin = [
-    "Bem-Vindo de Volta!",
-    "Estamos felizes que você está de volta! Se você ainda não possui uma conta, cadastre-se.",
-    "Cadastre-se"
-  ];
-  const textRegister = [
-    "Olá, Amigo!",
-    "Seja bem-vindo a LunarWay! O portal da informação do mundo espacial. Caso já tenha uma conta cadastrada acesse o login.",
-    "Entre"
-  ]
-  const modeParameter = req.query.mode || null;
-  let mode = "right";
-  let text = textLogin;
-
-  if(modeParameter === "register"){
-    mode = "left"
-    text = textRegister;
+  const modeParameter = req.query.mode;
+  if(modeParameter == "successful"){
+    res.render("successful-login", { username });
   }
+  else{
+    if(modeParameter == "register"){
+      modeSide = "left";
+      text = textRegister
+    }
+    else{
+      modeSide = "right";
+      text = textLogin
+    }
+    res.render("login", { modeSide, text, visibilityErrorLogin, visibilityErrorRegister, visibilitySuccess, msgError });
+  }
+  });
 
-  res.render("login", { mode, text });
-})
+app.post("/login/:mode", (req, res) => {
+  const modeParameter = req.params.mode;
+  visibilityErrorLogin = "invisible";
+  visibilityErrorRegister = "invisible";
+  visibilitySuccess = "invisible";
+  msgError = "";
+
+  if (modeParameter == "login") {
+    let {username, password} = req.body;
+    res.redirect("/login?mode=successful");
+  }
+  else if(modeParameter == "register"){
+    let name = req.body.name;
+    let username = req.body.username;
+    let password = req.body.password;
+    let confirmPassword = req.body.confirmPassword;
+
+    if(parseInt(username[0]) in numbers){
+      visibilityErrorRegister = "visible";
+      msgError = "O nome de usuário não deve iniciar com um número.";
+      res.redirect("/login?mode=register");
+    }
+    else if(username.length < 3){
+      visibilityErrorRegister = "visible";
+      msgError = "O nome de usuário deve conter pelo menos 3 dígitos.";
+      res.redirect("/login?mode=register");
+    }
+    else if(password.length < 6){
+      visibilityErrorRegister = "visible";
+      msgError = "A senha deve conter pelo menos 6 dígitos.";
+      res.redirect("/login?mode=register");
+    }
+    else if(password != confirmPassword){
+      visibilityErrorRegister = "visible";
+      msgError = "As senhas não são iguais";
+      res.redirect("/login?mode=register");
+    }
+    else{
+      visibilityErrorRegister = "invisible";
+      visibilitySuccess = "visible";
+      msgError = "";
+      res.redirect("/login?mode=register");
+    }
+  }
+});
 
 /* app.get('/test', async (req, res) => {
     try {
