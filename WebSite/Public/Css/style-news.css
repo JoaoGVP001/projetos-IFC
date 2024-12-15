@@ -26,6 +26,14 @@ a:hover{
     color: #272262;
 }
 
+.invisible {
+    display: none;
+}
+  
+.visible {
+    display: block;
+}
+
 #navbar {
     display: flex; 
     align-items: center; 
@@ -84,6 +92,7 @@ a:hover{
     background-color: black;
     box-shadow: 0 2px 8px black; 
     z-index: 1000; 
+    width: 200px;
 }
 
 #dropdown a {

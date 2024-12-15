@@ -8,7 +8,7 @@ const User = sequelize.define('User', {
     primaryKey: true,
     autoIncrement: true,
   },
-  nome: {
+  username: {
     type: DataTypes.STRING,
     allowNull: false,
   },
@@ -20,11 +20,12 @@ const User = sequelize.define('User', {
       isEmail: true,
     },
   },
-  senha: {
+  password: {
     type: DataTypes.STRING,
     allowNull: false,
   }
 }, {
+  tableName: "users",
   timestamps: false,
 });
 

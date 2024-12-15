@@ -16,6 +16,14 @@ a:hover{
     color: #272262;
 }
 
+.invisible {
+    display: none;
+}
+  
+.visible {
+    display: block;
+}
+
 section#forum {
     margin: 0 auto;
     width: 70%;

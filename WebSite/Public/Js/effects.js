@@ -3,7 +3,7 @@
 const logo = document.querySelector("img#logo");
 logo.addEventListener("click", () => {
   window.location.href = "/";
-})
+});
 
 //Caixa de login/cadastrar no menu
 
@@ -12,6 +12,20 @@ function toggleDropdown() {
     const overlay = document.getElementById('overlay');
     dropdown.classList.toggle('hidden');
     overlay.classList.toggle('hidden');
+}
+
+//Caixa de sair da conta no menu
+
+function signOut(){
+  const cookie = document.cookie;
+  if (cookie.indexOf("idUser=") !== -1) {
+    document.cookie = `idUser=${null}`;
+  }
+}
+
+if(document.querySelector("a#sign-out")){
+  let buttonSignOut = document.querySelector("a#sign-out");
+  buttonSignOut.addEventListener("click", signOut);
 }
 
 //Efeito para subir a página quando apertar o botão de voltar para cima

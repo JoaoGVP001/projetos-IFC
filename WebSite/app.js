@@ -1,4 +1,5 @@
 const express = require("express");
+const cookieParser = require('cookie-parser');
 const path = require("path");
 const User = require("./Models/user");
 const sequelize = require('./Config/database-config');
@@ -7,55 +8,149 @@ const app = express();
 
 const publicPath = path.join(__dirname, "Public");
 
-const textLogin = [
+const textsProfile = [`
+  <a href='/login?mode=register'>CADASTRAR</a>
+  <a href='/login?mode=login'>LOGIN</a>
+`,
+  "<a href='/' id='sign-out'>Sair da conta</a>"
+]
+
+const textsLogin = [
   "Bem-Vindo de Volta!",
   "Estamos felizes que você está de volta! Se você ainda não possui uma conta, cadastre-se.",
   "Cadastre-se"
 ];
-const textRegister = [
+const textsRegister = [
   "Olá, Amigo!",
   "Seja bem-vindo a LunarWay! O portal da informação do mundo espacial. Caso já tenha uma conta cadastrada acesse o login.",
   "Entre"
 ]
 const numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
+//Variável para checar se o usuário está logado
+
+let visibilityProfile = "invisible";
+let textProfile = textsProfile[0];
+
+//Variáveis da página de login/cadastro
+
 let username = undefined;
 let modeSide = "right";
-let text = textLogin;
+let textLogin = textsLogin;
 let visibilityErrorLogin = "invisible";
 let visibilityErrorRegister = "invisible";
 let visibilitySuccess = "invisible";
 let msgError = "";
 
 app.use(express.static(publicPath));
+app.use(cookieParser('lunarWay'));
 app.use(express.urlencoded({ extended: true }));
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-app.get("/", (req, res) => {
-    res.render("home");
+app.get("/", async (req, res) => {
+  if(req.cookies.idUser == "null"){
+    visibilityProfile = "invisible";
+    textProfile = textsProfile[0];
+  }
+  else{
+    visibilityProfile = "visible";
+    textProfile = textsProfile[1];
+
+    const userLogged = await User.findOne({
+      where: {
+        id: req.cookies.idUser
+      }
+    });
+    username = userLogged.username;
+  }
+  res.render("home", { username, visibilityProfile,textProfile });
 });
 
 app.get("/home", (req, res) => {
-  res.render("home");
+  res.redirect("/");
 });
 
-app.get("/news", (req, res) => {
-    res.render("news");
+app.get("/news", async (req, res) => {
+  if(req.cookies.idUser == "null"){
+    visibilityProfile = "invisible";
+    textProfile = textsProfile[0];
+  }
+  else{
+    visibilityProfile = "visible";
+    textProfile = textsProfile[1];
+
+    const userLogged = await User.findOne({
+      where: {
+        id: req.cookies.idUser
+      }
+    });
+    username = userLogged.username;
+  }
+  res.render("news", { username, visibilityProfile, textProfile });
 });
 
-app.get("/news2", (req, res) => {
-  res.render("news2");
+app.get("/news2", async (req, res) => {
+  if(req.cookies.idUser == "null"){
+    visibilityProfile = "invisible";
+    textProfile = textsProfile[0];
+  }
+  else{
+    visibilityProfile = "visible";
+    textProfile = textsProfile[1];
+
+    const userLogged = await User.findOne({
+      where: {
+        id: req.cookies.idUser
+      }
+    });
+    username = userLogged.username;
+  }
+  res.render("news2", { username, visibilityProfile, textProfile });
 });
 
-app.get("/news3", (req, res) => {
-  res.render("news3");
+app.get("/news3", async (req, res) => {
+  if(req.cookies.idUser == "null"){
+    visibilityProfile = "invisible";
+    textProfile = textsProfile[0];
+  }
+  else{
+    visibilityProfile = "visible";
+    textProfile = textsProfile[1];
+
+    const userLogged = await User.findOne({
+      where: {
+        id: req.cookies.idUser
+      }
+    });
+    username = userLogged.username;
+  }
+  res.render("news3", { username, visibilityProfile, textProfile });
 });
 
-app.get("/forum", (req, res) => {
-    res.render("forum");
-})
+app.get("/forum", async (req, res) => {
+  if(req.cookies.idUser == "null"){
+    visibilityProfile = "invisible";
+    textProfile = textsProfile[0];
+  }
+  else{
+    visibilityProfile = "visible";
+    textProfile = textsProfile[1];
+
+    const userLogged = await User.findOne({
+      where: {
+        id: req.cookies.idUser
+      }
+    });
+    username = userLogged.username;
+  }
+  res.render("forum", { username, visibilityProfile, textProfile });
+});
+
+app.get("/profile", (req, res) => {
+  res.render("profile");
+});
 
 app.get("/login", (req, res) => {
   const modeParameter = req.query.mode;
@@ -65,17 +160,17 @@ app.get("/login", (req, res) => {
   else{
     if(modeParameter == "register"){
       modeSide = "left";
-      text = textRegister
+      textLogin = textsRegister;
     }
     else{
       modeSide = "right";
-      text = textLogin
+      textLogin = textsLogin;
     }
-    res.render("login", { modeSide, text, visibilityErrorLogin, visibilityErrorRegister, visibilitySuccess, msgError });
+    res.render("login", { modeSide, textLogin, visibilityErrorLogin, visibilityErrorRegister, visibilitySuccess, msgError });
   }
   });
 
-app.post("/login/:mode", (req, res) => {
+app.post("/login/:mode", async (req, res) => {
   const modeParameter = req.params.mode;
   visibilityErrorLogin = "invisible";
   visibilityErrorRegister = "invisible";
@@ -83,39 +178,95 @@ app.post("/login/:mode", (req, res) => {
   msgError = "";
 
   if (modeParameter == "login") {
-    let {username, password} = req.body;
-    res.redirect("/login?mode=successful");
+    let usernameTyped = req.body.username;
+    let passwordTyped = req.body.password;
+    const existingUser = await User.findOne({
+      where: {
+        username: usernameTyped
+      }
+    });
+    if(existingUser == null){
+      visibilityErrorLogin = "visible";
+      msgError = `Não existe nenhuma conta com o nome de usuário de ${usernameTyped}`;
+      res.redirect("/login?mode=login");
+    }
+    else{
+      if(passwordTyped != existingUser.password){
+        visibilityErrorLogin = "visible";
+        msgError = "Nome de usuário e senha não correspondem.";
+        res.redirect("/login?mode=login");
+      }
+      else{
+        res.cookie("idUser", existingUser.id);
+        res.redirect("/login?mode=successful");
+      }
+    }
   }
   else if(modeParameter == "register"){
-    let name = req.body.name;
-    let username = req.body.username;
-    let password = req.body.password;
+    let usernameTyped = req.body.username;
+    let emailTyped = req.body.email;
+    let passwordTyped = req.body.password;
     let confirmPassword = req.body.confirmPassword;
 
-    if(parseInt(username[0]) in numbers){
+    const existingUser = await User.findOne({
+      where: {
+        username: usernameTyped
+      }
+    });
+
+    const existingEmail = await User.findOne({
+      where: {
+        email: emailTyped
+      }
+    });
+
+    if(parseInt(usernameTyped[0]) in numbers){
       visibilityErrorRegister = "visible";
       msgError = "O nome de usuário não deve iniciar com um número.";
       res.redirect("/login?mode=register");
     }
-    else if(username.length < 3){
+    else if(usernameTyped.length < 3){
       visibilityErrorRegister = "visible";
       msgError = "O nome de usuário deve conter pelo menos 3 dígitos.";
       res.redirect("/login?mode=register");
     }
-    else if(password.length < 6){
+    else if(passwordTyped.length < 6){
       visibilityErrorRegister = "visible";
       msgError = "A senha deve conter pelo menos 6 dígitos.";
       res.redirect("/login?mode=register");
     }
-    else if(password != confirmPassword){
+    else if(passwordTyped != confirmPassword){
       visibilityErrorRegister = "visible";
-      msgError = "As senhas não são iguais";
+      msgError = "As senhas não são iguais.";
+      res.redirect("/login?mode=register");
+    }
+    else if(existingUser){
+      visibilityErrorRegister = "visible";
+      msgError = "Usuário já cadastrado. Tente algo diferente.";
+      res.redirect("/login?mode=register");
+    }
+    else if(existingEmail){
+      visibilityErrorRegister = "visible";
+      msgError = "E-mail já cadastrado. Tente entrar na sua conta.";
       res.redirect("/login?mode=register");
     }
     else{
-      visibilityErrorRegister = "invisible";
-      visibilitySuccess = "visible";
-      msgError = "";
+      try{
+        visibilityErrorRegister = "invisible";
+        visibilitySuccess = "visible";
+        msgError = "";
+        const user = await User.create({
+          username: usernameTyped,
+          email: emailTyped,
+          password: passwordTyped
+        });
+      }
+      catch(error){
+        visibilityErrorRegister = "visible";
+        visibilitySuccess = "invisible";
+        msgError = "Ocorreu um erro tente novamente mais tarde.";
+        console.log(error)
+      }
       res.redirect("/login?mode=register");
     }
   }

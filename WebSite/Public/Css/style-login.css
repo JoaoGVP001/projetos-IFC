@@ -292,6 +292,8 @@ header {
   color: white; 
   text-decoration: none;
   border: solid 0.5px white;
+  padding-left: 20px;
+  padding-right: 20px;
 }
 
 #dropdown a:hover {

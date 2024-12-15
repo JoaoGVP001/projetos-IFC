@@ -14,12 +14,12 @@
                 <li><a href="/">Início</a></li>
                 <li><a href="/news">Notícias</a></li>
                 <li><a href="/forum">Fórum</a></li>
+                <li class="<%= visibilityProfile %>"><a href="/profile"><%- username %></a></li>
             </ul>
             <div id="profile">
                 <img src="Icons/icon-user.png" alt="Profile Icon" id="profile-icon" onclick="toggleDropdown()">
                 <div id="dropdown" class="hidden">
-                    <a href="/login?mode=register">CADASTRAR</a>
-                    <a href="/login?mode=login">LOGIN</a>
+                    <%- textProfile %>
                 </div>
             </div>
         </section>

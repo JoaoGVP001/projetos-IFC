@@ -8,7 +8,7 @@
       rel="stylesheet"
       href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
     />
-    <link rel="stylesheet" href="Css/login.css" />
+    <link rel="stylesheet" href="Css/style-login.css" />
     <title>Login</title>
   </head>
   <body>
@@ -59,13 +59,13 @@
 
         <form action="/login/register" method="POST">
           <div class="label-float">
-            <input type="text" name="name" id="name" placeholder=" " required />
-            <label id="labelNome" for="name">Nome</label>
+            <input type="text" name="username" id="username-register" placeholder=" " required />
+            <label id="labelUsuario" for="username-register">Usuário</label>
           </div>
 
           <div class="label-float">
-            <input type="text" name="username" id="username-register" placeholder=" " required />
-            <label id="labelUsuario" for="username-register">Usuário</label>
+            <input type="text" name="email" id="email" placeholder=" " required />
+            <label id="labelUsuario" for="email">E-mail</label>
           </div>
 
           <div class="label-float">
@@ -88,9 +88,9 @@
       </div>
       <div class="card <%= modeSide %>" id="greetings-container">
         <div id="greetings">
-            <h1><%= text[0]%></h1>
-            <p><%= text[1]%></p>
-            <button id="change-mode"><%= text[2]%></button>
+            <h1><%= textLogin[0]%></h1>
+            <p><%= textLogin[1]%></p>
+            <button id="change-mode"><%= textLogin[2]%></button>
         </div>
       </div>
     </div>
