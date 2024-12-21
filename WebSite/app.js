@@ -27,10 +27,14 @@ const textsRegister = [
 ]
 const numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
-//Variável para checar se o usuário está logado
+//Variáveis para checar se o usuário está logado
 
 let visibilityProfile = "invisible";
 let textProfile = textsProfile[0];
+
+//Variável para checar a visibilidade da função de adicionar tópico no fórum
+
+let visibilityAddTopic = "invisible";
 
 //Variáveis da página de login/cadastro
 
@@ -132,10 +136,12 @@ app.get("/news3", async (req, res) => {
 app.get("/forum", async (req, res) => {
   if(req.cookies.idUser == "null"){
     visibilityProfile = "invisible";
+    visibilityAddTopic = "invisible";
     textProfile = textsProfile[0];
   }
   else{
     visibilityProfile = "visible";
+    visibilityAddTopic = "visible";
     textProfile = textsProfile[1];
 
     const userLogged = await User.findOne({
@@ -145,11 +151,28 @@ app.get("/forum", async (req, res) => {
     });
     username = userLogged.username;
   }
-  res.render("forum", { username, visibilityProfile, textProfile });
+  res.render("forum", { username, visibilityAddTopic, visibilityProfile, textProfile });
 });
 
-app.get("/profile", (req, res) => {
-  res.render("profile");
+app.get("/add-topic", async (req, res) => {
+  if(req.cookies.idUser == "null"){
+    visibilityProfile = "invisible";
+    visibilityAddTopic = "invisible";
+    textProfile = textsProfile[0];
+  }
+  else{
+    visibilityProfile = "visible";
+    visibilityAddTopic = "visible";
+    textProfile = textsProfile[1];
+
+    const userLogged = await User.findOne({
+      where: {
+        id: req.cookies.idUser
+      }
+    });
+    username = userLogged.username;
+  }
+  res.render("add-topic", { username, visibilityProfile, textProfile })
 });
 
 app.get("/login", (req, res) => {

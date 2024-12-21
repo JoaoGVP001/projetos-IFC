@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="Css/style-news.css">
+    <link rel="stylesheet" href="Css/global.css">
+    <link rel="stylesheet" href="Css/header.css">
+    <link rel="stylesheet" href="Css/footer.css">
     <title>Notícias</title>
 </head>
 <body>
@@ -14,7 +17,7 @@
                 <li><a href="/">Início</a></li>
                 <li><a href="/news">Notícias</a></li>
                 <li><a href="/forum">Fórum</a></li>
-                <li class="<%= visibilityProfile %>"><a href="/profile"><%- username %></a></li>
+                <li class="<%= visibilityProfile %>"><a><%- username %></a></li>
             </ul>
             <div id="profile">
                 <img src="Icons/icon-user.png" alt="Profile Icon" id="profile-icon" onclick="toggleDropdown()">

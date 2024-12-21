@@ -28,6 +28,13 @@ if(document.querySelector("a#sign-out")){
   buttonSignOut.addEventListener("click", signOut);
 }
 
+if(document.querySelector("div#add-topic")){
+  let divAddTopic = document.querySelector("div#add-topic");
+  divAddTopic.addEventListener("click", () => {
+    window.location.href = "/add-topic";
+  })
+}
+
 //Efeito para subir a página quando apertar o botão de voltar para cima
 
 if(document.getElementById('back-to-top') != null){

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LunarWay - Adicionar Tópico</title>
+    <link rel="stylesheet" href="Css/style-add-topic.css">
+    <link rel="stylesheet" href="Css/global.css">
+    <link rel="stylesheet" href="Css/header.css">
+    <link rel="stylesheet" href="Css/footer.css">
+</head>
+<body>
+    <header>
+        <section id="navbar">
+            <img src="Imgs/logo.png" alt="LunarWay Logo" id="logo">
+            <ul>
+                <li><a href="/">Início</a></li>
+                <li><a href="/news">Notícias</a></li>
+                <li><a href="/forum">Fórum</a></li>
+                <li class="<%= visibilityProfile %>"><a><%- username %></a></li>
+            </ul>
+            <div id="profile">
+                <img src="Icons/icon-user.png" alt="Profile Icon" id="profile-icon" onclick="toggleDropdown()">
+                <div id="dropdown" class="hidden">
+                    <%- textProfile %>
+                </div>
+            </div>
+        </section>
+    </header> 
+    
+    <div id="form-container">
+        <div id="form-content">
+            <h1>Adicionar Tópico</h1>
+            <form action="/add-topic" method="post">
+                <div class="label-float">
+                    <label id="topic-name-label" for="topic-name">Nome do Tópico:</label>
+                    <br>
+                    <input type="text" name="topicName" id="topic-name">
+                </div>
+                <hr>
+                <div class="label-float">
+                    <label id="topic-description-label" for="topic-description">Descrição:</label>
+                    <br>
+                    <textarea name="topicDescription" id="topic-description" rows="6"></textarea>
+                </div>
+                <button type="submit">Adicionar</button>
+            </form>
+        </div>
+    </div>
+
+    <footer id="footer">
+        <div>
+            <img src="Icons/icon-ifc.png" alt="Logo IFC" id="logo-ifc">
+            <img src="Icons/icon-email.png" alt="Icone Email" id="icon-email">
+            <p>lunarwaysite@gmail.com</p>
+            <a href="PI_2024___Grupo_1.pdf" id="artigo" download>Nosso Artigo</a>
+        </div>
+    </footer>
+    <script src="Js/effects.js"></script>
+</body>
+</html>
