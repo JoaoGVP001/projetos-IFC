@@ -2,7 +2,9 @@ const express = require("express");
 const cookieParser = require('cookie-parser');
 const path = require("path");
 const User = require("./Models/user");
+const Topic = require('./Models/topic');
 const sequelize = require('./Config/database-config');
+const { name } = require("ejs");
 
 const app = express();
 
@@ -32,9 +34,10 @@ const numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 let visibilityProfile = "invisible";
 let textProfile = textsProfile[0];
 
-//Variável para checar a visibilidade da função de adicionar tópico no fórum
+//Variáveis para página de adicionar tópico no fórum
 
 let visibilityAddTopic = "invisible";
+let visibilityErrorAddTopic = "invisible";
 
 //Variáveis da página de login/cadastro
 
@@ -154,15 +157,14 @@ app.get("/forum", async (req, res) => {
   res.render("forum", { username, visibilityAddTopic, visibilityProfile, textProfile });
 });
 
-app.get("/add-topic", async (req, res) => {
+app.get("/forum/add-topic", async (req, res) => {
   if(req.cookies.idUser == "null"){
     visibilityProfile = "invisible";
-    visibilityAddTopic = "invisible";
     textProfile = textsProfile[0];
   }
   else{
     visibilityProfile = "visible";
-    visibilityAddTopic = "visible";
+    visibilityErrorAddTopic = "visible";
     textProfile = textsProfile[1];
 
     const userLogged = await User.findOne({
@@ -172,8 +174,50 @@ app.get("/add-topic", async (req, res) => {
     });
     username = userLogged.username;
   }
-  res.render("add-topic", { username, visibilityProfile, textProfile })
+  res.render("add-topic", { username, visibilityProfile, visibilityErrorAddTopic, msgError, textProfile })
 });
+
+app.post("/add-topic", async (req, res) => {
+  let nameTopicTyped = req.body.topicName;
+  let descriptionTopicTyped = req.body.topicDescription;
+
+  if(req.cookies.idUser == "null"){
+    visibilityErrorAddTopic = "visible";
+    msgError = "Você não está logado. Por favor faça login e tente novamente.";
+    console.log("ola")
+    res.redirect("/forum/add-topic")
+  }
+  else{
+    if (nameTopicTyped.length < 5){
+      visibilityErrorAddTopic = "visible";
+      msgError = "O nome do tópico deve conter pelo menos 5 caracteres.";
+      res.redirect("/forum/add-topic")
+    }
+    else if (descriptionTopicTyped < 10){
+      visibilityErrorAddTopic = "visible";
+      msgError = "A descrição do tópico deve conter pelo menos 10 caracteres.";
+      res.redirect("/forum/add-topic")
+    }
+    else {
+      try{
+        visibilityErrorAddTopic = "invisible";
+        msgError = "";
+        const topic = await Topic.create({
+          name: nameTopicTyped,
+          description: descriptionTopicTyped,
+          authorId: req.cookies.idUser
+        });
+        res.redirect("/forum")
+      }
+      catch(error){
+        visibilityErrorAddTopic = "visible";
+        msgError = "Algo deu errado. Tente novamente mais tarde.";
+        console.log(error)
+        res.redirect("/forum/add-topic")
+      }
+  }
+  }
+})
 
 app.get("/login", (req, res) => {
   const modeParameter = req.query.mode;
@@ -287,7 +331,7 @@ app.post("/login/:mode", async (req, res) => {
       catch(error){
         visibilityErrorRegister = "visible";
         visibilitySuccess = "invisible";
-        msgError = "Ocorreu um erro tente novamente mais tarde.";
+        msgError = "Ocorreu um erro. Tente novamente mais tarde.";
         console.log(error)
       }
       res.redirect("/login?mode=register");

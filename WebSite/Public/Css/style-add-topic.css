@@ -18,6 +18,15 @@ div#form-container h1 {
     margin-bottom: 30px;
 }
 
+div#form-container div#msgError {
+    position: relative;
+    left: 15%;
+    background-color: #ffbbbb;
+    color: #ff0000;
+    width: 70%;
+    font-size: 1.1em;
+}
+
 div.label-float {
     margin-bottom: 2%;
 }
@@ -53,7 +62,7 @@ hr {
     margin-bottom: 2%;
 }
 
-div#form-container button {
+div#form-container button#button-add-topic {
     position: relative;
     left: 42%;
     padding: 10px;

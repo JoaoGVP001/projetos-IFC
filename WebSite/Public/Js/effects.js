@@ -28,10 +28,21 @@ if(document.querySelector("a#sign-out")){
   buttonSignOut.addEventListener("click", signOut);
 }
 
+//Redirecionamento para a página de adicionar tópico
+
 if(document.querySelector("div#add-topic")){
   let divAddTopic = document.querySelector("div#add-topic");
   divAddTopic.addEventListener("click", () => {
-    window.location.href = "/add-topic";
+    window.location.href = "/forum/add-topic";
+  })
+}
+
+//Redirecionamento para a página inicial após adicionar tópico
+
+if(document.querySelector("button#button-add-topic")){
+  let buttonAddTopic = document.querySelector("button#button-add-topic");
+  buttonAddTopic.addEventListener("click", () => {
+    window.location.href = "/";
   })
 }
 
