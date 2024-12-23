@@ -40,6 +40,24 @@ div#add-topic img {
     background-color: black;
 }
 
+div#without-topics {
+    border: 1px solid white;
+    border-radius: 30px;
+}
+
+div#without-topics h2 {
+    text-align: center;
+    margin-top: 7%;
+    margin-bottom: 2%;
+}
+
+div#without-topics img {
+    position: relative;
+    left: 45%;
+    width: 10%;
+    margin-bottom: 4%;
+}
+
 div.topic-container {
     margin-bottom: 3%;
     border: 1px solid white;

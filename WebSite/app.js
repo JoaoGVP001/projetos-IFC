@@ -39,6 +39,10 @@ let textProfile = textsProfile[0];
 let visibilityAddTopic = "invisible";
 let visibilityErrorAddTopic = "invisible";
 
+//Lista de containers de tópicos
+
+let topicsData = [];
+
 //Variáveis da página de login/cadastro
 
 let username = undefined;
@@ -154,7 +158,38 @@ app.get("/forum", async (req, res) => {
     });
     username = userLogged.username;
   }
-  res.render("forum", { username, visibilityAddTopic, visibilityProfile, textProfile });
+
+  let topicsRegistered = await Topic.findAll();
+  topicsRegistered.forEach(async (topic) => {
+    if (topicsData.some(item => item.id == topic.dataValues.id) == false){
+      const creationDate = new Date(topic.dataValues.createdAt);
+      const formattedDate = creationDate.toLocaleString('pt-BR', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: 'numeric',
+        second: 'numeric'
+      });
+
+      const author = await User.findOne({
+        where: {
+          id: topic.dataValues.authorId
+        }
+      });
+
+      topicsData.push({
+        id: topic.dataValues.id,
+        name: topic.dataValues.name,
+        description: topic.dataValues.description,
+        authorId: topic.dataValues.authorId,
+        author: author.username,
+        createdAt: formattedDate
+      });
+    }
+  });
+
+  res.render("forum", { username, visibilityAddTopic, topicsData, visibilityProfile, textProfile });
 });
 
 app.get("/forum/add-topic", async (req, res) => {
@@ -174,6 +209,7 @@ app.get("/forum/add-topic", async (req, res) => {
     });
     username = userLogged.username;
   }
+  
   res.render("add-topic", { username, visibilityProfile, visibilityErrorAddTopic, msgError, textProfile })
 });
 
