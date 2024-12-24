@@ -1,0 +1,19 @@
+section#section-topic {
+    width: 70%;
+    margin: 0 auto;
+    margin-top: 30px;
+}
+
+div#topic-container {
+    border: 1px solid white;
+    border-radius: 20px;
+    margin-bottom: 3%;
+}
+
+div.topic-content {
+    margin: 2%;
+}
+
+div#topic-container h1, p {
+    margin-bottom: 20px;
+}

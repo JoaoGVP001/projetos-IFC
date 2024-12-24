@@ -39,13 +39,13 @@ let textProfile = textsProfile[0];
 let visibilityAddTopic = "invisible";
 let visibilityErrorAddTopic = "invisible";
 
-//Lista de containers de tópicos
+//Variável da página de fórum
 
 let topicsData = [];
 
 //Variáveis da página de login/cadastro
 
-let username = undefined;
+let username;
 let modeSide = "right";
 let textLogin = textsLogin;
 let visibilityErrorLogin = "invisible";
@@ -253,6 +253,43 @@ app.post("/add-topic", async (req, res) => {
       }
   }
   }
+});
+
+app.get("/forum/topic", async (req, res) => {
+  if(req.cookies.idUser == "null"){
+    visibilityProfile = "invisible";
+    textProfile = textsProfile[0];
+  }
+  else{
+    visibilityProfile = "visible";
+    visibilityErrorAddTopic = "visible";
+    textProfile = textsProfile[1];
+
+    const userLogged = await User.findOne({
+      where: {
+        id: req.cookies.idUser
+      }
+    });
+    username = userLogged.username;
+  }
+
+  const topicAccessed = await Topic.findOne({
+    where: {
+      id: req.query.id
+    }
+  });
+
+  const author = await User.findOne({
+    where: {
+      id: topicAccessed.authorId
+    }
+  });
+
+  let topicName = topicAccessed.name;
+  let topicDescription = topicAccessed.description;
+  let authorName = author.username;
+
+  res.render("topic", { username, topicName, topicDescription, authorName, visibilityProfile, textProfile })
 })
 
 app.get("/login", (req, res) => {
