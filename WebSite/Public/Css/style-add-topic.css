@@ -77,6 +77,6 @@ div#form-container button#button-add-topic {
     background-color: var(--roxo);
 }
 
-div#form-container button:hover {
+div#form-container button#button-add-topic:hover {
     background-color: var(--roxo-escuro);
 }

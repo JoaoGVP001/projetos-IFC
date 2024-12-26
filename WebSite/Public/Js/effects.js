@@ -19,7 +19,7 @@ function toggleDropdown() {
 function signOut(){
   const cookie = document.cookie;
   if (cookie.indexOf("idUser=") !== -1) {
-    document.cookie = `idUser=${null}`;
+    document.cookie = `idUser=${null}; path=/`;
   }
 }
 
@@ -56,6 +56,16 @@ if(document.querySelector("div.topic-container")){
     });
   });
 };
+
+//Redirecionamento para a página de resposta ao clicar no link
+
+if(document.querySelector("button#button-answer")){
+  const buttonAnswer = document.querySelector("button#button-answer");
+  const urlParams = new URLSearchParams(window.location.search);
+  buttonAnswer.addEventListener("click", () => {
+    window.location.href = `/forum/answer?id=${urlParams.get("id")}`;
+  })
+}
 
 //Efeito para subir a página quando apertar o botão de voltar para cima
 

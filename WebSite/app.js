@@ -61,7 +61,7 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
 app.get("/", async (req, res) => {
-  if(req.cookies.idUser == "null"){
+  if(req.cookies.idUser == "null" || req.cookies.idUser == undefined){
     visibilityProfile = "invisible";
     textProfile = textsProfile[0];
   }
@@ -84,7 +84,7 @@ app.get("/home", (req, res) => {
 });
 
 app.get("/news", async (req, res) => {
-  if(req.cookies.idUser == "null"){
+  if(req.cookies.idUser == "null" || req.cookies.idUser == undefined){
     visibilityProfile = "invisible";
     textProfile = textsProfile[0];
   }
@@ -103,7 +103,7 @@ app.get("/news", async (req, res) => {
 });
 
 app.get("/news2", async (req, res) => {
-  if(req.cookies.idUser == "null"){
+  if(req.cookies.idUser == "null" || req.cookies.idUser == undefined){
     visibilityProfile = "invisible";
     textProfile = textsProfile[0];
   }
@@ -122,7 +122,7 @@ app.get("/news2", async (req, res) => {
 });
 
 app.get("/news3", async (req, res) => {
-  if(req.cookies.idUser == "null"){
+  if(req.cookies.idUser == "null" || req.cookies.idUser == undefined){
     visibilityProfile = "invisible";
     textProfile = textsProfile[0];
   }
@@ -141,7 +141,7 @@ app.get("/news3", async (req, res) => {
 });
 
 app.get("/forum", async (req, res) => {
-  if(req.cookies.idUser == "null"){
+  if(req.cookies.idUser == "null" || req.cookies.idUser == undefined){
     visibilityProfile = "invisible";
     visibilityAddTopic = "invisible";
     textProfile = textsProfile[0];
@@ -193,7 +193,7 @@ app.get("/forum", async (req, res) => {
 });
 
 app.get("/forum/add-topic", async (req, res) => {
-  if(req.cookies.idUser == "null"){
+  if(req.cookies.idUser == "null" || req.cookies.idUser == undefined){
     visibilityProfile = "invisible";
     textProfile = textsProfile[0];
   }
@@ -217,7 +217,7 @@ app.post("/add-topic", async (req, res) => {
   let nameTopicTyped = req.body.topicName;
   let descriptionTopicTyped = req.body.topicDescription;
 
-  if(req.cookies.idUser == "null"){
+  if(req.cookies.idUser == "null" || req.cookies.idUser == undefined){
     visibilityErrorAddTopic = "visible";
     msgError = "Você não está logado. Por favor faça login e tente novamente.";
     console.log("ola")
@@ -256,11 +256,14 @@ app.post("/add-topic", async (req, res) => {
 });
 
 app.get("/forum/topic", async (req, res) => {
-  if(req.cookies.idUser == "null"){
+  let visibilityAnswer;
+  if(req.cookies.idUser == "null" || req.cookies.idUser == undefined){
+    visibilityAnswer = "invisible";
     visibilityProfile = "invisible";
     textProfile = textsProfile[0];
   }
   else{
+    visibilityAnswer = "visible";
     visibilityProfile = "visible";
     visibilityErrorAddTopic = "visible";
     textProfile = textsProfile[1];
@@ -289,7 +292,28 @@ app.get("/forum/topic", async (req, res) => {
   let topicDescription = topicAccessed.description;
   let authorName = author.username;
 
-  res.render("topic", { username, topicName, topicDescription, authorName, visibilityProfile, textProfile })
+  res.render("topic", { username, topicName, topicDescription, authorName, visibilityAnswer, visibilityProfile, textProfile })
+});
+
+app.get("/forum/answer", async (req, res) => {
+  let visibilityErrorAnswer = "invisible";
+  let msgError = "";
+  if(req.cookies.idUser == "null" || req.cookies.idUser == undefined){
+    visibilityProfile = "invisible";
+    textProfile = textsProfile[0];
+  }
+  else{
+    visibilityProfile = "visible";
+    textProfile = textsProfile[1];
+
+    const userLogged = await User.findOne({
+      where: {
+        id: req.cookies.idUser
+      }
+    });
+    username = userLogged.username;
+  }
+  res.render("add-answer", { username, visibilityErrorAnswer, msgError, visibilityProfile, textProfile });
 })
 
 app.get("/login", (req, res) => {

@@ -17,3 +17,22 @@ div.topic-content {
 div#topic-container h1, p {
     margin-bottom: 20px;
 }
+
+button#button-answer {
+    position: relative;
+    left: 42%;
+    background-color: var(--roxo);
+    cursor: pointer;
+    border: 0;
+    padding-left: 60px;
+    padding-right: 60px;
+    padding: 15px;
+    border-radius: 10px;
+    font-size: 12pt;
+    font-weight: 500;
+    margin-bottom: 20px;
+}
+
+button#button-answer:hover {
+    background-color: var(--roxo-escuro);
+}
