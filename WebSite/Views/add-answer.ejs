@@ -31,16 +31,14 @@
     <div id="form-container">
         <div id="form-content">
             <h1>Responder Tópico</h1>
-            <div id="msgError" class="<%= visibilityErrorAnswer %>"><%= msgError %></div>
+            <div id="msgError" class="invisible">Sua resposta não pode ser vazia.</div>
             <br>
-            <form action="/add-answer" method="post">
-                <div class="label-float">
-                    <label id="topic-description-label" for="topic-description">Resposta:</label>
-                    <br>
-                    <textarea name="topicDescription" id="topic-description" rows="6"></textarea>
-                </div>
-                <button type="submit" id="button-add-answer">Adicionar</button>
-            </form>
+            <div class="label-float">
+                <label id="answer-label" for="answerText">Resposta:</label>
+                <br>
+                <textarea name="answerText" id="answer-text" rows="6"></textarea>
+            </div>
+            <button type="submit" id="button-add-answer">Adicionar</button>
         </div>
     </div>
 

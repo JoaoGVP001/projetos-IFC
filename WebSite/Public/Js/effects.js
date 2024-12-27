@@ -63,9 +63,51 @@ if(document.querySelector("button#button-answer")){
   const buttonAnswer = document.querySelector("button#button-answer");
   const urlParams = new URLSearchParams(window.location.search);
   buttonAnswer.addEventListener("click", () => {
-    window.location.href = `/forum/answer?id=${urlParams.get("id")}`;
+    window.location.href = `/forum/add-answer?id=${urlParams.get("id")}`;
   })
 }
+
+//Envio de id de tópico ao enviar resposta
+
+if(document.querySelector("button#button-add-answer")){
+  const buttonAddAnswer = document.querySelector("button#button-add-answer");
+  const divMsgError = document.querySelector("div#msgError");
+  const urlParams = new URLSearchParams(window.location.search);
+  const url = '/add-answer';
+  const topicId = urlParams.get("id");
+
+  buttonAddAnswer.addEventListener("click", () => {
+    let answerText = document.querySelector("textarea#answer-text").value;
+    if(answerText.length == 0){
+      if (divMsgError.classList.contains("invisible")) {
+        divMsgError.classList.remove("invisible");
+        divMsgError.classList.add("visible");
+      }
+      else{
+        divMsgError.classList.remove("visible");
+        divMsgError.classList.add("invisible");
+      }
+    }
+    else{
+      fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ answerText, topicId })
+      }).then(response => {
+        if (response.redirected) {
+          alert("Resposta registrada com sucesso!")
+          window.location.href = response.url;
+        }
+      })
+      .catch(error => {
+        console.error('Erro ao registrar a resposta:', error);
+        alert('Erro ao enviar à resposta');
+      });
+    }
+  });
+};
 
 //Efeito para subir a página quando apertar o botão de voltar para cima
 

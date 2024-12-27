@@ -1,8 +1,10 @@
 const express = require("express");
 const cookieParser = require('cookie-parser');
+const bodyParser = require('body-parser');
 const path = require("path");
 const User = require("./Models/user");
 const Topic = require('./Models/topic');
+const Answer = require('./Models/answer');
 const sequelize = require('./Config/database-config');
 const { name } = require("ejs");
 
@@ -56,6 +58,7 @@ let msgError = "";
 app.use(express.static(publicPath));
 app.use(cookieParser('lunarWay'));
 app.use(express.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
@@ -220,7 +223,6 @@ app.post("/add-topic", async (req, res) => {
   if(req.cookies.idUser == "null" || req.cookies.idUser == undefined){
     visibilityErrorAddTopic = "visible";
     msgError = "Você não está logado. Por favor faça login e tente novamente.";
-    console.log("ola")
     res.redirect("/forum/add-topic")
   }
   else{
@@ -295,9 +297,7 @@ app.get("/forum/topic", async (req, res) => {
   res.render("topic", { username, topicName, topicDescription, authorName, visibilityAnswer, visibilityProfile, textProfile })
 });
 
-app.get("/forum/answer", async (req, res) => {
-  let visibilityErrorAnswer = "invisible";
-  let msgError = "";
+app.get("/forum/add-answer", async (req, res) => {
   if(req.cookies.idUser == "null" || req.cookies.idUser == undefined){
     visibilityProfile = "invisible";
     textProfile = textsProfile[0];
@@ -313,8 +313,21 @@ app.get("/forum/answer", async (req, res) => {
     });
     username = userLogged.username;
   }
-  res.render("add-answer", { username, visibilityErrorAnswer, msgError, visibilityProfile, textProfile });
-})
+  res.render("add-answer", { username, visibilityProfile, textProfile });
+});
+
+app.post("/add-answer", async (req, res) => {
+  let answerTyped = req.body.answerText;
+  let topicId = req.body.topicId;
+  if (req.body.topicId != undefined && req.body.answerText != undefined){
+    const answer = await Answer.create({
+      text: answerTyped,
+      authorId: req.cookies.idUser,
+      topicId: topicId
+    });
+  }
+  res.redirect("/forum");
+});
 
 app.get("/login", (req, res) => {
   const modeParameter = req.query.mode;
@@ -332,7 +345,7 @@ app.get("/login", (req, res) => {
     }
     res.render("login", { modeSide, textLogin, visibilityErrorLogin, visibilityErrorRegister, visibilitySuccess, msgError });
   }
-  });
+});
 
 app.post("/login/:mode", async (req, res) => {
   const modeParameter = req.params.mode;
