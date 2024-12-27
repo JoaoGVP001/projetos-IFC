@@ -18,6 +18,16 @@ div#topic-container h1, p {
     margin-bottom: 20px;
 }
 
+div.answer-container {
+    border: 1px solid white;
+    border-radius: 20px;
+    margin-bottom: 3%;
+}
+
+div.answer-content {
+    margin: 2%;
+}
+
 button#button-answer {
     position: relative;
     left: 42%;

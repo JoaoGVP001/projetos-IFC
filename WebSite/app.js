@@ -41,6 +41,10 @@ let textProfile = textsProfile[0];
 let visibilityAddTopic = "invisible";
 let visibilityErrorAddTopic = "invisible";
 
+//Variável da página de tópico
+
+let answersData = [];
+
 //Variável da página de fórum
 
 let topicsData = [];
@@ -284,7 +288,7 @@ app.get("/forum/topic", async (req, res) => {
     }
   });
 
-  const author = await User.findOne({
+  const authorTopic = await User.findOne({
     where: {
       id: topicAccessed.authorId
     }
@@ -292,9 +296,61 @@ app.get("/forum/topic", async (req, res) => {
 
   let topicName = topicAccessed.name;
   let topicDescription = topicAccessed.description;
-  let authorName = author.username;
+  let authorTopicName = authorTopic.username;
 
-  res.render("topic", { username, topicName, topicDescription, authorName, visibilityAnswer, visibilityProfile, textProfile })
+  const answers = Answer.findAll({
+    where: {
+      topicId: req.query.id
+    }
+  }).then(async (answers) => {
+    // Declarar answersData fora do loop
+    const answersData = [];
+    
+    // Usando um loop assíncrono para garantir que todas as promessas sejam resolvidas
+    for (let answer of answers) {
+      // Se a resposta ainda não foi processada
+      if (!answersData.some(item => item.id == answer.dataValues.id)) {
+        const creationDate = new Date(answer.dataValues.createdAt);
+        const formattedDate = creationDate.toLocaleString('pt-BR', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: 'numeric',
+          minute: 'numeric',
+          second: 'numeric'
+        });
+  
+        // Espera pela promessa do autor
+        const author = await User.findOne({
+          where: {
+            id: answer.dataValues.authorId
+          }
+        });
+
+        // Adiciona a resposta formatada e o autor no answersData
+        answersData.push({
+          id: answer.dataValues.id,
+          text: answer.dataValues.text,
+          authorId: answer.dataValues.authorId,
+          authorName: author.username,
+          createdAt: formattedDate,
+        });
+      }
+    }
+  
+    // Após processar todas as respostas, renderize a página
+    res.render("topic", { 
+      username, 
+      topicName, 
+      topicDescription, 
+      authorTopicName, 
+      answersData, 
+      visibilityAnswer, 
+      visibilityProfile, 
+      textProfile 
+    });
+  
+  }) 
 });
 
 app.get("/forum/add-answer", async (req, res) => {
