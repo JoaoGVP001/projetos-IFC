@@ -28,6 +28,22 @@ if(document.querySelector("a#sign-out")){
   buttonSignOut.addEventListener("click", signOut);
 }
 
+//Redirecionamento para a página de notícia
+
+if(document.querySelector("div#news-gateway1")){
+  const divNewsGateway = document.querySelector("div#news-gateway1");
+  divNewsGateway.addEventListener("click", () => {
+    window.location.href = "/news/gateway1";
+  })
+};
+
+if(document.querySelector("div#news-gateway2")){
+  const divNewsGateway = document.querySelector("div#news-gateway2");
+  divNewsGateway.addEventListener("click", () => {
+    window.location.href = "/news/gateway2";
+  })
+};
+
 //Redirecionamento para a página de adicionar tópico
 
 if(document.querySelector("div#add-topic")){
@@ -65,7 +81,7 @@ if(document.querySelector("button#button-answer")){
   buttonAnswer.addEventListener("click", () => {
     window.location.href = `/forum/add-answer?id=${urlParams.get("id")}`;
   })
-}
+};
 
 //Envio de id de tópico ao enviar resposta
 

@@ -90,7 +90,7 @@ app.get("/home", (req, res) => {
   res.redirect("/");
 });
 
-app.get("/news", async (req, res) => {
+app.get("/artemis", async (req, res) => {
   if(req.cookies.idUser == "null" || req.cookies.idUser == undefined){
     visibilityProfile = "invisible";
     textProfile = textsProfile[0];
@@ -106,10 +106,10 @@ app.get("/news", async (req, res) => {
     });
     username = userLogged.username;
   }
-  res.render("news", { username, visibilityProfile, textProfile });
+  res.render("artemis", { username, visibilityProfile, textProfile });
 });
 
-app.get("/news2", async (req, res) => {
+app.get("/gateway", async (req, res) => {
   if(req.cookies.idUser == "null" || req.cookies.idUser == undefined){
     visibilityProfile = "invisible";
     textProfile = textsProfile[0];
@@ -125,10 +125,10 @@ app.get("/news2", async (req, res) => {
     });
     username = userLogged.username;
   }
-  res.render("news2", { username, visibilityProfile, textProfile });
+  res.render("gateway", { username, visibilityProfile, textProfile });
 });
 
-app.get("/news3", async (req, res) => {
+app.get("/apollo", async (req, res) => {
   if(req.cookies.idUser == "null" || req.cookies.idUser == undefined){
     visibilityProfile = "invisible";
     textProfile = textsProfile[0];
@@ -144,8 +144,46 @@ app.get("/news3", async (req, res) => {
     });
     username = userLogged.username;
   }
-  res.render("news3", { username, visibilityProfile, textProfile });
+  res.render("apollo", { username, visibilityProfile, textProfile });
 });
+
+app.get("/news/gateway1", async (req, res) => {
+  if(req.cookies.idUser == "null" || req.cookies.idUser == undefined){
+    visibilityProfile = "invisible";
+    textProfile = textsProfile[0];
+  }
+  else{
+    visibilityProfile = "visible";
+    textProfile = textsProfile[1];
+
+    const userLogged = await User.findOne({
+      where: {
+        id: req.cookies.idUser
+      }
+    });
+    username = userLogged.username;
+  }
+  res.render("News/gateway1", { username, visibilityProfile,textProfile });
+});
+
+app.get("/news/gateway2", async (req, res) => {
+  if(req.cookies.idUser == "null" || req.cookies.idUser == undefined){
+    visibilityProfile = "invisible";
+    textProfile = textsProfile[0];
+  }
+  else{
+    visibilityProfile = "visible";
+    textProfile = textsProfile[1];
+
+    const userLogged = await User.findOne({
+      where: {
+        id: req.cookies.idUser
+      }
+    });
+    username = userLogged.username;
+  }
+  res.render("News/gateway2", { username, visibilityProfile,textProfile });
+})
 
 app.get("/forum", async (req, res) => {
   if(req.cookies.idUser == "null" || req.cookies.idUser == undefined){

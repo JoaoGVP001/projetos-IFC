@@ -52,6 +52,19 @@
     }
 }
 
+section#section-news {
+    position: relative;
+    width: 60%;
+    left: 20%;
+    margin-top: 2%;
+    margin-bottom: 2%;
+}
+
+section#section-news p {
+    font-size: 1.2em;
+    color: #cccccc;
+}
+
 .info-section {
     background-color: black;
     color: white;

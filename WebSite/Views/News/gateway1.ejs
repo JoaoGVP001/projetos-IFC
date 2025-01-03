@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="/Css/style-news.css">
+    <link rel="stylesheet" href="/Css/global.css">
+    <link rel="stylesheet" href="/Css/header.css">
+    <link rel="stylesheet" href="/Css/footer.css">
+</head>
+<body>
+    <header>
+        <section id="navbar">
+            <img src="/Imgs/logo.png" alt="LunarWay Logo" id="logo">
+            <ul>
+                <li><a href="/">Início</a></li>
+                <li><a href="/artemis">Notícias</a></li>
+                <li><a href="/forum">Fórum</a></li>
+                <li class="<%= visibilityProfile %>"><a><%- username %></a></li>
+            </ul>
+            <div id="profile">
+                <img src="/Icons/icon-user.png" alt="Profile Icon" id="profile-icon" onclick="toggleDropdown()">
+                <div id="dropdown" class="hidden">
+                    <%- textProfile %>
+                </div>
+            </div>
+        </section>
+    </header>
+
+    <section id="section-news">
+        <p>O Gateway está previsto para ser lançado em 2028 à órbita lunar com o Elemento de Energia e Propulsão,
+        fornecido pela Maxar Space Systems,
+        e posteriormente será expandido com os módulos Lunar I-Hab e Lunar View da ESA,
+        a Crew and Science Airlock fornecida pelo Centro Espacial Mohammed Bin Rashid,
+        robótica externa avançada fornecida pela CSA (Agência Espacial Canadense) e hardware crítico da JAXA (Agência Japonesa de Exploração Aeroespacial).</p>
+        <br>
+        <p>Equipes da NASA, ESA (Agência Espacial Europeia) e Thales Alenia Space,
+        incluindo os astronautas Stan Love e Luca Parmitano,
+        se reuniram em Turim, Itália, neste verão para um teste do Gateway,
+        a primeira estação espacial da humanidade a orbitar a Lua.</p>
+        <br>
+        <p>O grupo conduziu o que é conhecido como teste de fatores humanos dentro de uma maquete do Lunar I-Hab,
+        um dos quatro módulos Gateway onde os astronautas viverão, conduzirão ciência e se prepararão para missões na região do Polo Sul da Lua.
+        O teste é um passo importante no caminho para o lançamento, ajudando a refinar o design da espaçonave para conforto e segurança.</p>
+        <br>
+        <p>O Lunar I-Hab é fornecido pela ESA e Thales Alenia Space e está programado para ser lançado na Artemis IV.
+        Durante essa missão, quatro astronautas serão lançados dentro da espaçonave Orion no topo de uma versão atualizada do foguete SLS
+        (Space Launch System) e entregarão o Lunar I-Hab ao Gateway em órbita ao redor da Lua.
+        Equipes internacionais de astronautas explorarão os mistérios científicos do espaço profundo com a Gateway como parte da campanha Artemis para retornar à Lua para descobertas científicas e traçar um caminho para as primeiras missões humanas a Marte e além.</p>
+    </section>
+
+    <div id="overlay" class="hidden" onclick="toggleDropdown()"></div>
+    </main>
+
+    <footer id="footer">
+        <div>
+            <img src="/Icons/icon-ifc.png" alt="Logo IFC" id="logo-ifc">
+            <img src="/Icons/icon-email.png" alt="Icone Email" id="icon-email">
+            <p>lunarwaysite@gmail.com</p>
+            <a href="PI_2024___Grupo_1.pdf" id="artigo" download>Nosso Artigo</a>
+            <a href="#" id="back-to-top">
+                <img src="/Icons/icon-up-arrow.png" alt="Icone voltar início" id="icon-up-arrow">
+            </a>
+        </div>
+    </footer>
+
+    <script src="/Js/effects.js"></script>
+    <script>
+        document.getElementById('back-to-top').addEventListener('click', function(e) {
+            e.preventDefault();
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    </script>
+</body>
+</html>
