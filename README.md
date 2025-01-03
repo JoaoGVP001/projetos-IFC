@@ -22,12 +22,15 @@ Para rodar este projeto localmente, siga os passos abaixo:
 
 5. Acesse a pasta do projeto através do terminal do Windows:
 
+    ```bash
     cd caminho\Projeto-Integrador-II---2024\Website
 
 6. Digite o comando:
 
+    ```bash
     npx nodemon app.js
 
 7. Acesse no seu navegador web a URL:
 
+    ```bash
     localhost:3000
