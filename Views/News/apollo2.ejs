@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Por Que Não Temos As Missões Apollo 2 e 3?</title>
+    <link rel="stylesheet" href="/Css/style-news.css">
+    <link rel="stylesheet" href="/Css/global.css">
+    <link rel="stylesheet" href="/Css/header.css">
+    <link rel="stylesheet" href="/Css/footer.css">
+</head>
+<body>
+    <header>
+        <section id="navbar">
+            <img src="/Imgs/logo.png" alt="LunarWay Logo" id="logo">
+            <ul>
+                <li><a href="/">Início</a></li>
+                <li><a href="/artemis">Artemis</a></li>
+                <li><a href="/apollo">Apollo</a></li>
+                <li><a href="/gateway">Gateway</a></li>
+                <li><a href="/forum">Fórum</a></li>
+                <li class="<%= visibilityProfile %>"><a><%- username %></a></li>
+            </ul>
+            <div id="profile">
+                <img src="/Icons/icon-user.png" alt="Profile Icon" id="profile-icon" onclick="toggleDropdown()">
+                <div id="dropdown" class="hidden">
+                    <%- textProfile %>
+                </div>
+            </div>
+        </section>
+    </header>
+
+    <section id="section-news">
+        <h1>Por Que Não Temos As Missões Apollo 2 e 3?</h1>
+        <br>
+        <p>Em 27 de janeiro de 1967, uma tragédia aconteceu na plataforma de lançamento em
+        Cape Kennedy durante um teste de pré-voo para a Apollo 204 (AS-204).
+        A missão seria o primeiro voo tripulado da Apollo e estava programada para ser lançada em 21 de fevereiro de 1967.
+        Os astronautas Virgil Grissom,
+        Edward White e Roger Chaffee perderam suas vidas quando um incêndio varreu o módulo de comando, ou CM.</p>
+        <br>
+        <p>A investigação exaustiva do incêndio e a extensa reformulação dos módulos de comando da Apollo adiaram os
+        lançamentos tripulados até que os oficiais da NASA os liberassem para o voo. Os cronogramas do Saturn IB
+        foram suspensos por quase um ano, e o veículo de lançamento que finalmente recebeu a designação AS-204
+        carregou um módulo lunar, ou LM, como carga útil, em vez de um CM. As missões AS-201 e AS-202 com a espaçonave
+        Apollo a bordo eram conhecidas não oficialmente como missões Apollo 1 e Apollo 2.
+        O AS-203 carregava apenas o cone de nariz aerodinâmico.</p>
+        <br>
+        <p>Na primavera de 1967, o Administrador Associado da NASA para Voos Espaciais Tripulados,
+        Dr. George E. Mueller, anunciou que a missão originalmente programada para Grissom,
+        White e Chaffee seria conhecida como Apollo 1, e disse que o primeiro lançamento do Saturn V,
+        programado para novembro de 1967, seria conhecido como Apollo 4. O eventual lançamento do AS-204
+        ficou conhecido como a missão Apollo 5. Nenhuma missão ou voo foi designado Apollo 2 ou 3.</p>
+    </section>
+
+    <div id="overlay" class="hidden" onclick="toggleDropdown()"></div>
+    </main>
+
+    <footer id="footer">
+        <div>
+            <img src="/Icons/icon-ifc.png" alt="Logo IFC" id="logo-ifc">
+            <img src="/Icons/icon-email.png" alt="Icone Email" id="icon-email">
+            <p>lunarwaysite@gmail.com</p>
+            <a href="PI_2024___Grupo_1.pdf" id="artigo" download>Nosso Artigo</a>
+            <a href="#" id="back-to-top">
+                <img src="/Icons/icon-up-arrow.png" alt="Icone voltar início" id="icon-up-arrow">
+            </a>
+        </div>
+    </footer>
+
+    <script src="/Js/effects.js"></script>
+    <script>
+        document.getElementById('back-to-top').addEventListener('click', function(e) {
+            e.preventDefault();
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    </script>
+</body>
+</html>

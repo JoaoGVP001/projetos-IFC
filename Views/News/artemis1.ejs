@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perda de carbono do escudo térmico da Artemis I Orion</title>
+    <link rel="stylesheet" href="/Css/style-news.css">
+    <link rel="stylesheet" href="/Css/global.css">
+    <link rel="stylesheet" href="/Css/header.css">
+    <link rel="stylesheet" href="/Css/footer.css">
+</head>
+<body>
+    <header>
+        <section id="navbar">
+            <img src="/Imgs/logo.png" alt="LunarWay Logo" id="logo">
+            <ul>
+                <li><a href="/">Início</a></li>
+                <li><a href="/artemis">Artemis</a></li>
+                <li><a href="/apollo">Apollo</a></li>
+                <li><a href="/gateway">Gateway</a></li>
+                <li><a href="/forum">Fórum</a></li>
+                <li class="<%= visibilityProfile %>"><a><%- username %></a></li>
+            </ul>
+            <div id="profile">
+                <img src="/Icons/icon-user.png" alt="Profile Icon" id="profile-icon" onclick="toggleDropdown()">
+                <div id="dropdown" class="hidden">
+                    <%- textProfile %>
+                </div>
+            </div>
+        </section>
+    </header>
+
+    <section id="section-news">
+        <h1>Perda de carbono do escudo térmico da Artemis I Orion</h1>
+        <br>
+        <p>Engenheiros determinaram que, enquanto a Orion retornava de sua missão não tripulada ao redor da Lua,
+        os gases gerados dentro do material externo ablativo do escudo térmico chamado Avcoat não foram capazes
+        de ventilar e dissipar como esperado. Isso permitiu que a pressão aumentasse e ocorressem rachaduras,
+        fazendo com que algum material carbonizado se quebrasse em vários locais.</p>
+        <br>
+        <p>As equipes adotaram uma abordagem metódica para entender e identificar a causa raiz do problema de perda
+        de carbono, incluindo amostragem detalhada do escudo térmico da Artemis I, revisão de imagens e dados de
+        sensores na espaçonave e testes e análises abrangentes em solo.</p>
+        <br>
+        <p>Durante a Artemis I,
+        os engenheiros usaram a técnica de entrada de orientação de salto para retornar a Orion à Terra.
+        Essa técnica fornece mais flexibilidade ao estender o alcance que a Orion pode voar após o ponto de reentrada para um local de pouso no Oceano Pacífico.
+        Usando essa manobra, a Orion mergulhou na parte superior da atmosfera da Terra e usou o arrasto atmosférico para desacelerar.
+        A Orion então usou a sustentação aerodinâmica da cápsula para saltar de volta para fora da atmosfera,
+        então reentrar para a descida final sob paraquedas para aterrissar.</p>
+        <br>
+        <p>Usando dados de resposta do material Avcoat da Artemis I,
+        a equipe de investigação conseguiu replicar o ambiente da trajetória de entrada da Artemis I
+        — uma parte fundamental da compreensão da causa do problema — dentro das instalações do jato de arco no
+        Ames Research Center da NASA na Califórnia. Eles observaram que,
+        durante o período entre mergulhos na atmosfera, as taxas de aquecimento diminuíram e a energia térmica
+        se acumulou dentro do material Avcoat do escudo térmico. Isso levou ao acúmulo de gases que fazem parte do
+        processo de ablação esperado. Como o Avcoat não tinha "permeabilidade",
+        a pressão interna aumentou e levou a rachaduras e desprendimento irregular da camada externa.</p>
+    </section>
+
+    <div id="overlay" class="hidden" onclick="toggleDropdown()"></div>
+    </main>
+
+    <footer id="footer">
+        <div>
+            <img src="/Icons/icon-ifc.png" alt="Logo IFC" id="logo-ifc">
+            <img src="/Icons/icon-email.png" alt="Icone Email" id="icon-email">
+            <p>lunarwaysite@gmail.com</p>
+            <a href="PI_2024___Grupo_1.pdf" id="artigo" download>Nosso Artigo</a>
+            <a href="#" id="back-to-top">
+                <img src="/Icons/icon-up-arrow.png" alt="Icone voltar início" id="icon-up-arrow">
+            </a>
+        </div>
+    </footer>
+
+    <script src="/Js/effects.js"></script>
+    <script>
+        document.getElementById('back-to-top').addEventListener('click', function(e) {
+            e.preventDefault();
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    </script>
+</body>
+</html>

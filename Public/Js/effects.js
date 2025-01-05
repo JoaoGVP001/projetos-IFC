@@ -30,6 +30,27 @@ if(document.querySelector("a#sign-out")){
 
 //Redirecionamento para a página de notícia
 
+if(document.querySelector("div#news-artemis1")){
+  const divNewsArtemis = document.querySelector("div#news-artemis1");
+  divNewsArtemis.addEventListener("click", () => {
+    window.location.href = "/news/artemis1";
+  })
+};
+
+if(document.querySelector("div#news-apollo1")){
+  const divNewsApollo = document.querySelector("div#news-apollo1");
+  divNewsApollo.addEventListener("click", () => {
+    window.location.href = "/news/apollo1";
+  })
+};
+
+if(document.querySelector("div#news-apollo2")){
+  const divNewsApollo = document.querySelector("div#news-apollo2");
+  divNewsApollo.addEventListener("click", () => {
+    window.location.href = "/news/apollo2";
+  })
+};
+
 if(document.querySelector("div#news-gateway1")){
   const divNewsGateway = document.querySelector("div#news-gateway1");
   divNewsGateway.addEventListener("click", () => {
@@ -41,6 +62,13 @@ if(document.querySelector("div#news-gateway2")){
   const divNewsGateway = document.querySelector("div#news-gateway2");
   divNewsGateway.addEventListener("click", () => {
     window.location.href = "/news/gateway2";
+  })
+};
+
+if(document.querySelector("div#news-gateway3")){
+  const divNewsGateway = document.querySelector("div#news-gateway3");
+  divNewsGateway.addEventListener("click", () => {
+    window.location.href = "/news/gateway3";
   })
 };
 

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uma órbita lunar perfeita para o Lunar Gateway</title>
+    <link rel="stylesheet" href="/Css/style-news.css">
+    <link rel="stylesheet" href="/Css/global.css">
+    <link rel="stylesheet" href="/Css/header.css">
+    <link rel="stylesheet" href="/Css/footer.css">
+</head>
+<body>
+    <header>
+        <section id="navbar">
+            <img src="/Imgs/logo.png" alt="LunarWay Logo" id="logo">
+            <ul>
+                <li><a href="/">Início</a></li>
+                <li><a href="/artemis">Artemis</a></li>
+                <li><a href="/apollo">Apollo</a></li>
+                <li><a href="/gateway">Gateway</a></li>
+                <li><a href="/forum">Fórum</a></li>
+                <li class="<%= visibilityProfile %>"><a><%- username %></a></li>
+            </ul>
+            <div id="profile">
+                <img src="/Icons/icon-user.png" alt="Profile Icon" id="profile-icon" onclick="toggleDropdown()">
+                <div id="dropdown" class="hidden">
+                    <%- textProfile %>
+                </div>
+            </div>
+        </section>
+    </header>
+
+    <section id="section-news">
+        <h1>Uma órbita lunar perfeita para o Lunar Gateway</h1>
+        <br>
+        <p>A órbita lunar única da estação espacial Gateway da NASA fornecerá aos astronautas da Artemis
+        e suas espaçonaves acesso a toda a superfície lunar, incluindo a região crítica do Polo Sul lunar,
+        que é o foco das missões Artemis.
+        Ela também fornecerá oportunidades científicas únicas dentro do ambiente do espaço profundo.</p>
+        <br>
+        <p>Enquanto a NASA se prepara para o retorno de longo prazo da humanidade à superfície lunar por meio das missões Artemis,
+        a agência está introduzindo novos conceitos
+        – apoiados pela ciência e décadas de experiência em voos espaciais humanos –
+        para abrir novos caminhos na Lua e ao redor dela.</p>
+        <br>
+        <p>Uma colaboração internacional, Gateway é uma pequena estação cuidada por humanos que orbitará a Lua.
+        O posto avançado lunar é especialmente projetado para permitir
+        a exploração do espaço profundo com muitas capacidades para manter uma presença sustentada no espaço e conduzir pesquisas em um ambiente de espaço profundo.</p>
+        <br>
+        <p>Recursos como um habitat humano,
+        múltiplas portas de atracação para uma variedade de espaçonaves,
+        incluindo Orion, e a capacidade de hospedar experimentos que estudarão o clima espacial ajudarão a contribuir para futuros esforços de exploração.
+        Da mesma forma, a órbita de halo quase retilínea exclusiva do Gateway, ou NRHO,
+        foi escolhida especificamente para ajudar a garantir o sucesso de futuras missões Artemis.</p>
+        <br>
+        <p>Não faltam opções de como uma nave espacial poderia orbitar a Lua,
+        mas duas em particular – órbita lunar baixa e órbita retrógrada distante
+        – são úteis para entender por que o NRHO é a escolha certa para o Gateway.</p>
+        <br>
+        <p>Uma espaçonave em órbita lunar baixa segue um caminho circular ou elíptico muito próximo da superfície lunar,
+        completando uma órbita a cada duas horas. O trânsito entre Gateway
+        e a superfície lunar seria bem simples em uma órbita lunar baixa dada a proximidade,
+        mas por causa da gravidade da Lua, mais propelente é necessário para manter a órbita.
+        Portanto, a órbita lunar baixa não é muito eficiente para a presença planejada de longo prazo da Gateway na Lua
+        – pelo menos 15 anos.</p>
+        <br>
+        <p>Enquanto isso, uma órbita retrógrada distante fornece uma órbita grande,
+        circular e estável (ou mais eficiente em termos de combustível) que circunda a Lua a cada duas semanas.
+        No entanto, o que a Gateway ganharia em uma órbita estável, perderia em acesso fácil à Lua:
+        a órbita distante tornaria mais difícil chegar à superfície lunar.</p>
+    </section>
+
+    <div id="overlay" class="hidden" onclick="toggleDropdown()"></div>
+    </main>
+
+    <footer id="footer">
+        <div>
+            <img src="/Icons/icon-ifc.png" alt="Logo IFC" id="logo-ifc">
+            <img src="/Icons/icon-email.png" alt="Icone Email" id="icon-email">
+            <p>lunarwaysite@gmail.com</p>
+            <a href="PI_2024___Grupo_1.pdf" id="artigo" download>Nosso Artigo</a>
+            <a href="#" id="back-to-top">
+                <img src="/Icons/icon-up-arrow.png" alt="Icone voltar início" id="icon-up-arrow">
+            </a>
+        </div>
+    </footer>
+
+    <script src="/Js/effects.js"></script>
+    <script>
+        document.getElementById('back-to-top').addEventListener('click', function(e) {
+            e.preventDefault();
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    </script>
+</body>
+</html>

@@ -18,13 +18,13 @@ Para rodar este projeto localmente, siga os passos abaixo:
     2.2. Clique na conexão "local"
    
     2.3. Digite e execute o comando:
-        ```sql
+        ```bash
         create user 'lunarWay'@'%' identified by 'SENHA';
-        grant all on lunarWay.* to 'lunarWay'@'%';```
+        grant all on lunarWay.* to 'lunarWay'@'%';
    
     2.4. Apague o que foi digitado anteriormente, digite e execute:
-        ```sql
-        create database lunarWay;```
+        ```bash
+        create database lunarWay;
 
 4. Clone o repositório do github em uma pasta:
 

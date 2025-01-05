@@ -70,6 +70,12 @@ section#section-news p {
     color: #cccccc;
 }
 
+section#section-news img#img-apollo17 {
+    position: relative;
+    width: 60%;
+    left: 20%;
+}
+
 .info-section {
     background-color: black;
     color: white;

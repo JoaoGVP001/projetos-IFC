@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="Css/global.css">
     <link rel="stylesheet" href="Css/header.css">
     <link rel="stylesheet" href="Css/footer.css">
-    <title>Notícias</title>
+    <title>Gateway</title>
 </head>
 <body>
     <header>
@@ -16,6 +16,8 @@
             <ul>
                 <li><a href="/">Início</a></li>
                 <li><a href="/artemis">Artemis</a></li>
+                <li><a href="/apollo">Apollo</a></li>
+                <li><a href="/gateway">Gateway</a></li>
                 <li><a href="/forum">Fórum</a></li>
                 <li class="<%= visibilityProfile %>"><a><%- username %></a></li>
             </ul>
@@ -63,7 +65,7 @@
             <button class="carousel-button prev">&#10094;</button>
             <div class="carousel">
                 <div class="carousel-item" id="news-gateway1">
-                    <img src="Imgs/Lunar_Orbital_Platform-Gateway.jpg" alt="Notícia 1">
+                    <img src="Imgs/Lunar_Orbital_Platform-Gateway.jpg" alt="Notícia 1" id="img-lunar-gateway1">
                     <div class="news-info">
                         <h3>Lançamento do Lunar Gateway</h3>
                     </div>
@@ -74,17 +76,10 @@
                         <h3>Gateway: Conectado ao Espaço Profundo</h3>
                     </div>
                 </div>
-                <div class="carousel-item">
-                    <img src="Imgs/imgnew3.jpg" alt="Notícia 3">
+                <div class="carousel-item" id="news-gateway3">
+                    <img src="Imgs/gatewaydentro.png" alt="Notícia 3" id="img-lunar-gateway3">
                     <div class="news-info">
-                        <h3>Título da Notícia 3</h3>
-                    </div>
-                </div>
-                <div class="carousel-item">
-                    <img src="Imgs/imgnew1.jpg" alt="Notícia 4">
-                    <div class="news-info">
-                        <h3>Título da Notícia 4</h3>
-                        <p>Breve descrição da notícia que aparecerá no card...</p>
+                        <h3>Uma órbita lunar perfeita para o Lunar Gateway</h3>
                     </div>
                 </div>
             </div>
