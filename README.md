@@ -14,7 +14,9 @@ Para rodar este projeto localmente, siga os passos abaixo:
 2. Caso seja a primeira vez executando o projeto em sua máquina siga o passo a passo abaixo:
 
     2.1. Abra o MySQL Workbench
+   
     2.2. Clique na conexão "local"
+   
     2.3. Digite e execute o comando:
         ```sql
         create user 'lunarWay'@'%' identified by 'SENHA';
