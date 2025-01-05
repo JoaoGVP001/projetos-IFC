@@ -65,6 +65,13 @@ if(document.querySelector("div#news-apollo2")){
   })
 };
 
+if(document.querySelector("div#news-apollo3")){
+  const divNewsApollo = document.querySelector("div#news-apollo3");
+  divNewsApollo.addEventListener("click", () => {
+    window.location.href = "/news/apollo3";
+  })
+};
+
 if(document.querySelector("div#news-gateway1")){
   const divNewsGateway = document.querySelector("div#news-gateway1");
   divNewsGateway.addEventListener("click", () => {

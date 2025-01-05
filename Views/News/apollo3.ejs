@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apollo 11: O Passo Gigante para a Humanidade</title>
+    <link rel="stylesheet" href="/Css/style-news.css">
+    <link rel="stylesheet" href="/Css/global.css">
+    <link rel="stylesheet" href="/Css/header.css">
+    <link rel="stylesheet" href="/Css/footer.css">
+</head>
+<body>
+    <header>
+        <section id="navbar">
+            <img src="/Imgs/logo.png" alt="LunarWay Logo" id="logo">
+            <ul>
+                <li><a href="/">Início</a></li>
+                <li><a href="/artemis">Artemis</a></li>
+                <li><a href="/apollo">Apollo</a></li>
+                <li><a href="/gateway">Gateway</a></li>
+                <li><a href="/forum">Fórum</a></li>
+                <li class="<%= visibilityProfile %>"><a><%- username %></a></li>
+            </ul>
+            <div id="profile">
+                <img src="/Icons/icon-user.png" alt="Profile Icon" id="profile-icon" onclick="toggleDropdown()">
+                <div id="dropdown" class="hidden">
+                    <%- textProfile %>
+                </div>
+            </div>
+        </section>
+    </header>
+
+    <section id="section-news">
+        <h1>Apollo 11: O Passo Gigante para a Humanidade</h1>
+        <br>
+        <p>A missão Apollo 11, em 1969, é a mais famosa de todas. Em 20 de julho daquele ano,
+        os astronautas Neil Armstrong, Buzz Aldrin e Michael Collins partiram para a Lua, a bordo da nave espacial
+        Apollo 11. Armstrong e Aldrin tornaram-se os primeiros humanos a caminhar na superfície lunar,
+        enquanto Collins permaneceu em órbita lunar no módulo de comando. A histórica descida da nave foi acompanhada
+        por milhões de pessoas ao redor do mundo, ansiosas por testemunhar o momento em que a humanidade daria o
+        primeiro passo no satélite natural da Terra.</p>
+        <br>
+        <p>Neil Armstrong pronunciou a famosa frase: "Um pequeno passo para o homem, um grande salto para a humanidade",
+        ao pisar na Lua, um momento que foi transmitido ao vivo para o mundo e se tornou um marco na história.
+        A missão Apollo 11 não apenas cumpriu o objetivo de chegar à Lua, mas também simbolizou um momento de união
+        global e de realização humana, marcando o ponto culminante da corrida espacial entre os Estados Unidos e a
+        União Soviética.</p>
+    </section>
+
+    <div id="overlay" class="hidden" onclick="toggleDropdown()"></div>
+    </main>
+
+    <footer id="footer">
+        <div>
+            <img src="/Icons/icon-ifc.png" alt="Logo IFC" id="logo-ifc">
+            <img src="/Icons/icon-email.png" alt="Icone Email" id="icon-email">
+            <p>lunarwaysite@gmail.com</p>
+            <a href="PI_2024___Grupo_1.pdf" id="artigo" download>Nosso Artigo</a>
+            <a href="#" id="back-to-top">
+                <img src="/Icons/icon-up-arrow.png" alt="Icone voltar início" id="icon-up-arrow">
+            </a>
+        </div>
+    </footer>
+
+    <script src="/Js/effects.js"></script>
+    <script>
+        document.getElementById('back-to-top').addEventListener('click', function(e) {
+            e.preventDefault();
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    </script>
+</body>
+</html>

@@ -242,6 +242,25 @@ app.get("/news/apollo2", async (req, res) => {
   res.render("News/apollo2", { username, visibilityProfile,textProfile });
 });
 
+app.get("/news/apollo3", async (req, res) => {
+  if(req.cookies.idUser == "null" || req.cookies.idUser == undefined){
+    visibilityProfile = "invisible";
+    textProfile = textsProfile[0];
+  }
+  else{
+    visibilityProfile = "visible";
+    textProfile = textsProfile[1];
+
+    const userLogged = await User.findOne({
+      where: {
+        id: req.cookies.idUser
+      }
+    });
+    username = userLogged.username;
+  }
+  res.render("News/apollo3", { username, visibilityProfile,textProfile });
+});
+
 app.get("/news/gateway1", async (req, res) => {
   if(req.cookies.idUser == "null" || req.cookies.idUser == undefined){
     visibilityProfile = "invisible";
