@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LunarWay - <%= topicName %></title>
+    <link rel="stylesheet" href="/Css/style-topic.css">
+    <link rel="stylesheet" href="/Css/global.css">
+    <link rel="stylesheet" href="/Css/header.css">
+    <link rel="stylesheet" href="/Css/footer.css">
+</head>
+<body>
+    <header>
+        <section id="navbar">
+            <img src="/Imgs/logo.png" alt="LunarWay Logo" id="logo">
+            <ul>
+                <li><a href="/">Início</a></li>
+                <li><a href="/artemis">Artemis</a></li>
+                <li><a href="/forum">Fórum</a></li>
+                <li class="<%= visibilityProfile %>"><a><%- username %></a></li>
+            </ul>
+            <div id="profile">
+                <img src="/Icons/icon-user.png" alt="Profile Icon" id="profile-icon" onclick="toggleDropdown()">
+                <div id="dropdown" class="hidden">
+                    <%- textProfile %>
+                </div>
+            </div>
+        </section>
+    </header>
+
+    <section id="section-topic">
+        <div id="topic-container">
+            <div class="topic-content">
+                <h1><%= topicName %></h1>
+                <p><%= topicDescription %></p>
+                <p><strong>Author: </strong><%= authorTopicName %></p>
+            </div>
+        </div>
+        <% if (answersData.length == 0){ %>
+            <div id="without-answers">
+                <h2>No momento não há nenhuma resposta registrada.</h2>
+                <%= answersData[0] %>
+                <img src="Icons/icon-sad-face.png" alt="">
+            </div>
+        <% } else{ %>
+            <% answersData.forEach(data => { %>
+                <div id="<%= data.id %>" class="answer-container">
+                    <div class="answer-content">
+                        <p><%= data.text %></p>
+                        <br>
+                        <footer id="info1" class="topic-info">
+                            <p><strong>Autor: </strong><%= data.authorName %></p>
+                            <p><strong>Data de Criação: </strong><%= data.createdAt %></p>
+                        </footer>
+                    </div>
+                </div>
+            <% }); %>
+        <% } %>
+        <button class="<%= visibilityAnswer %>" id="button-answer">Responder</button>
+    </section>
+
+    <div id="overlay" class="hidden" onclick="toggleDropdown()"></div>
+    </main>
+
+    <footer id="footer">
+        <div>
+            <img src="/Icons/icon-ifc.png" alt="Logo IFC" id="logo-ifc">
+            <img src="/Icons/icon-email.png" alt="Icone Email" id="icon-email">
+            <p>lunarwaysite@gmail.com</p>
+            <a href="PI_2024___Grupo_1.pdf" id="artigo" download>Nosso Artigo</a>
+            <a href="#" id="back-to-top">
+                <img src="/Icons/icon-up-arrow.png" alt="Icone voltar início" id="icon-up-arrow">
+            </a>
+        </div>
+    </footer>
+
+    <script src="/Js/effects.js"></script>
+    <script>
+        document.getElementById('back-to-top').addEventListener('click', function(e) {
+            e.preventDefault();
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    </script>
+</body>
+</html>

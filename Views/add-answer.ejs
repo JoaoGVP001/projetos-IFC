@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link rel="stylesheet" href="/Css/style-news.css">
+    <title>LunarWay - Responder Tópico</title>
+    <link rel="stylesheet" href="/Css/style-add-answer.css">
     <link rel="stylesheet" href="/Css/global.css">
     <link rel="stylesheet" href="/Css/header.css">
     <link rel="stylesheet" href="/Css/footer.css">
@@ -15,7 +15,7 @@
             <img src="/Imgs/logo.png" alt="LunarWay Logo" id="logo">
             <ul>
                 <li><a href="/">Início</a></li>
-                <li><a href="/artemis">Notícias</a></li>
+                <li><a href="/artemis">Artemis</a></li>
                 <li><a href="/forum">Fórum</a></li>
                 <li class="<%= visibilityProfile %>"><a><%- username %></a></li>
             </ul>
@@ -28,22 +28,19 @@
         </section>
     </header>
 
-    <section id="section-news">
-        <p>Um labirinto de cabos e sensores serpenteia por uma parte importante do Gateway,
-        a primeira estação espacial da humanidade ao redor da Lua,
-        durante uma fase de testes importantes no início deste ano para garantir que o laboratório científico em órbita lunar possa suportar as condições adversas do espaço profundo.</p>
-        <br>
-        <p>HALO (Habitation and Logistics Outpost) é um dos quatro módulos Gateway onde equipes internacionais de
-        astronautas viverão, conduzirão ciência e se prepararão para missões na região do Polo Sul lunar.
-        Outros elementos serão fornecidos pela Agência Espacial Europeia,
-        Agência Japonesa de Exploração Aeroespacial e o Centro Espacial Mohammed Bin Rashid dos Emirados Árabes Unidos.
-        A Agência Espacial Canadense está fornecendo o sistema de robótica avançada Canadarm3 da Gateway.</p>
-        <br>
-        <p>O HALO é fornecido pela Northrop Grumman e sua subcontratada, Thales Alenia Space.
-        O módulo concluiu os testes em Turim, Itália, antes de sua chegada prevista aos Estados Unidos em 2025.
-        A Northrop Grumman concluirá o equipamento final do HALO e o integrará ao
-        Power and Propulsion Element da Gateway para lançamento antes da missão Artemis IV em um foguete SpaceX Falcon Heavy.</p>
-    </section>
+    <div id="form-container">
+        <div id="form-content">
+            <h1>Responder Tópico</h1>
+            <div id="msgError" class="invisible">Sua resposta não pode ser vazia.</div>
+            <br>
+            <div class="label-float">
+                <label id="answer-label" for="answerText">Resposta:</label>
+                <br>
+                <textarea name="answerText" id="answer-text" rows="6"></textarea>
+            </div>
+            <button type="submit" id="button-add-answer">Adicionar</button>
+        </div>
+    </div>
 
     <div id="overlay" class="hidden" onclick="toggleDropdown()"></div>
     </main>

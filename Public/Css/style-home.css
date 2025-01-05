@@ -1,0 +1,479 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
+
+
+/*Parte do programa artemis e botão veja mais*/
+
+.fundoastronauta {
+    background-color: black;
+    position: relative;
+}
+
+.imgastronaut {
+    width: 100%;
+    height: 750px;
+    opacity: 50%;
+    object-fit: cover;
+    object-position: center;
+}
+
+.overlay-text {
+    position: absolute;
+    top: 50%;
+    right: 15%;
+    transform: translate(0, -50%);
+    color: white;
+    text-align: left;
+    width: auto;
+}
+
+.overlay-text h1 {
+    font-size: 1em;
+    margin: 0 0 5px 0;
+    font-weight: bold;
+}
+
+.overlay-text h2 {
+    font-size: 3em;
+    margin: 0;
+    font-weight: bold;
+}
+
+.btn-veja-mais {
+    padding: 15px 30px;
+    background-color: transparent;
+    color: white;
+    border: 2px solid white;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 1.2em;
+    margin-top: 20px;
+    transition: background-color 0.3s;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-veja-mais:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Nova seção de informação */
+.info-section {
+    background-color: black;
+    color: white;
+    padding: 80px 0;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.info-section h2 {
+    font-size: 2.5em;
+    margin-bottom: 30px;
+    text-transform: uppercase;
+}
+
+.info-section p {
+    font-size: 1.2em;
+    line-height: 1.6;
+    color: #cccccc;
+}
+
+/* Timeline atualizada */
+.timeline-section {
+    background-color: black;
+    padding: 80px 0;
+    text-align: center;
+}
+
+.timeline-section h2 {
+    color: white;
+    font-size: 2.5em;
+    margin-bottom: 50px;
+    text-transform: uppercase;
+}
+
+.timeline {
+    position: relative;
+    width: 80%;
+    max-width: 800px;
+    padding: 40px 0;
+    border-left: 3px solid #ffffff;
+    margin: 0 auto;
+}
+
+.timeline-item {
+    position: relative;
+    margin: 40px 0;
+    padding-left: 40px;
+}
+
+.timeline-content {
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 20px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: transform 0.3s ease;
+    cursor: pointer;
+}
+
+.timeline-content:hover {
+    transform: translateX(10px);
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.timeline-content h3 {
+    font-size: 1.4em;
+    margin: 0;
+    color: white;
+}
+
+.timeline-content span {
+    display: inline-block;
+    width: 60px;
+    height: 60px;
+    line-height: 60px;
+    background-color: white;
+    color: black;
+    text-align: center;
+    border-radius: 50%;
+    font-weight: bold;
+    font-size: 1.2em;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 30px;
+    height: 3px;
+    background-color: white;
+}
+
+/* Adicione um círculo no ponto de conexão */
+.timeline-item::after {
+    content: '';
+    position: absolute;
+    left: -9px;
+    top: calc(50% - 6px);
+    width: 15px;
+    height: 15px;
+    background-color: white;
+    border-radius: 50%;
+}
+
+/* Seção do Carrossel de Notícias */
+.news-carousel-section {
+    background-color: black;
+    padding: 80px 0;
+    color: white;
+}
+
+.news-carousel-section h2 {
+    text-align: center;
+    font-size: 2.5em;
+    margin-bottom: 50px;
+    text-transform: uppercase;
+}
+
+.carousel-container {
+    position: relative;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 40px;
+    overflow: hidden;
+}
+
+/* Adiciona máscaras de fade nas laterais */
+.carousel-container::before,
+.carousel-container::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    width: 100px;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.carousel-container::before {
+    left: 0;
+    background: linear-gradient(to right, rgb(0, 0, 0) 0%, rgba(0, 0, 0, 0) 100%);
+}
+
+.carousel-container::after {
+    right: 0;
+    background: linear-gradient(to left, rgb(0, 0, 0) 0%, rgba(0, 0, 0, 0) 100%);
+}
+
+.carousel {
+    display: flex;
+    gap: 30px;
+    overflow: visible;
+    transition: transform 0.5s ease;
+}
+
+.carousel-item {
+    min-width: calc((100% - 60px) / 3);
+    opacity: 1;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    position: relative;
+    cursor: pointer;
+}
+
+.carousel-item:hover {
+    transform: translateY(-10px);
+}
+
+.carousel-item img {
+    width: 100%;
+    height: 700px;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+.news-info {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 20px;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.9));
+    border-radius: 0 0 10px 10px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.news-info h3 {
+    margin: 0 0 10px 0;
+    font-size: 1.2em;
+}
+
+.news-info p {
+    margin: 0;
+    font-size: 0.9em;
+    opacity: 0.8;
+}
+
+.carousel-button {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+    font-size: 18px;
+    transition: background-color 0.3s;
+    z-index: 2;
+}
+
+.carousel-button:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.prev {
+    left: 0;
+}
+
+.next {
+    right: 0;
+}
+
+.carousel-item:hover .news-info {
+    opacity: 1;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .carousel-container {
+        padding: 0 20px;
+    }
+    
+    .carousel-item {
+        min-width: 250px;
+    }
+    
+    .carousel-item img {
+        height: 500px;
+    }
+}
+
+/* Seção Apollo */
+.apollo-section {
+    background-color: black;
+    position: relative;
+}
+
+.img-apollo {
+    width: 100%;
+    height: 750px;
+    opacity: 50%;
+    object-fit: cover;
+    object-position: center;
+}
+
+.apollo-text {
+    position: absolute;
+    top: 50%;
+    left: 15%;
+    transform: translate(0, -50%);
+    color: white;
+    text-align: left;
+    width: auto;
+}
+
+.apollo-text h2 {
+    font-size: 3em;
+    margin: 0;
+    font-weight: bold;
+    text-align: left;
+}
+
+.apollo-section .btn-veja-mais {
+    padding: 15px 30px;
+    background-color: transparent;
+    color: white;
+    border: 2px solid white;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 1.2em;
+    margin-top: 20px;
+    transition: background-color 0.3s;
+}
+
+.apollo-section .btn-veja-mais:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+@media (max-width: 768px) {
+    .apollo-text {
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+    }
+    
+    .apollo-text h2 {
+        font-size: 2em;
+    }
+}
+
+/* Seção Gateway */
+.gateway-section {
+    background-color: black;
+    padding: 80px 0;
+    color: white;
+}
+
+.gateway-container {
+    width: 80%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.gateway-content {
+    display: flex;
+    gap: 40px;
+    margin-bottom: 80px;
+}
+
+.gateway-content .column {
+    flex: 1;
+}
+
+.gateway-content p {
+    font-size: 1.1em;
+    line-height: 1.6;
+    color: #cccccc;
+}
+
+.gateway-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 40px;
+    margin-bottom: 60px;
+}
+
+.gateway-text {
+    flex: 1;
+}
+
+.gateway-text h3 {
+    font-size: 1em;
+    margin: 0 0 5px 0;
+    font-weight: bold;
+}
+
+.gateway-text h2 {
+    font-size: 3em;
+    margin: 0 0 20px 0;
+    font-weight: bold;
+}
+
+.gateway-image {
+    width: 600px;
+    height: 400px;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+.gateway-footer {
+    margin-top: 40px;
+}
+
+.gateway-footer p {
+    font-size: 1.1em;
+    line-height: 1.6;
+    color: #cccccc;
+    text-align: justify;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .gateway-content {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .gateway-bottom {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .gateway-text h2 {
+        font-size: 2em;
+    }
+
+    .gateway-image {
+        width: 100%;
+        height: 300px;
+        margin-top: 20px;
+    }
+
+    .gateway-container {
+        width: 90%;
+        padding: 0 20px;
+    }
+}
+
+/* Ajuste também a última seção para garantir que não haja espaço */
+.news-carousel-section:last-of-type {
+    margin-bottom: 0;
+    padding-bottom: 80px;
+    background-color: black;
+}
+
+/* Estilos do Footer */
+:root {
+    --cinza: #333333;
+    --cinza-claro: #D9D9D9;
+}
