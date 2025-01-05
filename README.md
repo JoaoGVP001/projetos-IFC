@@ -19,6 +19,7 @@ Para rodar este projeto localmente, siga os passos abaixo:
         ```sql
         create user 'lunarWay'@'%' identified by 'SENHA';
         grant all on lunarWay.* to 'lunarWay'@'%';```
+   
     2.4. Apague o que foi digitado anteriormente, digite e execute:
         ```sql
         create database lunarWay;```
