@@ -3,13 +3,13 @@ footer.topic-info p {
     margin-right: 2%;
 }
 
-footer#footer {
+#footer {
     border-top: 1px solid var(--cinza);
     position: relative;
     background-color: black;
 }
 
-footer#footer div {
+#footer div {
     width: 80%;
     display: flex;
     position: relative;
@@ -18,21 +18,21 @@ footer#footer div {
     padding: 15px 0;
 }
 
-footer#footer div > * {
+#footer div > * {
     margin-right: 10%;
 }
 
-footer#footer img {
+#footer img {
     display: inline-block;
     cursor: pointer;
     position: relative;
 }
 
-footer#footer img#logo-ifc {
+#footer img#logo-ifc {
     width: 6%;
 }
 
-footer#footer button#artigo {
+#footer button#artigo {
     color: black;
     background-color: var(--cinza-claro);
     border-radius: 20px;
@@ -42,7 +42,7 @@ footer#footer button#artigo {
     font-weight: bold;
 }
 
-footer#footer img#icon-up-arrow {
+#footer img#icon-up-arrow {
     width: 40px;  /* Tamanho fixo em pixels */
     height: 40px; /* Mantém proporção quadrada */
     border: 1px solid white;
@@ -62,10 +62,10 @@ footer#footer img#icon-up-arrow {
     opacity: 0.8;
 }
 
-footer#footer p {
+#footer p {
     color: white; /* Adicionado para garantir que o texto seja visível no fundo preto */
 }
 
-footer#footer img#icon-email {
+#footer img#icon-email {
     width: 3%; /* Ajuste conforme necessário */
 }
