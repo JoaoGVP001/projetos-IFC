@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Missão Artemis II</title>
+    <link rel="stylesheet" href="/Css/style-news.css">
+    <link rel="stylesheet" href="/Css/global.css">
+    <link rel="stylesheet" href="/Css/header.css">
+    <link rel="stylesheet" href="/Css/footer.css">
+</head>
+<body>
+    <header>
+        <section id="navbar">
+            <img src="/Imgs/logo.png" alt="LunarWay Logo" id="logo">
+            <ul>
+                <li><a href="/">Início</a></li>
+                <li><a href="/artemis">Artemis</a></li>
+                <li><a href="/apollo">Apollo</a></li>
+                <li><a href="/gateway">Gateway</a></li>
+                <li><a href="/forum">Fórum</a></li>
+                <li class="<%= visibilityProfile %>"><a><%- username %></a></li>
+            </ul>
+            <div id="profile">
+                <img src="/Icons/icon-user.png" alt="Profile Icon" id="profile-icon" onclick="toggleDropdown()">
+                <div id="dropdown" class="hidden">
+                    <%- textProfile %>
+                </div>
+            </div>
+        </section>
+    </header>
+
+    <section id="section-news">
+        <h1>Missão Artemis II</h1>
+        <br>
+        <p>Artemis II é o primeiro voo do Sistema de Lançamento Espacial (SLS) e Orion com astronautas.
+        Com a confiança baseada na missão Artemis I e nas milhares de horas investidas no voo e teste anteriores,
+        esta missão enviará astronautas em uma missão de aproximadamente 10 dias, onde eles estabelecerão um recorde
+        para a viagem humana mais distante além do lado distante da Lua.</p>
+        <br>
+        <p>A missão lançará uma tripulação de quatro astronautas de Kennedy em uma configuração Block 1 do foguete SLS.
+        O perfil de voo é chamado de trajetória híbrida de retorno livre. A Orion realizará múltiplas manobras para
+        elevar sua órbita ao redor da Terra e, eventualmente, colocar a tripulação em uma trajetória lunar de retorno
+        livre na qual a gravidade da Terra naturalmente puxará a Orion de volta para casa após voar ao redor da Lua.</p>
+        <br>
+        <p>O lançamento inicial será semelhante ao Artemis I, já que o SLS lança a Orion no espaço e então descarta
+        os propulsores, painéis do módulo de serviço e sistema de aborto de lançamento, antes que os motores do
+        estágio central desliguem e o estágio central se separe do estágio superior e da espaçonave. Com a tripulação
+        a bordo desta missão, a Orion e o estágio superior, chamado estágio de propulsão criogênica provisório (ICPS),
+        orbitarão a Terra duas vezes para garantir que os sistemas da Orion estejam funcionando conforme o esperado
+        enquanto ainda estiverem perto de casa.</p>
+        <br>
+        <p>A espaçonave atingirá primeiro uma órbita inicial voando na forma de uma elipse, a uma altitude baixa
+        (perigeu) de cerca de 115 milhas por uma altitude alta (apogeu) de 1.800 milhas. A órbita durará um pouco
+        mais de 90 minutos e incluirá um disparo inicial do ICPS para manter o caminho de Orion. Após a primeira
+        órbita, o ICPS elevará Orion a uma órbita alta da Terra. Esta manobra permitirá que a espaçonave acumule
+        velocidade suficiente para o eventual impulso em direção à Lua. A segunda órbita maior levará aproximadamente
+        42 horas, com Orion voando em uma elipse entre cerca de 235 e 68.000 milhas acima da Terra.</p>
+        <br>
+        <p>Após a queima para entrar na órbita alta da Terra, a Orion se separará do ICPS. O estágio gasto terá um uso
+        final antes do descarte pela atmosfera da Terra — a tripulação o usará como alvo para uma demonstração de
+        operações de proximidade. Durante a demonstração, os controladores da missão em Houston monitorarão a Orion
+        enquanto os astronautas fazem a transição da espaçonave para o modo manual e pilotam a trajetória de voo e a
+        orientação da Orion. A tripulação usará as câmeras de bordo da Orion e a visão das janelas da espaçonave para
+        se alinhar com o ICPS conforme se aproximam e se afastam do estágio para avaliar as qualidades de manuseio da
+        Orion e o hardware e software relacionados. Esta demonstração fornecerá dados de desempenho e experiência
+        operacional que não podem ser facilmente obtidos no solo em preparação para encontros críticos, operações de
+        proximidade e acoplamento, bem como operações de desacoplamento em órbita lunar começando em Artemis III.</p>
+    </section>
+
+    <div id="overlay" class="hidden" onclick="toggleDropdown()"></div>
+    </main>
+
+    <footer id="footer">
+        <div>
+            <img src="/Icons/icon-ifc.png" alt="Logo IFC" id="logo-ifc">
+            <img src="/Icons/icon-email.png" alt="Icone Email" id="icon-email">
+            <p>lunarwaysite@gmail.com</p>
+            <a href="PI_2024___Grupo_1.pdf" id="artigo" download>Nosso Artigo</a>
+            <a href="#" id="back-to-top">
+                <img src="/Icons/icon-up-arrow.png" alt="Icone voltar início" id="icon-up-arrow">
+            </a>
+        </div>
+    </footer>
+
+    <script src="/Js/effects.js"></script>
+    <script>
+        document.getElementById('back-to-top').addEventListener('click', function(e) {
+            e.preventDefault();
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    </script>
+</body>
+</html>

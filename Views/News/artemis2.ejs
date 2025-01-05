@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integração vertical do estágio central do Artemis II começa na NASA Kennedy</title>
+    <link rel="stylesheet" href="/Css/style-news.css">
+    <link rel="stylesheet" href="/Css/global.css">
+    <link rel="stylesheet" href="/Css/header.css">
+    <link rel="stylesheet" href="/Css/footer.css">
+</head>
+<body>
+    <header>
+        <section id="navbar">
+            <img src="/Imgs/logo.png" alt="LunarWay Logo" id="logo">
+            <ul>
+                <li><a href="/">Início</a></li>
+                <li><a href="/artemis">Artemis</a></li>
+                <li><a href="/apollo">Apollo</a></li>
+                <li><a href="/gateway">Gateway</a></li>
+                <li><a href="/forum">Fórum</a></li>
+                <li class="<%= visibilityProfile %>"><a><%- username %></a></li>
+            </ul>
+            <div id="profile">
+                <img src="/Icons/icon-user.png" alt="Profile Icon" id="profile-icon" onclick="toggleDropdown()">
+                <div id="dropdown" class="hidden">
+                    <%- textProfile %>
+                </div>
+            </div>
+        </section>
+    </header>
+
+    <section id="section-news">
+        <h1>Integração vertical do estágio central do Artemis II começa na NASA Kennedy</h1>
+        <br>
+        <p>A NASA deu um grande passo à frente na forma como os engenheiros montarão e empilharão os futuros foguetes
+        SLS (Space Launch System) para as missões Artemis Moon dentro do Vehicle Assembly Building (VAB)
+        no Centro Espacial Kennedy da agência, na Flórida.</p>
+        <br>
+        <p>O High Bay 2 do VAB foi equipado com novas ferramentas para facilitar a integração vertical do estágio central do SLS.
+        Esse progresso foi totalmente exibido em meados de dezembro, quando as equipes suspenderam o estágio central
+        totalmente montado a 225 pés no ar dentro do high bay para concluir o trabalho vertical antes de ser empilhado
+        no lançador móvel 1, permitindo que as equipes continuassem o empilhamento de propulsores de foguetes sólidos
+        simultaneamente dentro do High Bay 3 para o Artemis II.</p>
+        <br>
+        <p>Essa mudança também dobra a área útil do VAB, dando aos engenheiros acesso ao High Bay 2 e ao High Bay 3
+        simultaneamente, além de liberar espaço nas Instalações de Montagem Michoud da NASA em Nova Orleans para
+        continuar trabalhando nos elementos individuais para os futuros estágios principais do SLS.</p>
+        <br>
+        <p>High Bay 2 tem uma longa história de suporte aos programas de exploração da NASA: durante a Apollo,
+        High Bay 2, uma das quatro baías altas dentro do VAB, foi usada para empilhar o foguete Saturno V.
+        Durante o Programa do Ônibus Espacial, a baía alta foi usada para verificação e armazenamento de tanques
+        externos e como uma área de armazenamento extra para o ônibus espacial.</p>
+        <br>
+        <p>O estágio central totalmente montado para a Artemis II chegou em 23 de julho de 2024, em Kennedy, onde permaneceu horizontalmente dentro do corredor de transferência do VAB até seu recente içamento para o compartimento alto recém-equipado.
+        As equipes da NASA Michoud estão equipando os elementos restantes do estágio central para Artemis III
+        e se preparando para juntá-los horizontalmente. Os quatro motores RS-25 para a missão Artemis III estão completos
+        no Stennis Space Center da NASA em Bay St. Louis, Mississippi, e serão transportados para a NASA Kennedy em 2025.
+        As principais estruturas do estágio central e do estágio superior de exploração estão em andamento na NASA Michoud
+        para Artemis IV e além.</p>
+        <br>
+        <p>A NASA está trabalhando para pousar a primeira mulher, a primeira pessoa de cor e seu primeiro parceiro
+        internacional astronauta na Lua sob o Artemis. O SLS é parte da espinha dorsal da NASA para exploração do
+        espaço profundo, junto com a espaçonave Orion, sistemas terrestres de suporte, trajes espaciais avançados e
+        rovers, o Gateway em órbita ao redor da Lua e sistemas comerciais de pouso humano. O SLS é o único foguete que
+        pode enviar Orion, astronautas e suprimentos para a Lua em um único lançamento.</p>
+    </section>
+
+    <div id="overlay" class="hidden" onclick="toggleDropdown()"></div>
+    </main>
+
+    <footer id="footer">
+        <div>
+            <img src="/Icons/icon-ifc.png" alt="Logo IFC" id="logo-ifc">
+            <img src="/Icons/icon-email.png" alt="Icone Email" id="icon-email">
+            <p>lunarwaysite@gmail.com</p>
+            <a href="PI_2024___Grupo_1.pdf" id="artigo" download>Nosso Artigo</a>
+            <a href="#" id="back-to-top">
+                <img src="/Icons/icon-up-arrow.png" alt="Icone voltar início" id="icon-up-arrow">
+            </a>
+        </div>
+    </footer>
+
+    <script src="/Js/effects.js"></script>
+    <script>
+        document.getElementById('back-to-top').addEventListener('click', function(e) {
+            e.preventDefault();
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    </script>
+</body>
+</html>

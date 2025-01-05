@@ -166,6 +166,44 @@ app.get("/news/artemis1", async (req, res) => {
   res.render("News/artemis1", { username, visibilityProfile,textProfile });
 });
 
+app.get("/news/artemis2", async (req, res) => {
+  if(req.cookies.idUser == "null" || req.cookies.idUser == undefined){
+    visibilityProfile = "invisible";
+    textProfile = textsProfile[0];
+  }
+  else{
+    visibilityProfile = "visible";
+    textProfile = textsProfile[1];
+
+    const userLogged = await User.findOne({
+      where: {
+        id: req.cookies.idUser
+      }
+    });
+    username = userLogged.username;
+  }
+  res.render("News/artemis2", { username, visibilityProfile,textProfile });
+});
+
+app.get("/news/artemis3", async (req, res) => {
+  if(req.cookies.idUser == "null" || req.cookies.idUser == undefined){
+    visibilityProfile = "invisible";
+    textProfile = textsProfile[0];
+  }
+  else{
+    visibilityProfile = "visible";
+    textProfile = textsProfile[1];
+
+    const userLogged = await User.findOne({
+      where: {
+        id: req.cookies.idUser
+      }
+    });
+    username = userLogged.username;
+  }
+  res.render("News/artemis3", { username, visibilityProfile,textProfile });
+});
+
 app.get("/news/apollo1", async (req, res) => {
   if(req.cookies.idUser == "null" || req.cookies.idUser == undefined){
     visibilityProfile = "invisible";

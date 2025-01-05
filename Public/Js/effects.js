@@ -37,6 +37,20 @@ if(document.querySelector("div#news-artemis1")){
   })
 };
 
+if(document.querySelector("div#news-artemis2")){
+  const divNewsArtemis = document.querySelector("div#news-artemis2");
+  divNewsArtemis.addEventListener("click", () => {
+    window.location.href = "/news/artemis2";
+  })
+};
+
+if(document.querySelector("div#news-artemis3")){
+  const divNewsArtemis = document.querySelector("div#news-artemis3");
+  divNewsArtemis.addEventListener("click", () => {
+    window.location.href = "/news/artemis3";
+  })
+};
+
 if(document.querySelector("div#news-apollo1")){
   const divNewsApollo = document.querySelector("div#news-apollo1");
   divNewsApollo.addEventListener("click", () => {
