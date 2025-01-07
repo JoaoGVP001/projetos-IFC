@@ -4,6 +4,9 @@
     padding: 0 20px; 
     height: 50px;
     border-bottom: 1px solid white;
+    position: relative;
+    top: 0;
+    z-index: 1;
   }
   
 #navbar ul {
@@ -48,6 +51,14 @@
     width: 30px; 
     height: 30px; 
     margin-left: 20px;
+}
+
+#icon-menu {
+    width: 30px;
+    position: relative;
+    top: -100%;
+    left: 50%;
+    display: none;
 }
 
 #dropdown {
@@ -96,5 +107,24 @@
     }
     #navbar li {
         flex-grow: 0; /* Remove o flex-grow em telas menores */
+    }
+}
+
+@media (max-width: 460px){
+    section#navbar img#logo{
+        position: relative;
+        right: 30%;
+        top: 25%;
+    }
+    ul#menu li {
+        display: none;
+    }
+    section#navbar div#profile{
+        position: relative;
+        left: 38%;
+        top: -32%;
+    }
+    #icon-menu {
+        display: block;
     }
 }
