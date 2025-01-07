@@ -129,6 +129,7 @@
     width: 50%;
     box-sizing: border-box;
     margin: 40px 0;
+    cursor: pointer;
 }
 
 .timeline-item:nth-child(odd) {
