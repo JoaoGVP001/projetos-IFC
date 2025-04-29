@@ -1,12 +1,10 @@
 from flask import Flask, request
 import uuid
+import psycopg
 
 app = Flask(__name__)
 
 historico_calculos = []
-from flask import Flask, request
-import uuid
-import psycopg
 
 app = Flask(__name__)
 connection_db = psycopg.connect(
@@ -117,13 +115,7 @@ left join produtos on vendas.id_produto = produtos.id''')
             }
         })
 
-
-
-
-
-
-
-
+        return lista
 
 if __name__ == "__main__":
     app.run(debug=True)
