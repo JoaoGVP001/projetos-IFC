@@ -1,26 +1,20 @@
-POST http://127.0.0.1:5000/soma
+POST http://localhost:5000/pessoas
 Content-Type: application/json
 
 {
-    "numero1": 3,
-    "numero2": 4
+    "nome": "Josnei, o Violeiro"
 }
 
 ###
 
-GET http://127.0.0.1:5000/calculos
+GET http://localhost:5000/pessoas
 Content-Type: application/json
 
 ###
 
-PUT http://127.0.0.1:5000/editar/854e85b7-a7ad-4111-b7f4-42fc3769f32a
+PUT http://localhost:5000/pessoas/5c95a44c-faf4-4782-bb43-319552595c9d
 Content-Type: application/json
 
 {
-    "numero1": 5,
-    "numero2": 6
+    "nome": "Gabriel, o Schumann"
 }
-
-###
-
-DELETE http://127.0.0.1:5000/deletar/854e85b7-a7ad-4111-b7f4-42fc3769f32a
