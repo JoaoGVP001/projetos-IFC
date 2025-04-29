@@ -15,6 +15,33 @@ connection_db = psycopg.connect(
     port="80"
 )
 
+# Criação das tabelas, se não existirem
+with connection_db.cursor() as cursor:
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS pessoas (
+            id UUID PRIMARY KEY,
+            nome TEXT NOT NULL
+        );
+    """)
+    
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS produtos (
+            id UUID PRIMARY KEY,
+            nome TEXT NOT NULL,
+            preco NUMERIC NOT NULL
+        );
+    """)
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS vendas (
+            id UUID PRIMARY KEY,
+            id_pessoa UUID REFERENCES pessoas(id),
+            id_produto UUID REFERENCES produtos(id)
+        );
+    """)
+
+    connection_db.commit()
+
 @app.route("/pessoas", methods=["POST"])
 def incluir_pessoa():
     dados_recebidos = request.get_json()

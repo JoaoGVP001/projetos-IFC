@@ -12,7 +12,7 @@ Content-Type: application/json
 
 ###
 
-PUT http://localhost:5000/pessoas/5c95a44c-faf4-4782-bb43-319552595c9d
+PUT http://localhost:5000/pessoas/cb3ef731-c545-4b2b-a0ed-198972870716
 Content-Type: application/json
 
 {
