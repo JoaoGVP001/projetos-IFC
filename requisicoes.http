@@ -1,9 +1,9 @@
 # Buscar filme por titulo
-GET http://localhost:5000/filmes?titulo=Inception
+GET http://localhost:5000/filmes?titulo=Stranger Things
 
 ###
 # Buscar filme por ID do OMDb
-GET http://localhost:5000/filmes?id=tt1375666
+GET http://localhost:5000/filmes?id=tt1877830
 
 ###
 # Listar todos os filmes armazenados localmente
