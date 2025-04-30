@@ -1,20 +1,25 @@
-POST http://localhost:5000/pessoas
+# Buscar filme por titulo
+GET http://localhost:5000/filmes?titulo=Inception
+
+###
+# Buscar filme por ID do OMDb
+GET http://localhost:5000/filmes?id=tt1375666
+
+###
+# Listar todos os filmes armazenados localmente
+GET http://localhost:5000/filmes
+
+###
+# Inserir filmes manualmente no cache
+POST http://localhost:5000/filmes
 Content-Type: application/json
 
 {
-    "nome": "Josnei, o Violeiro"
-}
-
-###
-
-GET http://localhost:5000/pessoas
-Content-Type: application/json
-
-###
-
-PUT http://localhost:5000/pessoas/cb3ef731-c545-4b2b-a0ed-198972870716
-Content-Type: application/json
-
-{
-    "nome": "Gabriel, o Schumann"
+  "titulo": "",
+  "ano": ,
+  "genero": "",
+  "sinopse": "",
+  "diretor": "",
+  "atores": "",
+  "imagem_url": ""
 }

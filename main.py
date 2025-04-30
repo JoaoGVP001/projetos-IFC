@@ -1,12 +1,10 @@
 from flask import Flask, request
 import uuid
 import psycopg
+import requests
 
 app = Flask(__name__)
 
-historico_calculos = []
-
-app = Flask(__name__)
 connection_db = psycopg.connect(
     dbname="joaoeallam",
     user="postgres",
@@ -15,134 +13,102 @@ connection_db = psycopg.connect(
     port="80"
 )
 
-# Criação das tabelas, se não existirem
-with connection_db.cursor() as cursor:
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS pessoas (
-            id UUID PRIMARY KEY,
-            nome TEXT NOT NULL
-        );
-    """)
-    
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS produtos (
-            id UUID PRIMARY KEY,
-            nome TEXT NOT NULL,
-            preco NUMERIC NOT NULL
-        );
-    """)
+OMDB_API_KEY = "91dc4248"
 
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS vendas (
-            id UUID PRIMARY KEY,
-            id_pessoa UUID REFERENCES pessoas(id),
-            id_produto UUID REFERENCES produtos(id)
-        );
-    """)
-
+def create_table():
+    with connection_db.cursor() as cursor:
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS cache_filmes (
+                id UUID PRIMARY KEY,
+                imdb_id TEXT UNIQUE,
+                titulo TEXT NOT NULL,
+                ano INT,
+                genero TEXT,
+                sinopse TEXT,
+                diretor TEXT,
+                atores TEXT,
+                imagem_url TEXT
+            );
+        """)
     connection_db.commit()
 
-@app.route("/pessoas", methods=["POST"])
-def incluir_pessoa():
-    dados_recebidos = request.get_json()
-    id = uuid.uuid4()
-    nome = dados_recebidos['nome']
+create_table()
+
+@app.route("/filmes", methods=["GET"])
+def buscar_filme():
+    titulo = request.args.get("titulo")
+    imdb_id = request.args.get("id")
 
     cursor = connection_db.cursor()
-    cursor.execute('insert into pessoas (id, nome) values (%s, %s)', (id, nome))
-    connection_db.commit()
+    try:
+        if imdb_id:
+            cursor.execute("SELECT * FROM cache_filmes WHERE imdb_id = %s", (imdb_id,))
+        elif titulo:
+            cursor.execute("SELECT * FROM cache_filmes WHERE LOWER(titulo) = LOWER(%s)", (titulo,))
+        else:
+            return {"erro": "Parâmetro 'titulo' ou 'id' obrigatório"}, 400
 
-    return {
-        'id': id
-    }
+        resultado = cursor.fetchone()
 
-@app.route("/pessoas", methods=["GET"])
-def get_pessoas():
-    cursor = connection_db.cursor()
-    cursor.execute('select id, nome from pessoas order by nome')
-
-    lista = []
-    for item in cursor:
-        lista.append({
-            'id': item[0],
-            'nome': item[1]
-        })
-    return lista
-
-@app.route("/pessoas/<id>", methods=["PUT"])
-def atualizar_pessoas(id):
-    dados_recebidos = request.get_json()
-    nome = dados_recebidos['nome']
-
-    cursor = connection_db.cursor()
-    cursor.execute('update pessoas set nome = %s where id = %s', (nome, id))
-    connection_db.commit()
-    return {
-        'id': id
-    }
-@app.route("/soma", methods=["POST"])
-def somar():
-    dados_recebidos = request.get_json()
-    numero1 = dados_recebidos['numero1']
-    numero2 = dados_recebidos['numero2']
-    resultado = numero1 + numero2
-
-    novo_calculo = {
-        "id": str(uuid.uuid4()),
-        "numero1": numero1,
-        "numero2": numero2,
-        "resultado": resultado
-    }
-    
-    historico_calculos.append(novo_calculo)
-    return novo_calculo
-
-@app.route("/calculos", methods=["GET"])
-def listar_calculos():
-    return {"historico": historico_calculos}
-
-@app.route("/deletar/<id>", methods=["DELETE"])
-def deletar(id):
-    global historico_calculos
-    historico_calculos = [calculo for calculo in historico_calculos if calculo['id'] != id]
-    
-    return {"mensagem": "Cálculo removido com sucesso"}
-
-@app.route("/editar/<id>", methods=["PUT"])
-def editar(id):
-    dados_recebidos = request.get_json()
-    for calculo in historico_calculos:
-        if calculo["id"] == id:
-            calculo["numero1"] = dados_recebidos.get("numero1", calculo["numero1"])
-            calculo["numero2"] = dados_recebidos.get("numero2", calculo["numero2"])
-            calculo["resultado"] = calculo["numero1"] + calculo["numero2"]
-            return calculo
-
-    return {"erro": "Cálculo não encontrado"}, 404
-
-@app.route("/vendas", methods=["GET"])
-def get_vendas():
-    cursor = connection_db.cursor()
-    cursor.execute('''select * from vendas
-left join pessoas on vendas.id_pessoa = pessoas.id
-left join produtos on vendas.id_produto = produtos.id''')
-    
-    lista = []
-    for item in cursor:
-        lista.append({
-            'id': item[0],
-            'pessoa': {
-                'id': item[1],
-                'nome': item[4]
-            },
-            'produto': {
-                'id': item[2],
-                'nome': item[6],
-                'preco': item[7]
+        if resultado:
+            return {
+                "id": resultado[0],
+                "imdb_id": resultado[1],
+                "titulo": resultado[2],
+                "ano": resultado[3],
+                "genero": resultado[4],
+                "sinopse": resultado[5],
+                "diretor": resultado[6],
+                "atores": resultado[7],
+                "imagem_url": resultado[8]
             }
-        })
 
-        return lista
+        # Se não encontrado no banco, buscar na OMDb API
+        params = {"apikey": OMDB_API_KEY}
+        if imdb_id:
+            params["i"] = imdb_id
+        else:
+            params["t"] = titulo
+
+        resposta = requests.get("https://www.omdbapi.com/", params=params)
+        dados = resposta.json()
+
+        if dados.get("Response") == "False":
+            return {"erro": "Filme não encontrado na OMDb"}, 404
+
+        # Inserir no banco de dados após buscar na OMDb
+        novo_id = uuid.uuid4()
+        cursor.execute("""
+            INSERT INTO cache_filmes (id, imdb_id, titulo, ano, genero, sinopse, diretor, atores, imagem_url)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, (
+            novo_id,
+            dados.get("imdbID"),
+            dados.get("Title"),
+            int(dados.get("Year", "0").split("–")[0]) if dados.get("Year") else None,
+            dados.get("Genre"),
+            dados.get("Plot"),
+            dados.get("Director"),
+            dados.get("Actors"),
+            dados.get("Poster")
+        ))
+        connection_db.commit()
+
+        return {
+            "id": novo_id,
+            "imdb_id": dados.get("imdbID"),
+            "titulo": dados.get("Title"),
+            "ano": dados.get("Year"),
+            "genero": dados.get("Genre"),
+            "sinopse": dados.get("Plot"),
+            "diretor": dados.get("Director"),
+            "atores": dados.get("Actors"),
+            "imagem_url": dados.get("Poster")
+        }
+
+    except Exception as e:
+        connection_db.rollback()
+        return {"erro": str(e)}, 500
 
 if __name__ == "__main__":
     app.run(debug=True)
