@@ -1,5 +1,5 @@
 # Buscar filme por titulo
-GET http://localhost:5000/filmes?titulo=Stranger Things
+GET http://localhost:5000/filmes?titulo=Doctor Who
 
 ###
 # Buscar filme por ID do OMDb
@@ -8,18 +8,3 @@ GET http://localhost:5000/filmes?id=tt1877830
 ###
 # Listar todos os filmes armazenados localmente
 GET http://localhost:5000/filmes
-
-###
-# Inserir filmes manualmente no cache
-POST http://localhost:5000/filmes
-Content-Type: application/json
-
-{
-  "titulo": "",
-  "ano": ,
-  "genero": "",
-  "sinopse": "",
-  "diretor": "",
-  "atores": "",
-  "imagem_url": ""
-}

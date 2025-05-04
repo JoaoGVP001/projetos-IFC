@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, jsonify
 import uuid
 import psycopg
 import requests
@@ -17,12 +17,13 @@ OMDB_API_KEY = "91dc4248"
 
 def create_table():
     with connection_db.cursor() as cursor:
+        cursor.execute("DROP TABLE IF EXISTS cache_filmes CASCADE;")
         cursor.execute("""
-            CREATE TABLE IF NOT EXISTS cache_filmes (
+            CREATE TABLE cache_filmes (
                 id UUID PRIMARY KEY,
                 imdb_id TEXT UNIQUE,
                 titulo TEXT NOT NULL,
-                ano INT,
+                ano TEXT,
                 genero TEXT,
                 sinopse TEXT,
                 diretor TEXT,
@@ -30,7 +31,7 @@ def create_table():
                 imagem_url TEXT
             );
         """)
-    connection_db.commit()
+        connection_db.commit()
 
 create_table()
 
@@ -39,31 +40,44 @@ def buscar_filme():
     titulo = request.args.get("titulo")
     imdb_id = request.args.get("id")
 
-    cursor = connection_db.cursor()
     try:
-        if imdb_id:
-            cursor.execute("SELECT * FROM cache_filmes WHERE imdb_id = %s", (imdb_id,))
-        elif titulo:
-            cursor.execute("SELECT * FROM cache_filmes WHERE LOWER(titulo) = LOWER(%s)", (titulo,))
-        else:
-            return {"erro": "Parâmetro 'titulo' ou 'id' obrigatório"}, 400
+        with connection_db.cursor() as cursor:
+            if imdb_id:
+                cursor.execute("SELECT * FROM cache_filmes WHERE imdb_id = %s", (imdb_id,))
+            elif titulo:
+                cursor.execute("SELECT * FROM cache_filmes WHERE LOWER(titulo) = LOWER(%s)", (titulo,))
+            else:
+                # Sem parâmetro, listar todos os filmes do banco local
+                cursor.execute("SELECT * FROM cache_filmes")
+                resultados = cursor.fetchall()
+                return jsonify([
+                    {
+                        "id": r[0],
+                        "imdb_id": r[1],
+                        "titulo": r[2],
+                        "ano": r[3],
+                        "genero": r[4],
+                        "sinopse": r[5],
+                        "diretor": r[6],
+                        "atores": r[7],
+                        "imagem_url": r[8]
+                    } for r in resultados
+                ])
 
-        resultado = cursor.fetchone()
+            resultado = cursor.fetchone()
+            if resultado:
+                return {
+                    "id": resultado[0],
+                    "imdb_id": resultado[1],
+                    "titulo": resultado[2],
+                    "ano": resultado[3],
+                    "genero": resultado[4],
+                    "sinopse": resultado[5],
+                    "diretor": resultado[6],
+                    "atores": resultado[7],
+                    "imagem_url": resultado[8]
+                }
 
-        if resultado:
-            return {
-                "id": resultado[0],
-                "imdb_id": resultado[1],
-                "titulo": resultado[2],
-                "ano": resultado[3],
-                "genero": resultado[4],
-                "sinopse": resultado[5],
-                "diretor": resultado[6],
-                "atores": resultado[7],
-                "imagem_url": resultado[8]
-            }
-
-        # Se não encontrado no banco, buscar na OMDb API
         params = {"apikey": OMDB_API_KEY}
         if imdb_id:
             params["i"] = imdb_id
@@ -76,23 +90,23 @@ def buscar_filme():
         if dados.get("Response") == "False":
             return {"erro": "Filme não encontrado na OMDb"}, 404
 
-        # Inserir no banco de dados após buscar na OMDb
         novo_id = uuid.uuid4()
-        cursor.execute("""
-            INSERT INTO cache_filmes (id, imdb_id, titulo, ano, genero, sinopse, diretor, atores, imagem_url)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-        """, (
-            novo_id,
-            dados.get("imdbID"),
-            dados.get("Title"),
-            int(dados.get("Year", "0").split("–")[0]) if dados.get("Year") else None,
-            dados.get("Genre"),
-            dados.get("Plot"),
-            dados.get("Director"),
-            dados.get("Actors"),
-            dados.get("Poster")
-        ))
-        connection_db.commit()
+        with connection_db.cursor() as cursor:
+            cursor.execute("""
+                INSERT INTO cache_filmes (id, imdb_id, titulo, ano, genero, sinopse, diretor, atores, imagem_url)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (
+                novo_id,
+                dados.get("imdbID"),
+                dados.get("Title"),
+                dados.get("Year", "").replace("\u2013", "-").replace("–", "-"),
+                dados.get("Genre"),
+                dados.get("Plot"),
+                dados.get("Director"),
+                dados.get("Actors"),
+                dados.get("Poster")
+            ))
+            connection_db.commit()
 
         return {
             "id": novo_id,
