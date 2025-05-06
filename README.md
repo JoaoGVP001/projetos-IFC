@@ -5,15 +5,15 @@ Esta é uma API REST desenvolvida com Flask e PostgreSQL que disponibiliza infor
 Como foi desenvolvido:
 - Instale o Python 
 - Crie um arquivo python e execute no VS Code
-- Instale flask usando pip install Flask
+- Instale o Flask usando: ```pip install Flask```
 - Crie um virtual environment (venv) com os seguintes comando:
-python -m venv nomedovenv
-- Ativar o Venv
-venv\Scripts\activate
+```python -m venv nomedovenv```
+- Ativar o Venv:
+```venv\Scripts\activate```
 - Instale o PsycoPG para usar o banco de dados (postgreSQL) direto do python:
 ```pip install "psycopg[binary]" ```
 - Instale a biblioteca requests:
-pip install requests
+```pip install requests```
 - Instale a extensão do VS Code chamada REST Client para usar as requisições começarem a funcionar
 
 Como funciona as requisições:
