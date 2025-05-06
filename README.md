@@ -2,7 +2,7 @@ Como iniciar um projeto flask?
 - Instale o Python 
 - Crie um arquivo python e execute no VS Code
 - Instale flask usando pip install Flask
-- 
+  
 - Crie um virtual environment (venv) com os seguintes comando:
 python -m venv nomedovenv
 
