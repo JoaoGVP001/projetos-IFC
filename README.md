@@ -30,13 +30,13 @@ Sem parâmetros: Retorna todos os filmes já armazenados no banco local.
 
 Exemplo de uso:
 Buscar por título:
-GET http://localhost:5000/filmes?titulo=Doctor Who
+```GET http://localhost:5000/filmes?titulo=Doctor Who```
 
 Buscar por ID:
-GET http://localhost:5000/filmes?id=tt1877830
+```GET http://localhost:5000/filmes?id=tt1877830```
 
 Listar todos os filmes locais:
-GET http://localhost:5000/filmes
+```GET http://localhost:5000/filmes```
 
 Funcionalidades
 
