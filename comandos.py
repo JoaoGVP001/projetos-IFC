@@ -4,6 +4,8 @@
 
 # pip install "psycopg[binary]"
 
+# pip install requests
+
 # git clone
 
 # git init 
