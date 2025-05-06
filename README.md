@@ -1,9 +1,16 @@
-# 🎬 API de Cache de Filmes e Séries
+Como iniciar um projeto flask?
+- Instale o Python 
+- Crie um arquivo python e execute no VS Code
+- Instale flask usando pip install Flask
+- Crie um virtual environment (venv) com os seguintes comando:
+
+
+
+API de Cache de Filmes e Séries
 
 Esta é uma API REST desenvolvida com Flask e PostgreSQL que disponibiliza informações sobre filmes e séries utilizando o serviço público da [OMDb API](https://www.omdbapi.com/). O objetivo é simular um sistema de cache: os dados buscados são armazenados localmente para acelerar futuras consultas.
 
-
-## 📌 Funcionalidades
+Funcionalidades
 
 - Buscar informações de filmes e séries por **título** ou **ID do IMDb**
 - Armazenar os dados em um banco de dados local PostgreSQL
@@ -11,14 +18,14 @@ Esta é uma API REST desenvolvida com Flask e PostgreSQL que disponibiliza infor
 - Retornar todos os filmes e séries já armazenados localmente
 
 
-## 🚀 Como funciona
+Como funciona
 
 1. A API verifica se os dados estão armazenados localmente no PostgreSQL.
 2. Se não encontrar, consulta a [OMDb API](https://www.omdbapi.com/).
 3. Se a resposta for válida, armazena os dados no banco local e retorna a resposta ao usuário.
 
 
-## 🔧 Tecnologias usadas
+Tecnologias usadas
 
 - Python 3
 - Flask
@@ -27,7 +34,7 @@ Esta é uma API REST desenvolvida com Flask e PostgreSQL que disponibiliza infor
 - requests (cliente HTTP)
 
 
-## 🔐 Requisitos
+Requisitos
 
 - Python 3 instalado
 - PostgreSQL configurado e em execução
