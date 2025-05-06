@@ -22,20 +22,20 @@ GET /filmes
 Busca por filmes no banco de dados local ou, se necessário, na API OMDb.
 
 Parâmetros opcionais:
-titulo: Busca um filme pelo título.
+**titulo:** Busca um filme pelo título.
 
-id: Busca um filme pelo ID do OMDb (imdbID).
+**id:** Busca um filme pelo ID do OMDb (imdbID).
 
-Sem parâmetros: Retorna todos os filmes já armazenados no banco local.
+**Sem parâmetros:** Retorna todos os filmes já armazenados no banco local.
 
 Exemplo de uso:
-Buscar por título:
+**Buscar por título:**
 ```GET http://localhost:5000/filmes?titulo=Doctor Who```
 
-Buscar por ID:
+**Buscar por ID:**
 ```GET http://localhost:5000/filmes?id=tt1877830```
 
-Listar todos os filmes locais:
+**Listar todos os filmes locais:**
 ```GET http://localhost:5000/filmes```
 
 Funcionalidades
