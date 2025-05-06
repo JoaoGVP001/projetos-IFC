@@ -22,6 +22,7 @@ GET /filmes
 Busca por filmes no banco de dados local ou, se necessário, na API OMDb.
 
 Parâmetros opcionais:
+
 **titulo:** Busca um filme pelo título.
 
 **id:** Busca um filme pelo ID do OMDb (imdbID).
