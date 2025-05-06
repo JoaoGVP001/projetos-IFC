@@ -11,7 +11,7 @@ python -m venv nomedovenv
 - Ativar o Venv
 venv\Scripts\activate
 - Instale o PsycoPG para usar o banco de dados (postgreSQL) direto do python:
-```bash pip install "psycopg[binary]" ```bash
+```pip install "psycopg[binary]" ```
 - Instale a biblioteca requests:
 pip install requests
 - Instale a extensão do VS Code chamada REST Client para usar as requisições começarem a funcionar
