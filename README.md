@@ -2,8 +2,7 @@ API de Cache de Filmes e Séries
 
 Esta é uma API REST desenvolvida com Flask e PostgreSQL que disponibiliza informações sobre filmes e séries utilizando o serviço público da [OMDb API](https://www.omdbapi.com/). O objetivo é simular um sistema de cache: os dados buscados são armazenados localmente para acelerar futuras consultas.
 
-Como iniciar um projeto flask?
-
+Como foi desenvolvido:
 - Instale o Python 
 - Crie um arquivo python e execute no VS Code
 - Instale flask usando pip install Flask
@@ -11,7 +10,7 @@ Como iniciar um projeto flask?
 python -m venv nomedovenv
 - Ativar o Venv
 venv\Scripts\activate
-- Instale o PsycoPG:
+- Instale o PsycoPG para usar o banco de dados (postgreSQL) direto do python:
 pip install "psycopg[binary]"
 - Instale a biblioteca requests:
 pip install requests
