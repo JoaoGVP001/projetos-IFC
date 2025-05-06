@@ -18,6 +18,7 @@ pip install requests
 - Instale a extensão do VS Code chamada REST Client para usar as requisições começarem a funcionar
 
 Como funciona as requisições:
+
 GET /filmes
 Busca por filmes no banco de dados local ou, se necessário, na API OMDb.
 
