@@ -1,52 +1,78 @@
 import 'package:flutter/material.dart';
 import 'package:animated_flip_counter/animated_flip_counter.dart';
-import 'package:flutter_slidable/flutter_slidable.dart';
 
 void main() {
-  runApp(MarcadorTrucoApp());
+  runApp(const MarcadorTrucoApp());
 }
 
 class MarcadorTrucoApp extends StatelessWidget {
+  const MarcadorTrucoApp({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: SplashScreen(), // Inicia com a splash em Dart
+      home: const SplashScreen(),
       debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        primarySwatch: Colors.red,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+        scaffoldBackgroundColor: Colors.grey[100],
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.black87,
+          foregroundColor: Colors.white,
+        ),
+        dialogTheme: DialogThemeData(
+          backgroundColor: Colors.grey[50],
+          titleTextStyle: TextStyle(
+            color: Colors.black87,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
     );
   }
 }
 
 // ========================
-// Splash Screen em Dart
+// Splash Screen Otimizada
 // ========================
 class SplashScreen extends StatefulWidget {
+  const SplashScreen({Key? key}) : super(key: key);
+
   @override
-  _SplashScreenState createState() => _SplashScreenState();
+  State<SplashScreen> createState() => _SplashScreenState();
 }
 
 class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(Duration(seconds: 2), () {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => HomePage()),
-      );
+    _navigateToHome();
+  }
+
+  void _navigateToHome() {
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const HomePage()),
+        );
+      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.red,
+    return const Scaffold(
+      backgroundColor: Colors.black87,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset(
-              'assets/logo.png',
-              width: 200, // aumente aqui (exemplo: 200)
-              // height: 200, // opcional, se quiser definir altura também
+            Icon(
+              Icons.casino,
+              size: 120,
+              color: Colors.red,
             ),
             SizedBox(height: 20),
             Text(
@@ -58,7 +84,7 @@ class _SplashScreenState extends State<SplashScreen> {
               ),
             ),
             SizedBox(height: 20),
-            CircularProgressIndicator(color: Colors.white),
+            CircularProgressIndicator(color: Colors.red),
           ],
         ),
       ),
@@ -66,372 +92,705 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 }
 
+// ========================
+// Modelo Player Otimizado
+// ========================
 class Player {
   String name;
   int points;
   int victories;
-  Player({required this.name, this.points = 0, this.victories = 0});
+
+  Player({
+    required this.name,
+    this.points = 0,
+    this.victories = 0,
+  });
+
+  void addPoints(int value) => points = (points + value).clamp(0, 12);
+  void subtractPoints(int value) => points = (points - value).clamp(0, 12);
+  void reset() => points = 0;
+  bool get hasWon => points >= 12;
 }
 
+// ========================
+// Modelo de Histórico
+// ========================
+class HistoryEntry {
+  final String playerName;
+  final String action;
+  final DateTime timestamp;
+
+  HistoryEntry({
+    required this.playerName,
+    required this.action,
+    required this.timestamp,
+  });
+
+  String get formattedTime {
+    return '${_pad2(timestamp.day)}/${_pad2(timestamp.month)}/${timestamp.year} '
+           '${_pad2(timestamp.hour)}:${_pad2(timestamp.minute)}:${_pad2(timestamp.second)}';
+  }
+
+  String _pad2(int n) => n.toString().padLeft(2, '0');
+}
+
+// ========================
+// HomePage Otimizada
+// ========================
 class HomePage extends StatefulWidget {
+  const HomePage({Key? key}) : super(key: key);
+
   @override
-  _HomePageState createState() => _HomePageState();
+  State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  Player teamA = Player(name: 'Nós');
-  Player teamB = Player(name: 'Eles');
+  static const int _maxPoints = 12;
+  static const int _trucoPoints = 3;
+  static const int _maoDeOnzePoints = 11;
 
-  List<String> history = [];
+  late Player _teamA;
+  late Player _teamB;
+  final List<HistoryEntry> _history = [];
 
-  void addPoint(Player player) {
-    if (player.points < 12) {
+  @override
+  void initState() {
+    super.initState();
+    _teamA = Player(name: 'Nós');
+    _teamB = Player(name: 'Eles');
+  }
+
+  void _addPoint(Player player) {
+    if (player.points < _maxPoints) {
       setState(() {
-        player.points++;
-        history.add(
-          '${player.name} - ${_formatNow()}: +1 ponto'
-        );
-        checkVictory(player);
-        checkMaoDeOnze();
+        player.addPoints(1);
+        _addToHistory(player, '+1 ponto');
+        _checkGameEnd(player);
       });
     }
   }
 
-  void subtractPoint(Player player) {
+  void _subtractPoint(Player player) {
     if (player.points > 0) {
       setState(() {
-        player.points--;
-        history.add(
-          '${player.name} - ${_formatNow()}: -1 ponto'
-        );
+        player.subtractPoints(1);
+        _addToHistory(player, '-1 ponto');
       });
     }
   }
 
-  void addTrucoPoints(Player player) {
-    if (player.points <= 9) {
+  void _addTrucoPoints(Player player) {
+    if (player.points <= (_maxPoints - _trucoPoints)) {
       setState(() {
-        player.points += 3;
-        if (player.points > 12) player.points = 12;
-        history.add(
-          '${player.name} - ${_formatNow()}: +3 pontos (Truco)'
-        );
-        checkVictory(player);
-        checkMaoDeOnze();
+        player.addPoints(_trucoPoints);
+        _addToHistory(player, '+3 pontos (Truco)');
+        _checkGameEnd(player);
       });
     }
   }
 
-  void checkVictory(Player player) {
-    if (player.points == 12) {
-      showDialog(
-        context: context,
-        builder: (_) => AlertDialog(
-          title: Text('${player.name} venceu!'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                setState(() {
-                  player.victories++;
-                  teamA.points = 0;
-                  teamB.points = 0;
-                  history.clear();
-                });
-                Navigator.of(context).pop();
-              },
-              child: Text('OK'),
-            ),
-          ],
-        ),
-      );
+  void _addToHistory(Player player, String action) {
+    _history.add(HistoryEntry(
+      playerName: player.name,
+      action: action,
+      timestamp: DateTime.now(),
+    ));
+  }
+
+  void _checkGameEnd(Player player) {
+    if (player.hasWon) {
+      _showVictoryDialog(player);
+    } else if (_teamA.points == _maoDeOnzePoints && _teamB.points == _maoDeOnzePoints) {
+      _showMaoDeOnzeDialog();
     }
   }
 
-  void checkMaoDeOnze() {
-    if (teamA.points == 11 && teamB.points == 11) {
-      showDialog(
-        context: context,
-        builder: (_) => AlertDialog(
-          title: Text('Mão de Onze!'),
-          content: Text('Ambos os times chegaram a 11 pontos!'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text('OK'),
-            ),
-          ],
-        ),
-      );
-    }
-  }
-
-  void renamePlayer(Player player) {
-    final controller = TextEditingController(text: player.name);
+  void _showVictoryDialog(Player winner) {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: Text('Alterar nome'),
-        content: TextField(controller: controller),
-        actions: [
-          TextButton(
-            onPressed: () {
-              setState(() => player.name = controller.text);
-              Navigator.of(context).pop();
-            },
-            child: Text('Salvar'),
+      barrierDismissible: false,
+      builder: (_) => Dialog(
+        backgroundColor: Colors.grey[900],
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.emoji_events,
+                size: 64,
+                color: Colors.red,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                '${winner.name} venceu!',
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Parabéns! ${winner.name} chegou aos $_maxPoints pontos!',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey[300],
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: _startNewGame,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                ),
+                child: const Text('Nova Partida'),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 
-  void resetPoints() {
-    setState(() {
-      teamA.points = 0;
-      teamB.points = 0;
-      teamA.victories = 0; // Zera vitórias do time A
-      teamB.victories = 0; // Zera vitórias do time B
-      history.clear();
-    });
+  void _showMaoDeOnzeDialog() {
+    showDialog(
+      context: context,
+      builder: (_) => Dialog(
+        backgroundColor: Colors.grey[900],
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.bolt,
+                size: 64,
+                color: Colors.red,
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Mão de Onze!',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Ambos os times chegaram a 11 pontos!\nA próxima rodada decide tudo!',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey[300],
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('Entendi'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
-  void undoLastAction() {
-    if (history.isEmpty) return;
-    final last = history.removeLast();
+  void _startNewGame() {
     setState(() {
-      if (last.contains('+1')) {
-        if (last.startsWith(teamA.name)) teamA.points--;
-        if (last.startsWith(teamB.name)) teamB.points--;
-      } else if (last.contains('-1')) {
-        if (last.startsWith(teamA.name)) teamA.points++;
-        if (last.startsWith(teamB.name)) teamB.points++;
+      final winner = _teamA.hasWon ? _teamA : _teamB;
+      winner.victories++;
+      _teamA.reset();
+      _teamB.reset();
+      _history.clear();
+    });
+    Navigator.of(context).pop();
+  }
+
+  void _renamePlayer(Player player) {
+    final controller = TextEditingController(text: player.name);
+    showDialog(
+      context: context,
+      builder: (_) => Dialog(
+        backgroundColor: Colors.grey[900],
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Alterar nome do time',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: controller,
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  labelText: 'Nome do time',
+                  labelStyle: TextStyle(color: Colors.grey[400]),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.grey[600]!),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: const BorderSide(color: Colors.red),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey[800],
+                ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.grey[400],
+                    ),
+                    child: const Text('Cancelar'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      final newName = controller.text.trim();
+                      if (newName.isNotEmpty) {
+                        setState(() => player.name = newName);
+                      }
+                      Navigator.of(context).pop();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: const Text('Salvar'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _resetGame() {
+    showDialog(
+      context: context,
+      builder: (_) => Dialog(
+        backgroundColor: Colors.grey[900],
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.refresh,
+                size: 48,
+                color: Colors.red,
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Resetar Jogo',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Isso irá zerar todos os pontos e vitórias. Confirma?',
+                style: TextStyle(
+                  color: Colors.grey[300],
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.grey[400],
+                    ),
+                    child: const Text('Cancelar'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        _teamA.points = 0;
+                        _teamA.victories = 0;
+                        _teamB.points = 0;
+                        _teamB.victories = 0;
+                        _history.clear();
+                      });
+                      Navigator.of(context).pop();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: const Text('Confirmar'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _undoLastAction() {
+    if (_history.isEmpty) return;
+    
+    final lastEntry = _history.removeLast();
+    setState(() {
+      final player = lastEntry.playerName == _teamA.name ? _teamA : _teamB;
+      
+      if (lastEntry.action.contains('+1')) {
+        player.subtractPoints(1);
+      } else if (lastEntry.action.contains('-1')) {
+        player.addPoints(1);
+      } else if (lastEntry.action.contains('+3')) {
+        player.subtractPoints(3);
       }
     });
   }
 
-  Widget buildPlayerColumn(Player player) {
+  Widget _buildPlayerColumn(Player player) {
+    final isWinning = player.points > (player == _teamA ? _teamB.points : _teamA.points);
+    
     return Expanded(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          GestureDetector(
-            onTap: () => renamePlayer(player),
-            child: Text(player.name, style: TextStyle(fontSize: 24)),
-          ),
-          AnimatedFlipCounter(
-            duration: Duration(milliseconds: 250),
-            value: player.points,
-            textStyle: TextStyle(fontSize: 40),
-          ),
-          Container(
-            margin: EdgeInsets.symmetric(vertical: 12),
-            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            decoration: BoxDecoration(
-              color: Colors.red,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black26,
-                  blurRadius: 6,
-                  offset: Offset(0, 3),
-                ),
-              ],
-            ),
-            child: Text(
-              'Vitórias: ${player.victories}',
-              style: TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-                letterSpacing: 1.2,
-                shadows: [
-                  Shadow(
-                    color: Colors.black38,
-                    blurRadius: 4,
-                    offset: Offset(1, 2),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            GestureDetector(
+              onTap: () => _renamePlayer(player),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: isWinning ? Colors.red.withOpacity(0.1) : Colors.grey[200],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: isWinning ? Colors.red : Colors.grey,
+                    width: 2,
                   ),
-                ],
+                ),
+                child: Text(
+                  player.name,
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: isWinning ? Colors.red[700] : Colors.black87,
+                  ),
+                ),
               ),
-              textAlign: TextAlign.center,
             ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              IconButton(
-                onPressed: () => addPoint(player),
-                icon: Icon(Icons.add),
-              ),
-              IconButton(
-                onPressed: () => subtractPoint(player),
-                icon: Icon(Icons.remove),
-              ),
-            ],
-          ),
-          SizedBox(height: 10),
-          ElevatedButton(
-            onPressed: () => addTrucoPoints(player),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.grey,
-              foregroundColor: Colors.white,
-              padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
+            const SizedBox(height: 16),
+            AnimatedFlipCounter(
+              duration: const Duration(milliseconds: 300),
+              value: player.points,
               textStyle: TextStyle(
-                fontSize: 18,
+                fontSize: 64,
                 fontWeight: FontWeight.bold,
-                letterSpacing: 1.2,
+                color: player.points == _maoDeOnzePoints ? Colors.red : Colors.black87,
               ),
             ),
-            child: Text('Truco!'),
-          ),
-        ],
+            const SizedBox(height: 16),
+            _buildVictoryCounter(player),
+            const SizedBox(height: 24),
+            _buildControlButtons(player),
+          ],
+        ),
       ),
     );
   }
 
-  Widget buildHistoryList() {
-    return ListView.builder(
-      itemCount: history.length,
-      itemBuilder: (context, index) {
-        final item = history[index];
-
-        // Detecta o time pelo início da string
-        Color? teamColor;
-        String teamAName = teamA.name;
-        String teamBName = teamB.name;
-        if (item.startsWith('$teamAName -')) {
-          teamColor = Colors.blue[700];
-        } else if (item.startsWith('$teamBName -')) {
-          teamColor = Colors.green[700];
-        } else {
-          teamColor = Colors.black87;
-        }
-
-        return Card(
-          margin: EdgeInsets.symmetric(vertical: 6, horizontal: 12),
-          elevation: 2,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                // Nome do time e ação (maior e colorido)
-                Expanded(
-                  child: Text(
-                    // Nome do time + ação, sem cortar a hora!
-                    '${item.split(' - ')[0]}: ${item.split(': ').sublist(1).join(': ')}',
-                    style: TextStyle(
-                      color: teamColor,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                SizedBox(width: 10),
-                // Caixinha para data/hora
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.grey[400]!),
-                  ),
-                  child: Text(
-                    // Data e hora certinho
-                    item.split(' - ')[1].split(': ').first,
-                    style: TextStyle(
-                      color: Colors.black87,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+  Widget _buildVictoryCounter(Player player) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Colors.black87, Colors.grey],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
           ),
-        );
-      },
+        ],
+      ),
+      child: Text(
+        'Vitórias: ${player.victories}',
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+        ),
+      ),
     );
   }
 
-  String _formatNow() {
-    final now = DateTime.now();
-    return '${_pad2(now.day)}/${_pad2(now.month)}/${now.year} ${_pad2(now.hour)}:${_pad2(now.minute)}:${_pad2(now.second)}';
+  Widget _buildControlButtons(Player player) {
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _buildActionButton(
+              icon: Icons.add,
+              onPressed: () => _addPoint(player),
+              color: Colors.red,
+              tooltip: 'Adicionar ponto',
+            ),
+            _buildActionButton(
+              icon: Icons.remove,
+              onPressed: player.points > 0 ? () => _subtractPoint(player) : null,
+              color: Colors.grey[700]!,
+              tooltip: 'Remover ponto',
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        ElevatedButton.icon(
+          onPressed: player.points <= (_maxPoints - _trucoPoints) 
+              ? () => _addTrucoPoints(player) 
+              : null,
+          icon: const Icon(Icons.whatshot),
+          label: const Text('TRUCO!'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.red,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            textStyle: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
-  String _pad2(int n) => n.toString().padLeft(2, '0');
+  Widget _buildActionButton({
+    required IconData icon,
+    required VoidCallback? onPressed,
+    required Color color,
+    required String tooltip,
+  }) {
+    return FloatingActionButton(
+      onPressed: onPressed,
+      backgroundColor: color,
+      heroTag: '$tooltip${icon.codePoint}',
+      tooltip: tooltip,
+      child: Icon(icon, color: Colors.white),
+    );
+  }
+
+  Widget _buildHistoryList() {
+    if (_history.isEmpty) {
+      return const Center(
+        child: Text(
+          'Nenhuma ação registrada ainda',
+          style: TextStyle(fontSize: 16, color: Colors.grey),
+        ),
+      );
+    }
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Histórico da Partida',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              if (_history.isNotEmpty)
+                TextButton.icon(
+                  onPressed: _undoLastAction,
+                  icon: const Icon(Icons.undo),
+                  label: const Text('Desfazer'),
+                ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: ListView.builder(
+            itemCount: _history.length,
+            reverse: true,
+            itemBuilder: (context, index) {
+              final entry = _history[_history.length - 1 - index];
+              final isTeamA = entry.playerName == _teamA.name;
+              
+              return Card(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: isTeamA ? Colors.red : Colors.grey[700],
+                    child: Text(
+                      entry.playerName[0].toUpperCase(),
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  title: Text(
+                    '${entry.playerName}: ${entry.action}',
+                    style: const TextStyle(fontWeight: FontWeight.w500),
+                  ),
+                  subtitle: Text(entry.formattedTime),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showRulesDialog() {
+    showDialog(
+      context: context,
+      builder: (_) => Dialog(
+        backgroundColor: Colors.grey[900],
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Row(
+                children: [
+                  Icon(Icons.help_outline, color: Colors.red, size: 28),
+                  SizedBox(width: 8),
+                  Text(
+                    'Regras do Truco',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Text(
+                '🎯 Objetivo:\n• Primeiro time a fazer 12 pontos vence\n',
+                style: TextStyle(color: Colors.grey[300]),
+              ),
+              Text(
+                '⚡ Pontuação:\n• Rodada normal: 1 ponto\n• Truco aceito: 3 pontos\n',
+                style: TextStyle(color: Colors.grey[300]),
+              ),
+              Text(
+                '🔥 Mão de Onze:\n• Quando ambos chegam a 11 pontos\n• Próxima rodada decide o jogo\n',
+                style: TextStyle(color: Colors.grey[300]),
+              ),
+              Text(
+                '🎮 Dicas do App:\n• Toque no nome para alterá-lo\n• Use "Desfazer" para corrigir erros\n• Acompanhe o histórico na parte inferior',
+                style: TextStyle(color: Colors.grey[300]),
+              ),
+              const SizedBox(height: 24),
+              Center(
+                child: ElevatedButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: const Text('Entendi'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.red,
+        backgroundColor: Colors.black87,
+        elevation: 4,
         centerTitle: true,
-        title: Text(
+        title: const Text(
           'Marcador de Truco',
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
-            fontSize: 24,
-            letterSpacing: 1.2,
+            fontSize: 22,
           ),
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.help_outline),
-            tooltip: 'Regras do Truco',
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (_) => AlertDialog(
-                  title: Text('Regras Básicas do Truco'),
-                  content: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('• O objetivo é fazer 12 pontos antes do adversário.\n'),
-                        Text('• Cada rodada vale 1 ponto, mas pode valer 3 (Truco!).\n'),
-                        Text('• O Truco pode ser pedido a qualquer momento, e o adversário pode aceitar, recusar (você ganha 1 ponto) ou pedir 6.\n'),
-                        Text('• Se ambos os times chegarem a 11 pontos, é a "Mão de Onze".\n'),
-                        Text('• O jogo é jogado em duplas ou individualmente.\n'),
-                        Text('• Para mais detalhes, consulte as regras oficiais da sua região.'),
-                      ],
-                    ),
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: Text('Fechar'),
-                    ),
-                  ],
-                ),
-              );
-            },
+            icon: const Icon(Icons.help_outline, color: Colors.red),
+            onPressed: _showRulesDialog,
+            tooltip: 'Regras',
           ),
           IconButton(
-            icon: Icon(Icons.refresh),
-            onPressed: resetPoints,
-            tooltip: 'Resetar placar',
+            icon: const Icon(Icons.refresh, color: Colors.red),
+            onPressed: _resetGame,
+            tooltip: 'Resetar jogo',
           ),
         ],
       ),
       body: Column(
         children: [
           Expanded(
+            flex: 2,
             child: Row(
               children: [
-                buildPlayerColumn(teamA),
-                VerticalDivider(),
-                buildPlayerColumn(teamB),
+                _buildPlayerColumn(_teamA),
+                Container(
+                  width: 2,
+                  color: Colors.grey[600],
+                  margin: const EdgeInsets.symmetric(vertical: 20),
+                ),
+                _buildPlayerColumn(_teamB),
               ],
             ),
           ),
-          Divider(),
-          Expanded(child: buildHistoryList()),
+          Container(
+            height: 2,
+            color: Colors.grey[600],
+          ),
+          Expanded(
+            flex: 1,
+            child: _buildHistoryList(),
+          ),
         ],
       ),
     );
