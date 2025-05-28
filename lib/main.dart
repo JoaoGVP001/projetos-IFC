@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:animated_flip_counter/animated_flip_counter.dart';
 
+// ========================
+// Main App
+// ========================
 void main() {
   runApp(const MarcadorTrucoApp());
 }
 
+// ========================
+// App Widget Principal
+// ========================
 class MarcadorTrucoApp extends StatelessWidget {
   const MarcadorTrucoApp({Key? key}) : super(key: key);
 
@@ -51,6 +57,7 @@ class _SplashScreenState extends State<SplashScreen> {
     _navigateToHome();
   }
 
+  // Aguarda 2 segundos e navega para a HomePage
   void _navigateToHome() {
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
@@ -126,6 +133,7 @@ class HistoryEntry {
     required this.timestamp,
   });
 
+  // Formata a data/hora para exibição
   String get formattedTime {
     return '${_pad2(timestamp.day)}/${_pad2(timestamp.month)}/${timestamp.year} '
            '${_pad2(timestamp.hour)}:${_pad2(timestamp.minute)}:${_pad2(timestamp.second)}';
@@ -145,10 +153,12 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  // Constantes do jogo
   static const int _maxPoints = 12;
   static const int _trucoPoints = 3;
   static const int _maoDeOnzePoints = 11;
 
+  // Times e histórico
   late Player _teamA;
   late Player _teamB;
   final List<HistoryEntry> _history = [];
@@ -160,6 +170,7 @@ class _HomePageState extends State<HomePage> {
     _teamB = Player(name: 'Eles');
   }
 
+  // Adiciona 1 ponto ao jogador e registra no histórico
   void _addPoint(Player player) {
     if (player.points < _maxPoints) {
       setState(() {
@@ -170,6 +181,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  // Remove 1 ponto do jogador e registra no histórico
   void _subtractPoint(Player player) {
     if (player.points > 0) {
       setState(() {
@@ -179,6 +191,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  // Adiciona pontos de Truco ao jogador e registra no histórico
   void _addTrucoPoints(Player player) {
     if (player.points <= (_maxPoints - _trucoPoints)) {
       setState(() {
@@ -189,6 +202,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  // Adiciona uma entrada ao histórico
   void _addToHistory(Player player, String action) {
     _history.add(HistoryEntry(
       playerName: player.name,
@@ -197,6 +211,7 @@ class _HomePageState extends State<HomePage> {
     ));
   }
 
+  // Verifica se alguém venceu ou se chegou a mão de onze
   void _checkGameEnd(Player player) {
     if (player.hasWon) {
       _showVictoryDialog(player);
@@ -205,6 +220,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  // Mostra o diálogo de vitória
   void _showVictoryDialog(Player winner) {
     showDialog(
       context: context,
@@ -258,6 +274,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // Mostra o diálogo de mão de onze
   void _showMaoDeOnzeDialog() {
     showDialog(
       context: context,
@@ -309,6 +326,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // Inicia nova partida, soma vitória ao vencedor e reseta pontos
   void _startNewGame() {
     setState(() {
       final winner = _teamA.hasWon ? _teamA : _teamB;
@@ -320,6 +338,7 @@ class _HomePageState extends State<HomePage> {
     Navigator.of(context).pop();
   }
 
+  // Mostra diálogo para renomear o time
   void _renamePlayer(Player player) {
     final controller = TextEditingController(text: player.name);
     showDialog(
@@ -393,6 +412,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // Mostra diálogo para resetar o jogo
   void _resetGame() {
     showDialog(
       context: context,
@@ -463,6 +483,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // Desfaz a última ação do histórico
   void _undoLastAction() {
     if (_history.isEmpty) return;
     
@@ -480,6 +501,7 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  // Monta a coluna de cada jogador (nome, pontos, vitórias, botões)
   Widget _buildPlayerColumn(Player player) {
     final isWinning = player.points > (player == _teamA ? _teamB.points : _teamA.points);
     
@@ -489,6 +511,7 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            // Nome do time (pode ser alterado ao tocar)
             GestureDetector(
               onTap: () => _renamePlayer(player),
               child: Container(
@@ -512,6 +535,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             const SizedBox(height: 16),
+            // Pontuação animada
             AnimatedFlipCounter(
               duration: const Duration(milliseconds: 300),
               value: player.points,
@@ -522,8 +546,10 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             const SizedBox(height: 16),
+            // Contador de vitórias destacado
             _buildVictoryCounter(player),
             const SizedBox(height: 24),
+            // Botões de controle (adicionar/remover ponto, truco)
             _buildControlButtons(player),
           ],
         ),
@@ -531,6 +557,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // Widget para o contador de vitórias
   Widget _buildVictoryCounter(Player player) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -560,6 +587,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // Botões de adicionar/remover ponto e truco
   Widget _buildControlButtons(Player player) {
     return Column(
       children: [
@@ -581,6 +609,7 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
         const SizedBox(height: 12),
+        // Botão de Truco, só habilitado se possível
         ElevatedButton.icon(
           onPressed: player.points <= (_maxPoints - _trucoPoints) 
               ? () => _addTrucoPoints(player) 
@@ -601,6 +630,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // Botão de ação (add/remove ponto)
   Widget _buildActionButton({
     required IconData icon,
     required VoidCallback? onPressed,
@@ -616,6 +646,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // Lista de histórico estilizada
   Widget _buildHistoryList() {
     if (_history.isEmpty) {
       return const Center(
@@ -678,6 +709,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // Mostra o diálogo com as regras do truco
   void _showRulesDialog() {
     showDialog(
       context: context,
@@ -739,6 +771,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // Monta a tela principal
   @override
   Widget build(BuildContext context) {
     return Scaffold(
