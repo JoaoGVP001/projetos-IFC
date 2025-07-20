@@ -303,9 +303,21 @@ class DodgeObstaclesGame extends FlameGame with HasKeyboardHandlerComponents, Ta
       final yOffset = elapsed * 30; // Move 30 pixels por segundo
       final position = Vector2(message.position.x, message.position.y - yOffset);
       
+      // Animação de bounce/zoom
+      double scale = 1.0;
+      if (elapsed < 0.15) {
+        // Zoom in rápido no início (0 a 0.15s)
+        scale = 1.0 + (1.5 * (1.0 - elapsed / 0.15));
+      } else if (elapsed < 0.3) {
+        // Bounce pequeno (0.15s a 0.3s)
+        final bounceProgress = (elapsed - 0.15) / 0.15;
+        scale = 1.0 + (0.2 * sin(bounceProgress * pi));
+      }
+      
       // Configurar o texto
+      final baseSize = message.isCritical ? 32.0 : 20.0;
       final textStyle = TextStyle(
-        fontSize: message.isCritical ? 24 : 20,
+        fontSize: baseSize * scale,
         fontWeight: FontWeight.bold,
         color: message.text.startsWith('SANGUE') 
           ? Colors.red.withOpacity(alpha)
@@ -313,11 +325,41 @@ class DodgeObstaclesGame extends FlameGame with HasKeyboardHandlerComponents, Ta
             ? Colors.orange.withOpacity(alpha)
             : Colors.white.withOpacity(alpha),
         shadows: [
+          // Sombra base
           Shadow(
             blurRadius: 3,
             color: Colors.black.withOpacity(alpha),
             offset: const Offset(1, 1),
           ),
+          // Glow para críticos
+          if (message.isCritical) ...[
+            Shadow(
+              blurRadius: 8,
+              color: Colors.orange.withOpacity(alpha * 0.7),
+              offset: const Offset(-1, -1),
+            ),
+            Shadow(
+              blurRadius: 8,
+              color: Colors.orange.withOpacity(alpha * 0.7),
+              offset: const Offset(1, -1),
+            ),
+            Shadow(
+              blurRadius: 8,
+              color: Colors.orange.withOpacity(alpha * 0.7),
+              offset: const Offset(-1, 1),
+            ),
+            Shadow(
+              blurRadius: 8,
+              color: Colors.orange.withOpacity(alpha * 0.7),
+              offset: const Offset(1, 1),
+            ),
+            // Glow central mais intenso
+            Shadow(
+              blurRadius: 12,
+              color: Colors.orange.withOpacity(alpha * 0.8),
+              offset: const Offset(0, 0),
+            ),
+          ],
         ],
       );
       
