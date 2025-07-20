@@ -5,6 +5,138 @@ import 'package:flutter/material.dart';
 import 'dart:math';
 import 'dart:io';
 import 'package:flutter/services.dart';
+import 'dart:ui';
+
+// Widget de tooltip personalizado
+class CustomTooltip extends StatefulWidget {
+  final Widget child;
+  final String message;
+
+  const CustomTooltip({
+    super.key,
+    required this.child,
+    required this.message,
+  });
+
+  @override
+  State<CustomTooltip> createState() => _CustomTooltipState();
+}
+
+class _CustomTooltipState extends State<CustomTooltip> with SingleTickerProviderStateMixin {
+  bool isHovered = false;
+  late AnimationController _controller;
+  late Animation<double> _fadeAnimation;
+  late Animation<double> _blurAnimation;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 200),
+      vsync: this,
+    );
+    
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOut,
+    ));
+
+    _blurAnimation = Tween<double>(
+      begin: 4.0,
+      end: 0.0,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOut,
+    ));
+
+    _scaleAnimation = Tween<double>(
+      begin: 0.95,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOut,
+    ));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (isHovered) {
+      _controller.forward();
+    } else {
+      _controller.reverse();
+    }
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => isHovered = true),
+      onExit: (_) => setState(() => isHovered = false),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          widget.child,
+          Positioned(
+            top: -5,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: AnimatedBuilder(
+                animation: _controller,
+                builder: (context, child) => Opacity(
+                  opacity: _fadeAnimation.value,
+                  child: Container(
+                    constraints: const BoxConstraints(maxWidth: 300),
+                    child: Transform.scale(
+                      scale: _scaleAnimation.value,
+                      child: ImageFiltered(
+                        imageFilter: ImageFilter.blur(
+                          sigmaX: _blurAnimation.value,
+                          sigmaY: _blurAnimation.value,
+                        ),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF1a1a2e).withOpacity(0.95),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.amber.withOpacity(0.3)),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.2),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Text(
+                            widget.message,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              decoration: TextDecoration.none,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 void main() {
   runApp(
@@ -2141,8 +2273,21 @@ class PlayerStatsOverlay extends StatelessWidget {
   final DodgeObstaclesGame game;
   const PlayerStatsOverlay({super.key, required this.game});
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
-    return Container(
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: _PlayerStatsContent(game: game),
+    );
+  }
+}
+
+class _PlayerStatsContent extends StatelessWidget {
+  final DodgeObstaclesGame game;
+  const _PlayerStatsContent({required this.game});
+
+  Widget _buildStatCard(String title, String value, IconData icon, Color color, {String? tooltip}) {
+    final card = Container(
       margin: const EdgeInsets.symmetric(vertical: 4),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -2157,7 +2302,11 @@ class PlayerStatsOverlay extends StatelessWidget {
           Expanded(
             child: Text(
               title,
-              style: const TextStyle(color: Colors.white, fontSize: 14),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                decoration: TextDecoration.none,
+              ),
             ),
           ),
           Text(
@@ -2166,16 +2315,22 @@ class PlayerStatsOverlay extends StatelessWidget {
               color: color,
               fontSize: 16,
               fontWeight: FontWeight.bold,
+              decoration: TextDecoration.none,
             ),
           ),
         ],
       ),
     );
+
+    return tooltip != null
+      ? CustomTooltip(message: tooltip, child: card)
+      : card;
   }
 
-  Widget _buildUpgradeCard(String title, int count, IconData icon, Color color) {
+  Widget _buildUpgradeCard(String title, int count, IconData icon, Color color, {String? tooltip}) {
     if (count == 0) return const SizedBox.shrink();
-    return Container(
+    
+    final card = Container(
       margin: const EdgeInsets.symmetric(vertical: 4),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -2192,7 +2347,11 @@ class PlayerStatsOverlay extends StatelessWidget {
           Expanded(
             child: Text(
               title,
-              style: const TextStyle(color: Colors.white, fontSize: 14),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                decoration: TextDecoration.none,
+              ),
             ),
           ),
           Container(
@@ -2207,18 +2366,55 @@ class PlayerStatsOverlay extends StatelessWidget {
                 color: Colors.white,
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
+                decoration: TextDecoration.none,
               ),
             ),
           ),
         ],
       ),
     );
+
+    return tooltip != null
+      ? CustomTooltip(message: tooltip, child: card)
+      : card;
   }
 
   @override
   Widget build(BuildContext context) {
     final player = game.player;
     
+    // Descrições dos atributos
+    final Map<String, String> attributeDescriptions = {
+      'Haki': 'Aumenta sua chance de causar dano crítico.',
+      'Akuma no Mi': 'Aumenta a velocidade dos seus projéteis.',
+      'Vida': 'Cada ponto aumenta sua vida máxima em 10.',
+      'Armas': 'Cada ponto aumenta o dano base dos seus tiros em 2.',
+      'Stamina': 'Aumenta sua velocidade de movimento.',
+    };
+
+    // Descrições dos upgrades
+    final Map<String, String> upgradeDescriptions = {
+      'Força de Sobrevivência': 'A cada 50 de vida perdida, ganha +5% de resistência temporária por 10 segundos.',
+      'Recuperação Pós Wave': 'Ao completar uma wave, recupera 5% da vida perdida.',
+      'Tanque de Guerra': '+5% de vida máxima adicional sobre o valor total atual.',
+      'Escudo de Impacto': 'Ao receber um ataque, inimigos ao redor tomam 10 de dano (cooldown: 5s).',
+      'Mira Tática': 'A cada 2 pontos em Armas, aumenta +5% de chance de acerto crítico.',
+      'Projétil Vampírico': '10% do dano causado com armas retorna como vida para o jogador.',
+      'Combo de Tiros': 'A cada 3 tiros consecutivos acertados, o quarto é crítico garantido.',
+      'Golpe Decisivo': 'Críticos causam sangramento: 5 de dano por segundo por 3 segundos.',
+    };
+
+    // Descrições básicas
+    final Map<String, String> basicDescriptions = {
+      'Nível': 'Seu nível atual. A cada nível ganho, recebe 5 pontos de status.',
+      'XP Atual': 'Experiência atual / Experiência necessária para o próximo nível.',
+      'Pontos de Status': 'Pontos disponíveis para distribuir entre seus atributos.',
+      'Vida Atual': 'Sua vida atual / Vida máxima.',
+      'Dano do Tiro': 'Dano base dos seus tiros.',
+      'Combo Atual': 'Acertos consecutivos / Acertos necessários para crítico garantido.',
+      'Resistência Temporária': 'Bônus de resistência a dano da Força de Sobrevivência.',
+    };
+
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -2262,6 +2458,7 @@ class PlayerStatsOverlay extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                         color: Color(0xFFffd700),
                         shadows: [Shadow(blurRadius: 2, color: Colors.black, offset: Offset(1,1))],
+                        decoration: TextDecoration.none,
                       ),
                     ),
                     IconButton(
@@ -2281,14 +2478,20 @@ class PlayerStatsOverlay extends StatelessWidget {
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: Colors.amber,
+                    decoration: TextDecoration.none,
                   ),
                 ),
                 const SizedBox(height: 8),
-                _buildStatCard('Nível', '${player.level}', Icons.star, Colors.amber),
-                _buildStatCard('XP Atual', '${player.xp}/${player.xpToNextLevel}', Icons.trending_up, Colors.blue),
-                _buildStatCard('Pontos de Status', '${player.statusPoints}', Icons.add_circle, Colors.green),
-                _buildStatCard('Vida Atual', '${player.life}/${player.maxLife}', Icons.favorite, Colors.red),
-                _buildStatCard('Dano do Tiro', '${player.bulletDamage}', Icons.gps_fixed, Colors.orange),
+                _buildStatCard('Nível', '${player.level}', Icons.star, Colors.amber, 
+                  tooltip: basicDescriptions['Nível']),
+                _buildStatCard('XP Atual', '${player.xp}/${player.xpToNextLevel}', Icons.trending_up, Colors.blue,
+                  tooltip: basicDescriptions['XP Atual']),
+                _buildStatCard('Pontos de Status', '${player.statusPoints}', Icons.add_circle, Colors.green,
+                  tooltip: basicDescriptions['Pontos de Status']),
+                _buildStatCard('Vida Atual', '${player.life}/${player.maxLife}', Icons.favorite, Colors.red,
+                  tooltip: basicDescriptions['Vida Atual']),
+                _buildStatCard('Dano do Tiro', '${player.bulletDamage}', Icons.gps_fixed, Colors.orange,
+                  tooltip: basicDescriptions['Dano do Tiro']),
                 
                 const SizedBox(height: 20),
                 
@@ -2299,14 +2502,20 @@ class PlayerStatsOverlay extends StatelessWidget {
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: Colors.amber,
+                    decoration: TextDecoration.none,
                   ),
                 ),
                 const SizedBox(height: 8),
-                _buildStatCard('Haki', '${player.statusHaki}', Icons.psychology, Colors.purple),
-                _buildStatCard('Akuma no Mi', '${player.statusAkuma}', Icons.flash_on, Colors.yellow),
-                _buildStatCard('Vida', '${player.statusVida}', Icons.favorite, Colors.red),
-                _buildStatCard('Armas', '${player.statusArmas}', Icons.gps_fixed, Colors.orange),
-                _buildStatCard('Stamina', '${player.statusStamina}', Icons.directions_run, Colors.cyan),
+                _buildStatCard('Haki', '${player.statusHaki}', Icons.psychology, Colors.purple, 
+                  tooltip: attributeDescriptions['Haki']),
+                _buildStatCard('Akuma no Mi', '${player.statusAkuma}', Icons.flash_on, Colors.yellow,
+                  tooltip: attributeDescriptions['Akuma no Mi']),
+                _buildStatCard('Vida', '${player.statusVida}', Icons.favorite, Colors.red,
+                  tooltip: attributeDescriptions['Vida']),
+                _buildStatCard('Armas', '${player.statusArmas}', Icons.gps_fixed, Colors.orange,
+                  tooltip: attributeDescriptions['Armas']),
+                _buildStatCard('Stamina', '${player.statusStamina}', Icons.directions_run, Colors.cyan,
+                  tooltip: attributeDescriptions['Stamina']),
                 
                 const SizedBox(height: 20),
                 
@@ -2317,13 +2526,18 @@ class PlayerStatsOverlay extends StatelessWidget {
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: Colors.red,
+                    decoration: TextDecoration.none,
                   ),
                 ),
                 const SizedBox(height: 8),
-                _buildUpgradeCard('Força de Sobrevivência', game.survivalUpgrades, Icons.shield, Colors.red),
-                _buildUpgradeCard('Recuperação Pós Wave', game.recoveryUpgrades, Icons.healing, Colors.pink),
-                _buildUpgradeCard('Tanque de Guerra', game.tankUpgrades, Icons.fitness_center, Colors.redAccent),
-                _buildUpgradeCard('Escudo de Impacto', game.impactShieldUpgrades, Icons.security, Colors.deepOrange),
+                _buildUpgradeCard('Força de Sobrevivência', game.survivalUpgrades, Icons.shield, Colors.red,
+                  tooltip: upgradeDescriptions['Força de Sobrevivência']),
+                _buildUpgradeCard('Recuperação Pós Wave', game.recoveryUpgrades, Icons.healing, Colors.pink,
+                  tooltip: upgradeDescriptions['Recuperação Pós Wave']),
+                _buildUpgradeCard('Tanque de Guerra', game.tankUpgrades, Icons.fitness_center, Colors.redAccent,
+                  tooltip: upgradeDescriptions['Tanque de Guerra']),
+                _buildUpgradeCard('Escudo de Impacto', game.impactShieldUpgrades, Icons.security, Colors.deepOrange,
+                  tooltip: upgradeDescriptions['Escudo de Impacto']),
                 
                 const SizedBox(height: 20),
                 
@@ -2334,13 +2548,18 @@ class PlayerStatsOverlay extends StatelessWidget {
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: Colors.orange,
+                    decoration: TextDecoration.none,
                   ),
                 ),
                 const SizedBox(height: 8),
-                _buildUpgradeCard('Mira Tática', game.tacticalSightUpgrades, Icons.center_focus_strong, Colors.orange),
-                _buildUpgradeCard('Projétil Vampírico', game.vampiricBulletUpgrades, Icons.bloodtype, Colors.deepOrange),
-                _buildUpgradeCard('Combo de Tiros', game.comboShotUpgrades, Icons.auto_awesome, Colors.orangeAccent),
-                _buildUpgradeCard('Golpe Decisivo', game.decisiveBlowUpgrades, Icons.water_drop, Colors.deepOrange),
+                _buildUpgradeCard('Mira Tática', game.tacticalSightUpgrades, Icons.center_focus_strong, Colors.orange,
+                  tooltip: upgradeDescriptions['Mira Tática']),
+                _buildUpgradeCard('Projétil Vampírico', game.vampiricBulletUpgrades, Icons.bloodtype, Colors.deepOrange,
+                  tooltip: upgradeDescriptions['Projétil Vampírico']),
+                _buildUpgradeCard('Combo de Tiros', game.comboShotUpgrades, Icons.auto_awesome, Colors.orangeAccent,
+                  tooltip: upgradeDescriptions['Combo de Tiros']),
+                _buildUpgradeCard('Golpe Decisivo', game.decisiveBlowUpgrades, Icons.water_drop, Colors.deepOrange,
+                  tooltip: upgradeDescriptions['Golpe Decisivo']),
                 
                 const SizedBox(height: 20),
                 
@@ -2351,13 +2570,16 @@ class PlayerStatsOverlay extends StatelessWidget {
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: Colors.green,
+                    decoration: TextDecoration.none,
                   ),
                 ),
                 const SizedBox(height: 8),
                 if (game.survivalBuffPercent > 0)
-                  _buildStatCard('Resistência Temporária', '${(game.survivalBuffPercent * 100).round()}%', Icons.shield, Colors.green),
+                  _buildStatCard('Resistência Temporária', '${(game.survivalBuffPercent * 100).round()}%', Icons.shield, Colors.green,
+                    tooltip: basicDescriptions['Resistência Temporária']),
                 if (game.comboHitCount > 0)
-                  _buildStatCard('Combo Atual', '${game.comboHitCount}/3', Icons.auto_awesome, Colors.orange),
+                  _buildStatCard('Combo Atual', '${game.comboHitCount}/3', Icons.auto_awesome, Colors.orange,
+                    tooltip: basicDescriptions['Combo Atual']),
                 
                 const SizedBox(height: 20),
                 
@@ -2375,6 +2597,7 @@ class PlayerStatsOverlay extends StatelessWidget {
                       fontSize: 12,
                       color: Colors.blue,
                       fontStyle: FontStyle.italic,
+                      decoration: TextDecoration.none,
                     ),
                     textAlign: TextAlign.center,
                   ),
