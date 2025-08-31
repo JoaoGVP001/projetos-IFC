@@ -1,5 +1,7 @@
 "use client"
 
+import type React from "react"
+
 import { useState, useEffect } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -19,6 +21,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { formatPhone, formatCNPJ, validateCNPJ, validatePhone } from "@/lib/utils/masks"
 
 interface Company {
   id: string
@@ -38,9 +41,6 @@ export function CompanySettings() {
   const [saving, setSaving] = useState(false)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
-  const supabase = createClient()
-  const { toast } = useToast()
-
   const [formData, setFormData] = useState({
     name: "",
     cnpj: "",
@@ -49,6 +49,12 @@ export function CompanySettings() {
     email: "",
     is_active: true,
   })
+  const [errors, setErrors] = useState({
+    cnpj: "",
+    phone: "",
+  })
+  const supabase = createClient()
+  const { toast } = useToast()
 
   useEffect(() => {
     fetchCompanies()
@@ -61,12 +67,10 @@ export function CompanySettings() {
       } = await supabase.auth.getUser()
 
       if (user) {
-        // Buscar perfil do usuário para verificar se é site_admin
         const { data: profile } = await supabase.from("user_profiles").select("role").eq("id", user.id).single()
 
         let query = supabase.from("companies").select("*")
 
-        // Se não for site_admin, mostrar apenas empresas do usuário
         if (profile?.role !== "site_admin") {
           const { data: userCompanies } = await supabase
             .from("user_companies")
@@ -95,32 +99,62 @@ export function CompanySettings() {
     }
   }
 
+  const validateForm = () => {
+    const newErrors = { cnpj: "", phone: "" }
+    let isValid = true
+
+    if (formData.cnpj && !validateCNPJ(formData.cnpj)) {
+      newErrors.cnpj = "CNPJ inválido"
+      isValid = false
+    }
+
+    if (formData.phone && !validatePhone(formData.phone)) {
+      newErrors.phone = "Telefone inválido"
+      isValid = false
+    }
+
+    setErrors(newErrors)
+    return isValid
+  }
+
   const handleSave = async () => {
+    if (!validateForm()) {
+      toast({
+        title: "Erro de validação",
+        description: "Por favor, corrija os campos inválidos",
+        variant: "destructive",
+      })
+      return
+    }
+
     setSaving(true)
     try {
       if (isEditing && selectedCompany) {
-        // Atualizar empresa existente
         const { error } = await supabase.from("companies").update(formData).eq("id", selectedCompany.id)
 
-        if (error) throw error
+        if (error) {
+          console.error("[v0] Erro ao atualizar empresa:", error)
+          throw error
+        }
 
         toast({
           title: "Sucesso",
           description: "Empresa atualizada com sucesso",
         })
       } else {
-        // Criar nova empresa
         const { data: newCompany, error } = await supabase.from("companies").insert([formData]).select().single()
 
-        if (error) throw error
+        if (error) {
+          console.error("[v0] Erro ao criar empresa:", error)
+          throw error
+        }
 
-        // Associar o usuário atual à nova empresa como admin
         const {
           data: { user },
         } = await supabase.auth.getUser()
 
         if (user && newCompany) {
-          await supabase.from("user_companies").insert([
+          const { error: userCompanyError } = await supabase.from("user_companies").insert([
             {
               user_id: user.id,
               company_id: newCompany.id,
@@ -128,6 +162,10 @@ export function CompanySettings() {
               is_active: true,
             },
           ])
+
+          if (userCompanyError) {
+            console.error("[v0] Erro ao associar usuário à empresa:", userCompanyError)
+          }
         }
 
         toast({
@@ -140,11 +178,22 @@ export function CompanySettings() {
       setIsEditing(false)
       resetForm()
       fetchCompanies()
-    } catch (error) {
-      console.error("Erro ao salvar empresa:", error)
+    } catch (error: any) {
+      console.error("[v0] Erro ao salvar empresa:", error)
+
+      let errorMessage = "Não foi possível salvar a empresa"
+
+      if (error?.message?.includes("table") && error?.message?.includes("schema cache")) {
+        errorMessage = "Banco de dados não configurado. Entre em contato com o suporte."
+      } else if (error?.code === "23505") {
+        errorMessage = "CNPJ já cadastrado no sistema"
+      } else if (error?.message) {
+        errorMessage = `Erro: ${error.message}`
+      }
+
       toast({
         title: "Erro",
-        description: "Não foi possível salvar a empresa",
+        description: errorMessage,
         variant: "destructive",
       })
     } finally {
@@ -161,6 +210,7 @@ export function CompanySettings() {
       email: "",
       is_active: true,
     })
+    setErrors({ cnpj: "", phone: "" })
   }
 
   const handleEdit = (company: Company) => {
@@ -180,6 +230,24 @@ export function CompanySettings() {
     resetForm()
     setIsEditing(false)
     setIsDialogOpen(true)
+  }
+
+  const handleCNPJChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatCNPJ(e.target.value)
+    setFormData({ ...formData, cnpj: formatted })
+
+    if (errors.cnpj) {
+      setErrors({ ...errors, cnpj: "" })
+    }
+  }
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatPhone(e.target.value)
+    setFormData({ ...formData, phone: formatted })
+
+    if (errors.phone) {
+      setErrors({ ...errors, phone: "" })
+    }
   }
 
   if (loading) {
@@ -212,6 +280,7 @@ export function CompanySettings() {
                     id="name"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    required
                   />
                 </div>
                 <div className="space-y-2">
@@ -219,8 +288,12 @@ export function CompanySettings() {
                   <Input
                     id="cnpj"
                     value={formData.cnpj}
-                    onChange={(e) => setFormData({ ...formData, cnpj: e.target.value })}
+                    onChange={handleCNPJChange}
+                    placeholder="00.000.000/0000-00"
+                    maxLength={18}
+                    className={errors.cnpj ? "border-red-500" : ""}
                   />
+                  {errors.cnpj && <p className="text-sm text-red-500">{errors.cnpj}</p>}
                 </div>
               </div>
               <div className="space-y-2">
@@ -237,8 +310,12 @@ export function CompanySettings() {
                   <Input
                     id="phone"
                     value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    onChange={handlePhoneChange}
+                    placeholder="(00) 00000-0000"
+                    maxLength={15}
+                    className={errors.phone ? "border-red-500" : ""}
                   />
+                  {errors.phone && <p className="text-sm text-red-500">{errors.phone}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
