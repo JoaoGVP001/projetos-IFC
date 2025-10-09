@@ -82,6 +82,13 @@ export function QuestionForm({ learningPaths, userId }: QuestionFormProps) {
     try {
       const supabase = createClient()
 
+      console.log("[v0] Creating question with data:", {
+        topic_id: selectedTopic,
+        question_text: questionText,
+        difficulty,
+        xp_value: Number.parseInt(xpValue),
+      })
+
       // Create question
       const { data: question, error: questionError } = await supabase
         .from("questions")
@@ -97,7 +104,12 @@ export function QuestionForm({ learningPaths, userId }: QuestionFormProps) {
         .select()
         .single()
 
-      if (questionError) throw questionError
+      if (questionError) {
+        console.error("[v0] Error creating question:", questionError)
+        throw questionError
+      }
+
+      console.log("[v0] Question created successfully:", question)
 
       // Create options
       const optionsData = options.map((opt, index) => ({
@@ -107,13 +119,24 @@ export function QuestionForm({ learningPaths, userId }: QuestionFormProps) {
         order_index: index,
       }))
 
-      const { error: optionsError } = await supabase.from("question_options").insert(optionsData)
+      console.log("[v0] Creating options:", optionsData)
 
-      if (optionsError) throw optionsError
+      const { data: createdOptions, error: optionsError } = await supabase
+        .from("question_options")
+        .insert(optionsData)
+        .select()
+
+      if (optionsError) {
+        console.error("[v0] Error creating options:", optionsError)
+        throw optionsError
+      }
+
+      console.log("[v0] Options created successfully:", createdOptions)
 
       router.push("/teacher/questions")
       router.refresh()
     } catch (err) {
+      console.error("[v0] Error in handleSubmit:", err)
       setError(err instanceof Error ? err.message : "Erro ao criar questão")
     } finally {
       setIsLoading(false)

@@ -8,7 +8,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { useState } from "react"
 
 export default function LoginPage() {
@@ -16,7 +15,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const router = useRouter()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -25,14 +23,10 @@ export default function LoginPage() {
     setError(null)
 
     try {
-      console.log("[v0] Tentando fazer login com:", email)
-
       const { data, error: loginError } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
-
-      console.log("[v0] Resposta do login:", { data, error: loginError })
 
       if (loginError) throw loginError
 
@@ -40,26 +34,18 @@ export default function LoginPage() {
         throw new Error("Credenciais inválidas")
       }
 
-      console.log("[v0] Login bem-sucedido, usuário:", data.user.id)
-
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", data.user.id)
         .single()
 
-      console.log("[v0] Perfil encontrado:", { profile, error: profileError })
-
       if (profileError || !profile) {
-        console.error("[v0] Perfil não encontrado:", profileError)
         throw new Error("Perfil do usuário não encontrado. Por favor, entre em contato com o suporte.")
       }
 
-      console.log("[v0] Redirecionando para dashboard")
-      router.push("/dashboard")
-      router.refresh()
+      window.location.href = "/dashboard"
     } catch (error: unknown) {
-      console.error("[v0] Erro no login:", error)
       setError(error instanceof Error ? error.message : "Erro ao fazer login")
     } finally {
       setIsLoading(false)

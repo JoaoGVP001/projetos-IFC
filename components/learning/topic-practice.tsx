@@ -33,6 +33,12 @@ export function TopicPractice({ topic, learningPath, questions, progress, userId
   const currentQuestion = questions[currentQuestionIndex]
   const hasQuestions = questions.length > 0
 
+  console.log("[v0] TopicPractice - Total questions:", questions.length)
+  console.log("[v0] TopicPractice - Current question:", currentQuestion)
+  if (currentQuestion) {
+    console.log("[v0] TopicPractice - Current question options:", currentQuestion.question_options)
+  }
+
   const handleOptionSelect = (optionId: string) => {
     if (!showResult) {
       setSelectedOption(optionId)

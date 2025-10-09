@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { useState } from "react"
 
 export default function SignUpPage() {
@@ -19,7 +18,6 @@ export default function SignUpPage() {
   const [role, setRole] = useState<"student" | "teacher">("student")
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const router = useRouter()
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -34,8 +32,6 @@ export default function SignUpPage() {
     }
 
     try {
-      console.log("[v0] Iniciando cadastro com:", { email, fullName, role })
-
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
@@ -47,15 +43,11 @@ export default function SignUpPage() {
         },
       })
 
-      console.log("[v0] Resposta do signUp:", { data, error: signUpError })
-
       if (signUpError) throw signUpError
 
       if (!data.user) {
         throw new Error("Usuário não foi criado")
       }
-
-      console.log("[v0] Usuário criado com sucesso:", data.user.id)
 
       await new Promise((resolve) => setTimeout(resolve, 1000))
 
@@ -65,10 +57,7 @@ export default function SignUpPage() {
         .eq("id", data.user.id)
         .single()
 
-      console.log("[v0] Perfil criado:", { profile, error: profileError })
-
       if (profileError || !profile) {
-        console.error("[v0] Erro ao verificar perfil:", profileError)
         const { error: insertError } = await supabase.from("profiles").insert({
           id: data.user.id,
           email: email,
@@ -77,18 +66,12 @@ export default function SignUpPage() {
         })
 
         if (insertError) {
-          console.error("[v0] Erro ao criar perfil manualmente:", insertError)
           throw new Error("Erro ao criar perfil do usuário")
         }
-
-        console.log("[v0] Perfil criado manualmente com sucesso")
       }
 
-      console.log("[v0] Redirecionando para dashboard")
-      router.push("/dashboard")
-      router.refresh()
+      window.location.href = "/dashboard"
     } catch (error: unknown) {
-      console.error("[v0] Erro no cadastro:", error)
       setError(error instanceof Error ? error.message : "Erro ao criar conta")
     } finally {
       setIsLoading(false)

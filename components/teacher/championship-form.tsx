@@ -24,7 +24,18 @@ export function ChampionshipForm({ userId }: ChampionshipFormProps) {
 
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
-  const [subject, setSubject] = useState<"math" | "portuguese" | "biology">("math")
+  const [subject, setSubject] = useState<
+    | "math"
+    | "portuguese"
+    | "biology"
+    | "physics"
+    | "chemistry"
+    | "history"
+    | "geography"
+    | "philosophy"
+    | "sociology"
+    | "english"
+  >("math")
   const [startDate, setStartDate] = useState("")
   const [endDate, setEndDate] = useState("")
   const [maxParticipants, setMaxParticipants] = useState("")
@@ -125,6 +136,13 @@ export function ChampionshipForm({ userId }: ChampionshipFormProps) {
                 <SelectItem value="math">Matemática</SelectItem>
                 <SelectItem value="portuguese">Português</SelectItem>
                 <SelectItem value="biology">Biologia</SelectItem>
+                <SelectItem value="physics">Física</SelectItem>
+                <SelectItem value="chemistry">Química</SelectItem>
+                <SelectItem value="history">História</SelectItem>
+                <SelectItem value="geography">Geografia</SelectItem>
+                <SelectItem value="philosophy">Filosofia</SelectItem>
+                <SelectItem value="sociology">Sociologia</SelectItem>
+                <SelectItem value="english">Inglês</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -137,8 +155,11 @@ export function ChampionshipForm({ userId }: ChampionshipFormProps) {
                 type="datetime-local"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
+                min={new Date().toISOString().slice(0, 16)}
                 required
+                className="block"
               />
+              <p className="text-xs text-muted-foreground">Selecione data e hora de início</p>
             </div>
 
             <div className="space-y-2">
@@ -148,8 +169,11 @@ export function ChampionshipForm({ userId }: ChampionshipFormProps) {
                 type="datetime-local"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
+                min={startDate || new Date().toISOString().slice(0, 16)}
                 required
+                className="block"
               />
+              <p className="text-xs text-muted-foreground">Selecione data e hora de término</p>
             </div>
           </div>
 
@@ -158,11 +182,13 @@ export function ChampionshipForm({ userId }: ChampionshipFormProps) {
             <Input
               id="max-participants"
               type="number"
-              min="1"
+              min="2"
+              step="1"
               placeholder="Deixe em branco para ilimitado"
               value={maxParticipants}
               onChange={(e) => setMaxParticipants(e.target.value)}
             />
+            <p className="text-xs text-muted-foreground">Mínimo de 2 participantes se definido</p>
           </div>
         </CardContent>
       </Card>

@@ -1,5 +1,15 @@
 export type UserRole = "student" | "teacher"
-export type SubjectType = "math" | "portuguese" | "biology"
+export type SubjectType =
+  | "math"
+  | "portuguese"
+  | "biology"
+  | "physics"
+  | "chemistry"
+  | "history"
+  | "geography"
+  | "philosophy"
+  | "sociology"
+  | "english"
 export type QuestionDifficulty = "easy" | "medium" | "hard"
 export type ChampionshipStatus = "upcoming" | "active" | "completed"
 
@@ -94,4 +104,22 @@ export interface Championship {
   status: ChampionshipStatus
   max_participants?: number
   created_at: string
+}
+
+export interface Class {
+  id: string
+  name: string
+  description?: string
+  teacher_id: string
+  access_code: string
+  max_students?: number
+  created_at: string
+  updated_at: string
+}
+
+export interface ClassStudent {
+  id: string
+  class_id: string
+  student_id: string
+  joined_at: string
 }

@@ -41,7 +41,7 @@ export default async function TopicPracticePage({
   }
 
   // Get questions for this topic
-  const { data: questions } = await supabase
+  const { data: questions, error: questionsError } = await supabase
     .from("questions")
     .select(
       `
@@ -51,6 +51,10 @@ export default async function TopicPracticePage({
     )
     .eq("topic_id", topicId)
     .order("created_at")
+
+  console.log("[v0] Fetched questions for topic:", topicId)
+  console.log("[v0] Questions data:", questions)
+  console.log("[v0] Questions error:", questionsError)
 
   // Get user progress
   const { data: progress } = await supabase
