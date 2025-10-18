@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sigilrpg/models/character_class.dart';
 import 'package:sigilrpg/models/character_origin.dart';
 import 'package:sigilrpg/models/character.dart';
+import 'package:sigilrpg/services/characters_service.dart';
 
 class CharacterCreateView extends StatefulWidget {
   const CharacterCreateView({super.key});
@@ -12,6 +13,7 @@ class CharacterCreateView extends StatefulWidget {
 
 class _CharacterCreateViewState extends State<CharacterCreateView> {
   int _currentStep = 0;
+  bool _isLoading = false;
 
   // Step 1: Básicas
   final _formBasics = GlobalKey<FormState>();
@@ -27,185 +29,313 @@ class _CharacterCreateViewState extends State<CharacterCreateView> {
       4 -
       (_attributesTotal - 5); // 4 pontos para distribuir, todos começam em 1
 
-  // Step 3: Classe
+  // Step 3: Origem (corrigido: origem vem antes da classe)
+  CharacterOrigin? _selectedOrigin;
+
+  // Step 4: Classe
   CharacterClass? _selectedClass;
 
-  // Step 4: Origem
-  CharacterOrigin? _selectedOrigin;
+  // Step 5: Detalhes do Personagem
+  final _formDetails = GlobalKey<FormState>();
+  final TextEditingController _genderCtrl = TextEditingController();
+  final TextEditingController _ageCtrl = TextEditingController();
+  final TextEditingController _appearanceCtrl = TextEditingController();
+  final TextEditingController _personalityCtrl = TextEditingController();
+  final TextEditingController _backgroundCtrl = TextEditingController();
+  final TextEditingController _objectiveCtrl = TextEditingController();
+
+  final CharactersService _charactersService = CharactersService();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Criar Personagem')),
-      body: Stepper(
-        currentStep: _currentStep,
-        type: StepperType.vertical,
-        onStepTapped: (i) => setState(() => _currentStep = i),
-        onStepContinue: _onContinue,
-        onStepCancel: _onBack,
-        controlsBuilder: (context, details) {
-          final isLast = _currentStep == 3;
-          return Row(
-            children: [
-              ElevatedButton(
-                onPressed: details.onStepContinue,
-                child: Text(isLast ? 'Concluir' : 'Continuar'),
-              ),
-              const SizedBox(width: 12),
-              if (_currentStep > 0)
-                TextButton(
-                  onPressed: details.onStepCancel,
-                  child: const Text('Voltar'),
-                ),
-            ],
-          );
-        },
-        steps: [
-          Step(
-            title: const Text('Informações Básicas'),
-            isActive: _currentStep >= 0,
-            state: _stepState(0),
-            content: Form(
-              key: _formBasics,
-              child: Column(
-                children: [
-                  TextFormField(
-                    controller: _nameCtrl,
-                    decoration: const InputDecoration(
-                      labelText: 'Nome do Personagem',
-                    ),
-                    validator: (v) => (v == null || v.trim().isEmpty)
-                        ? 'Informe o nome'
-                        : null,
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _playerCtrl,
-                    decoration: const InputDecoration(
-                      labelText: 'Jogador Responsável',
-                    ),
-                    validator: (v) => (v == null || v.trim().isEmpty)
-                        ? 'Informe o jogador'
-                        : null,
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
+      appBar: AppBar(
+        title: const Text('Criar Personagem'),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Theme.of(context).colorScheme.onPrimary,
+        elevation: 0,
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Stepper(
+              currentStep: _currentStep,
+              type: StepperType.vertical,
+              onStepTapped: (i) => setState(() => _currentStep = i),
+              onStepContinue: _onContinue,
+              onStepCancel: _onBack,
+              controlsBuilder: (context, details) {
+                final isLast = _currentStep == 4;
+                return Container(
+                  margin: const EdgeInsets.only(top: 16),
+                  child: Row(
                     children: [
-                      const Text('NEX:'),
                       Expanded(
-                        child: Slider(
-                          min: 5,
-                          max: 50,
-                          divisions: 9,
-                          value: _nex.toDouble(),
-                          label: '$_nex%',
-                          onChanged: (v) => setState(() => _nex = v.round()),
+                        child: ElevatedButton(
+                          onPressed: _isLoading ? null : details.onStepContinue,
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                          child: Text(
+                            isLast ? 'Criar Personagem' : 'Continuar',
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      if (_currentStep > 0)
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: _isLoading ? null : details.onStepCancel,
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                            child: const Text(
+                              'Voltar',
+                              style: TextStyle(fontSize: 16),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                );
+              },
+              steps: [
+                Step(
+                  title: const Text('Informações Básicas'),
+                  isActive: _currentStep >= 0,
+                  state: _stepState(0),
+                  content: Form(
+                    key: _formBasics,
+                    child: Column(
+                      children: [
+                        TextFormField(
+                          controller: _nameCtrl,
+                          decoration: const InputDecoration(
+                            labelText: 'Nome do Personagem',
+                          ),
+                          validator: (v) => (v == null || v.trim().isEmpty)
+                              ? 'Informe o nome'
+                              : null,
+                        ),
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _playerCtrl,
+                          decoration: const InputDecoration(
+                            labelText: 'Jogador Responsável',
+                          ),
+                          validator: (v) => (v == null || v.trim().isEmpty)
+                              ? 'Informe o jogador'
+                              : null,
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            const Text('NEX:'),
+                            Expanded(
+                              child: Slider(
+                                min: 5,
+                                max: 50,
+                                divisions: 9,
+                                value: _nex.toDouble(),
+                                label: '$_nex%',
+                                onChanged: (v) =>
+                                    setState(() => _nex = v.round()),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          decoration: const InputDecoration(
+                            labelText: 'Avatar URL (opcional)',
+                          ),
+                          onChanged: (v) =>
+                              _avatarUrl = v.trim().isEmpty ? null : v.trim(),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Step(
+                  title: const Text('Atributos'),
+                  isActive: _currentStep >= 1,
+                  state: _stepState(1),
+                  content: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surfaceVariant,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Text(
+                          'Quando você cria um personagem, todos os seus atributos começam em 1 e você recebe 4 pontos para distribuir entre eles como quiser. Você também pode reduzir um atributo para 0 para receber 1 ponto adicional. O valor máximo inicial que você pode ter em cada atributo é 3.',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Pontos disponíveis: ${_pointsAvailable >= 0 ? _pointsAvailable : 0}',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 8),
+                      _attrRow('AGI', _agi, (v) => setState(() => _agi = v)),
+                      _attrRow('INT', _int, (v) => setState(() => _int = v)),
+                      _attrRow('VIG', _vig, (v) => setState(() => _vig = v)),
+                      _attrRow('PRE', _pre, (v) => setState(() => _pre = v)),
+                      _attrRow('FOR', _for, (v) => setState(() => _for = v)),
+                    ],
+                  ),
+                ),
+                Step(
+                  title: const Text('Origem'),
+                  isActive: _currentStep >= 2,
+                  state: _stepState(2),
+                  content: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surfaceVariant,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Text(
+                          'Sua origem define seu passado antes de se tornar um agente da Ordem. Cada origem oferece perícias treinadas específicas e um poder único que reflete sua experiência anterior.',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        height: 400,
+                        child: ListView.builder(
+                          itemCount: CharacterOrigins.allOrigins.length,
+                          itemBuilder: (context, index) {
+                            final origin = CharacterOrigins.allOrigins[index];
+                            return _buildOriginCard(origin);
+                          },
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    decoration: const InputDecoration(
-                      labelText: 'Avatar URL (opcional)',
+                ),
+                Step(
+                  title: const Text('Classe'),
+                  isActive: _currentStep >= 3,
+                  state: _stepState(3),
+                  content: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surfaceVariant,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Text(
+                          'Sua classe indica o treinamento que você recebeu na Ordem para enfrentar os perigos do Outro Lado.\n\nEm termos de jogo, é a sua característica mais importante, pois define o que você faz e qual é o seu papel no grupo de investigadores.\n\nPerícias concedidas serão adicionadas automaticamente. Perícias opcionais podem ser adicionadas ao agente após sua criação.',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      ...CharacterClasses.allClasses.map(
+                        (classe) => _buildClassCard(classe),
+                      ),
+                    ],
+                  ),
+                ),
+                Step(
+                  title: const Text('Finalizar Personagem'),
+                  isActive: _currentStep >= 4,
+                  state: _stepState(4),
+                  content: Form(
+                    key: _formDetails,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.surfaceVariant,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Text(
+                            'Até aqui, você definiu as características mecânicas de sua ficha — mas um bom personagem é mais do que apenas números. Agora, vamos trabalhar na descrição de seu agente, definindo aspectos como nome, gênero e idade. Esses aspectos não possuem efeito em regras, mas deixam o jogo mais envolvente e divertido.',
+                            style: TextStyle(fontSize: 14),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextFormField(
+                                controller: _genderCtrl,
+                                decoration: const InputDecoration(
+                                  labelText: 'Gênero',
+                                  hintText:
+                                      'Ex: Masculino, Feminino, Não-binário...',
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: TextFormField(
+                                controller: _ageCtrl,
+                                decoration: const InputDecoration(
+                                  labelText: 'Idade',
+                                  hintText: 'Ex: 25',
+                                ),
+                                keyboardType: TextInputType.number,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: _appearanceCtrl,
+                          decoration: const InputDecoration(
+                            labelText: 'Aparência',
+                            hintText:
+                                'Nome, gênero, idade, descrição física...',
+                          ),
+                          maxLines: 3,
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: _personalityCtrl,
+                          decoration: const InputDecoration(
+                            labelText: 'Personalidade',
+                            hintText: 'Traços marcantes, opiniões, ideais...',
+                          ),
+                          maxLines: 3,
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: _backgroundCtrl,
+                          decoration: const InputDecoration(
+                            labelText: 'Histórico',
+                            hintText:
+                                'Infância, relação com a família, contato com o Paranormal, eventos bons e ruins...',
+                          ),
+                          maxLines: 4,
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: _objectiveCtrl,
+                          decoration: const InputDecoration(
+                            labelText: 'Objetivo',
+                            hintText:
+                                'Por que ele faz parte da Ordem? Porque luta contra o Outro Lado?',
+                          ),
+                          maxLines: 3,
+                        ),
+                      ],
                     ),
-                    onChanged: (v) =>
-                        _avatarUrl = v.trim().isEmpty ? null : v.trim(),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Step(
-            title: const Text('Atributos'),
-            isActive: _currentStep >= 1,
-            state: _stepState(1),
-            content: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceVariant,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Text(
-                    'Quando você cria um personagem, todos os seus atributos começam em 1 e você recebe 4 pontos para distribuir entre eles como quiser. Você também pode reduzir um atributo para 0 para receber 1 ponto adicional. O valor máximo inicial que você pode ter em cada atributo é 3.',
-                    style: TextStyle(fontSize: 14),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Pontos disponíveis: ${_pointsAvailable >= 0 ? _pointsAvailable : 0}',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const SizedBox(height: 8),
-                _attrRow('AGI', _agi, (v) => setState(() => _agi = v)),
-                _attrRow('INT', _int, (v) => setState(() => _int = v)),
-                _attrRow('VIG', _vig, (v) => setState(() => _vig = v)),
-                _attrRow('PRE', _pre, (v) => setState(() => _pre = v)),
-                _attrRow('FOR', _for, (v) => setState(() => _for = v)),
-              ],
-            ),
-          ),
-          Step(
-            title: const Text('Classe'),
-            isActive: _currentStep >= 2,
-            state: _stepState(2),
-            content: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceVariant,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Text(
-                    'Sua classe indica o treinamento que você recebeu na Ordem para enfrentar os perigos do Outro Lado.\n\nEm termos de jogo, é a sua característica mais importante, pois define o que você faz e qual é o seu papel no grupo de investigadores.\n\nPerícias concedidas serão adicionadas automaticamente. Perícias opcionais podem ser adicionadas ao agente após sua criação.',
-                    style: TextStyle(fontSize: 14),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                ...CharacterClasses.allClasses.map(
-                  (classe) => _buildClassCard(classe),
-                ),
-              ],
-            ),
-          ),
-          Step(
-            title: const Text('Origem'),
-            isActive: _currentStep >= 3,
-            state: _stepState(3),
-            content: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceVariant,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Text(
-                    'Sua origem define seu passado antes de se tornar um agente da Ordem. Cada origem oferece perícias treinadas específicas e um poder único que reflete sua experiência anterior.',
-                    style: TextStyle(fontSize: 14),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: CharacterOrigins.allOrigins.length,
-                    itemBuilder: (context, index) {
-                      final origin = CharacterOrigins.allOrigins[index];
-                      return _buildOriginCard(origin);
-                    },
                   ),
                 ),
               ],
             ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -405,16 +535,19 @@ class _CharacterCreateViewState extends State<CharacterCreateView> {
         return;
       }
     }
-    if (_currentStep == 2 && _selectedClass == null) {
-      _showSnack('Selecione uma classe.');
-      return;
-    }
-    if (_currentStep == 3 && _selectedOrigin == null) {
+    if (_currentStep == 2 && _selectedOrigin == null) {
       _showSnack('Selecione uma origem.');
       return;
     }
+    if (_currentStep == 3 && _selectedClass == null) {
+      _showSnack('Selecione uma classe.');
+      return;
+    }
+    if (_currentStep == 4) {
+      if (!(_formDetails.currentState?.validate() ?? false)) return;
+    }
 
-    if (_currentStep < 3) {
+    if (_currentStep < 4) {
       setState(() => _currentStep++);
       return;
     }
@@ -428,41 +561,126 @@ class _CharacterCreateViewState extends State<CharacterCreateView> {
   }
 
   void _finish() async {
-    final attributes = CharacterAttributes(
-      agilidade: _agi,
-      intelecto: _int,
-      vigor: _vig,
-      presenca: _pre,
-      forca: _for,
-    );
+    setState(() => _isLoading = true);
 
-    final character = Character(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      name: _nameCtrl.text,
-      playerName: _playerCtrl.text,
-      origin: _selectedOrigin!.name,
-      characterClass: _selectedClass!.name,
-      nex: _nex,
-      avatarUrl: _avatarUrl,
-      attributes: attributes,
-    );
+    try {
+      final attributes = CharacterAttributes(
+        agilidade: _agi,
+        intelecto: _int,
+        vigor: _vig,
+        presenca: _pre,
+        forca: _for,
+      );
 
-    await showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Personagem criado!'),
-        content: Text(
-          'Nome: ${character.name}\nJogador: ${character.playerName}\nClasse: ${character.characterClass}\nOrigem: ${character.origin}\nNEX: ${character.nex}%',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+      final details = CharacterDetails(
+        gender: _genderCtrl.text.trim().isEmpty
+            ? null
+            : _genderCtrl.text.trim(),
+        age: _ageCtrl.text.trim().isEmpty
+            ? null
+            : int.tryParse(_ageCtrl.text.trim()),
+        appearance: _appearanceCtrl.text.trim().isEmpty
+            ? null
+            : _appearanceCtrl.text.trim(),
+        personality: _personalityCtrl.text.trim().isEmpty
+            ? null
+            : _personalityCtrl.text.trim(),
+        background: _backgroundCtrl.text.trim().isEmpty
+            ? null
+            : _backgroundCtrl.text.trim(),
+        objective: _objectiveCtrl.text.trim().isEmpty
+            ? null
+            : _objectiveCtrl.text.trim(),
+      );
+
+      final character = Character(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        name: _nameCtrl.text,
+        playerName: _playerCtrl.text,
+        origin: _selectedOrigin!.name,
+        characterClass: _selectedClass!.name,
+        nex: _nex,
+        avatarUrl: _avatarUrl,
+        attributes: attributes,
+        details: details,
+      );
+
+      // Salvar personagem via API
+      await _charactersService.createCharacter(character);
+
+      if (mounted) {
+        await showDialog(
+          context: context,
+          builder: (_) => AlertDialog(
+            title: const Text('Personagem criado!'),
+            content: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('Nome: ${character.name}'),
+                  Text('Jogador: ${character.playerName}'),
+                  Text('Classe: ${character.characterClass}'),
+                  Text('Origem: ${character.origin}'),
+                  Text('NEX: ${character.nex}%'),
+                  if (character.details.gender != null)
+                    Text('Gênero: ${character.details.gender}'),
+                  if (character.details.age != null)
+                    Text('Idade: ${character.details.age}'),
+                  if (character.details.appearance != null) ...[
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Aparência:',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Text(character.details.appearance!),
+                  ],
+                  if (character.details.personality != null) ...[
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Personalidade:',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Text(character.details.personality!),
+                  ],
+                  if (character.details.background != null) ...[
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Histórico:',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Text(character.details.background!),
+                  ],
+                  if (character.details.objective != null) ...[
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Objetivo:',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Text(character.details.objective!),
+                  ],
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              ),
+            ],
           ),
-        ],
-      ),
-    );
-    if (mounted) Navigator.pop(context);
+        );
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        _showSnack('Erro ao criar personagem: $e');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   StepState _stepState(int index) {

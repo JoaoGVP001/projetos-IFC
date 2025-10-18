@@ -7,6 +7,7 @@ class Character {
   final int nex;
   final String? avatarUrl;
   final CharacterAttributes attributes;
+  final CharacterDetails details;
 
   const Character({
     required this.id,
@@ -17,6 +18,25 @@ class Character {
     required this.nex,
     this.avatarUrl,
     required this.attributes,
+    required this.details,
+  });
+}
+
+class CharacterDetails {
+  final String? gender;
+  final int? age;
+  final String? appearance;
+  final String? personality;
+  final String? background;
+  final String? objective;
+
+  const CharacterDetails({
+    this.gender,
+    this.age,
+    this.appearance,
+    this.personality,
+    this.background,
+    this.objective,
   });
 }
 

@@ -44,6 +44,22 @@ class ApiClient {
     return _decode(res.body) as List<dynamic>;
   }
 
+  Future<Map<String, dynamic>> postJson(
+    String path, {
+    Map<String, dynamic>? body,
+    Map<String, dynamic>? query,
+  }) async {
+    final res = await _client
+        .post(
+          _uri(path, query),
+          headers: {'Content-Type': 'application/json'},
+          body: body != null ? json.encode(body) : null,
+        )
+        .timeout(_timeout);
+    _ensureSuccess(res);
+    return _decode(res.body) as Map<String, dynamic>;
+  }
+
   void _ensureSuccess(http.Response res) {
     if (res.statusCode < 200 || res.statusCode >= 300) {
       throw HttpException('HTTP ${res.statusCode}: ${res.body}');

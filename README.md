@@ -45,19 +45,23 @@ lib/
 - **Tema dark custom** (cores, tipografia e componentes base)
 - **Navegação por rotas nomeadas** com MultiProvider configurado
 - **Home** com atalhos para Personagens, Campanhas, Equipes e Rolador de Dados
-- **Sistema de Criação de Personagem Completo**:
-  - **CharacterCreateView** – Wizard (4 etapas): Informações Básicas, Atributos, Classe, Origem
+- **Sistema de Criação de Personagem Completo e Melhorado**:
+  - **CharacterCreateView** – Wizard (5 etapas): Informações Básicas, Atributos, Origem, Classe, Finalizar
+  - **Ordem corrigida**: Origem é escolhida ANTES da classe (conforme regras do jogo)
+  - **Interface melhorada**: Loading states, botões responsivos, validação em tempo real
   - **Sistema de Atributos**: Distribuição de 4 pontos com validação em tempo real
   - **Sistema de Classes**: 3 classes com cards visuais, estatísticas e descrições completas
   - **Sistema de Origens**: 30+ origens com perícias treinadas e poderes únicos
+  - **Salvamento via API**: Personagens são salvos no backend após criação
 - **Telas**:
   - CharactersListView (lista com mock e navegação)
   - CharacterDetailView (abas: Combate, Habilidades, Rituais, Inventário, Descrição)
   - CampaignsView, TeamsView (placeholders)
   - DiceView usando Provider + `DiceRoller` com histórico
 - **Widgets reutilizáveis**: AttributeCircle, SkillRow, CharacterCard, HealthBar, DiceRoller
-- **Utils**: `Dice` (rolagens genéricas e d20)
+- **Utils**: `Dice` (rolagens genéricas e d20), `ApiClient` com métodos GET/POST
 - **Modelos de dados**: Character, CharacterClass, CharacterOrigin, CharacterAttributes
+- **Serviços**: CharactersService com integração completa à API
 
 ## 🌐 Backend (Status atual – FastAPI)
 - FastAPI com CORS liberado para desenvolvimento
@@ -114,7 +118,6 @@ dependencies:
 - Skill, Item, Ability, Attack, Session, Campaign, Team (com SharedMap/Note)
 
 ## 🚧 Em andamento / Próximos passos
-- **Persistência de personagens**: Salvar personagens criados localmente e na API
 - **Ficha completa**: Implementar visualização detalhada com perícias, ataques e defesas
 - **Sistema de perícias**: Implementar perícias treinadas baseadas na classe e origem
 - **Inventário**: CRUD, categorias e cálculo de peso/carga
@@ -122,6 +125,14 @@ dependencies:
 - **Validações/cálculos**: NEX, modificadores, defesas, resistências baseadas nos atributos
 - **UI/UX**: Ícones temáticos, animações sutis, responsividade e acessibilidade
 - **Testes**: Widget tests para telas e utilitários
+
+## 🎉 Melhorias Implementadas
+- **✅ Ordem de criação corrigida**: Origem agora é escolhida antes da classe
+- **✅ Interface melhorada**: Loading states, botões responsivos, validação em tempo real
+- **✅ Origens funcionando**: Lista de origens com scroll e seleção visual
+- **✅ Salvamento via API**: Personagens são salvos no backend após criação
+- **✅ ApiClient expandido**: Métodos GET e POST para comunicação com backend
+- **✅ CharactersService**: Integração completa para criação e listagem de personagens
 
 ---
 
