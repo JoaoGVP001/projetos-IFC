@@ -19,6 +19,13 @@ class CharactersService {
       characterClass: json['characterClass'] as String? ?? '',
       nex: (json['nex'] as num?)?.toInt() ?? 0,
       avatarUrl: json['avatarUrl'] as String?,
+      attributes: CharacterAttributes(
+        agilidade: (json['agilidade'] as num?)?.toInt() ?? 1,
+        intelecto: (json['intelecto'] as num?)?.toInt() ?? 1,
+        vigor: (json['vigor'] as num?)?.toInt() ?? 1,
+        presenca: (json['presenca'] as num?)?.toInt() ?? 1,
+        forca: (json['forca'] as num?)?.toInt() ?? 1,
+      ),
     );
   }
 }

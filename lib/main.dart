@@ -3,6 +3,10 @@ import 'package:sigilrpg/constants/app_colors.dart';
 import 'package:sigilrpg/constants/app_routes.dart';
 import 'package:sigilrpg/constants/app_theme.dart';
 import 'package:provider/provider.dart';
+import 'package:sigilrpg/controllers/characters_controller.dart';
+import 'package:sigilrpg/controllers/campaigns_controller.dart';
+import 'package:sigilrpg/controllers/teams_controller.dart';
+import 'package:sigilrpg/controllers/dicecontroller.dart';
 import 'package:sigilrpg/views/home/home_view.dart';
 import 'package:sigilrpg/views/characters/characters_list_view.dart';
 import 'package:sigilrpg/views/characters/character_create_view.dart';
@@ -20,8 +24,13 @@ class SigilRpgApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => CharactersController(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => CharactersController()),
+        ChangeNotifierProvider(create: (_) => CampaignsController()),
+        ChangeNotifierProvider(create: (_) => TeamsController()),
+        ChangeNotifierProvider(create: (_) => DiceController()),
+      ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'SIGIL RPG',

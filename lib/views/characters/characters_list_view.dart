@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:sigilrpg/models/character.dart';
 import 'package:sigilrpg/widgets/character_card.dart';
 import 'package:sigilrpg/constants/app_routes.dart';
 import 'package:sigilrpg/controllers/characters_controller.dart';

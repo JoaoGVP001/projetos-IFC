@@ -1,6 +1,28 @@
 # SIGIL RPG – Ordem Paranormal (Flutter + FastAPI)
 
-Aplicativo Flutter para gerenciamento de campanhas e fichas baseado no sistema Ordem Paranormal. O repositório agora inclui um backend FastAPI funcional em `app/` (SQLite por padrão) além do frontend Flutter. Estrutura orientada a MVC no Flutter com foco em uma UI dark, moderna e responsiva.
+Aplicativo Flutter para gerenciamento de campanhas e fichas baseado no sistema Ordem Paranormal. O repositório inclui um backend FastAPI funcional em `app/` (SQLite por padrão) além do frontend Flutter. Estrutura orientada a MVC no Flutter com foco em uma UI dark, moderna e responsiva.
+
+## 🎯 Sistema de Criação de Personagem Implementado
+
+O sistema de criação de personagem está completamente funcional com:
+
+### 📊 **Sistema de Atributos**
+- **Distribuição de pontos**: 4 pontos para distribuir entre os 5 atributos
+- **Valores iniciais**: Todos começam em 1
+- **Limites**: Máximo de 3 por atributo, mínimo de 0 (com bônus de 1 ponto adicional)
+- **Interface**: Sliders intuitivos com validação em tempo real
+
+### 🎭 **Sistema de Classes (3 opções)**
+- **Combatente**: Focado em combate direto, 20+VIG PV, 2+PRES PE, 12 SAN
+- **Especialista**: Versatilidade e conhecimento, 16+VIG PV, 3+PRES PE, 16 SAN  
+- **Ocultista**: Poderes paranormais, 12+VIG PV, 4+PRES PE, 20 SAN
+- **Interface**: Cards visuais com descrições completas, estatísticas e personagens famosos
+
+### 🌟 **Sistema de Origens (30+ opções)**
+- **Origens do Livro "Iniciação"**: Acadêmico, Agente de Saúde, Amnésico, Artista, Atleta, Chef, Investigador, Lutador, Magnata, Mercenário, Militar, Operário, Policial, Religioso, Servidor Público
+- **Origens do Suplemento "Sobrevivendo ao Horror"**: Amigo dos Animais, Astronauta, Chef do Outro Lado, Colegial, Cosplayer, Diplomata, Explorador, Experimento, Fanático por Criaturas, Fotógrafo, Inventor Paranormal, Jovem Místico, Legista do Turno da Noite, Mateiro, Mergulhador, Motorista, Nerd Entusiasta, Psicólogo, Profetizado, Repórter Investigativo
+- **Cada origem inclui**: Perícias treinadas específicas e poder único
+- **Interface**: Cards detalhados com descrições, perícias e poderes
 
 ## ⚙️ Stack
 - Flutter (Material 3, tema dark customizado)
@@ -20,17 +42,22 @@ lib/
 ```
 
 ## ✅ Implementado (Flutter)
-- Tema dark custom (cores, tipografia e componentes base)
-- Navegação por rotas nomeadas
-- Home com atalhos para Personagens, Campanhas, Equipes e Rolador de Dados
-- Telas:
+- **Tema dark custom** (cores, tipografia e componentes base)
+- **Navegação por rotas nomeadas** com MultiProvider configurado
+- **Home** com atalhos para Personagens, Campanhas, Equipes e Rolador de Dados
+- **Sistema de Criação de Personagem Completo**:
+  - **CharacterCreateView** – Wizard (4 etapas): Informações Básicas, Atributos, Classe, Origem
+  - **Sistema de Atributos**: Distribuição de 4 pontos com validação em tempo real
+  - **Sistema de Classes**: 3 classes com cards visuais, estatísticas e descrições completas
+  - **Sistema de Origens**: 30+ origens com perícias treinadas e poderes únicos
+- **Telas**:
   - CharactersListView (lista com mock e navegação)
   - CharacterDetailView (abas: Combate, Habilidades, Rituais, Inventário, Descrição)
-  - CharacterCreateView – Wizard (6 etapas): básicas, atributos, origem, classe, perícias/habilidades, equipamento
   - CampaignsView, TeamsView (placeholders)
   - DiceView usando Provider + `DiceRoller` com histórico
-- Widgets reutilizáveis: AttributeCircle, SkillRow, CharacterCard, HealthBar, DiceRoller
-- Utils: `Dice` (rolagens genéricas e d20)
+- **Widgets reutilizáveis**: AttributeCircle, SkillRow, CharacterCard, HealthBar, DiceRoller
+- **Utils**: `Dice` (rolagens genéricas e d20)
+- **Modelos de dados**: Character, CharacterClass, CharacterOrigin, CharacterAttributes
 
 ## 🌐 Backend (Status atual – FastAPI)
 - FastAPI com CORS liberado para desenvolvimento
@@ -87,13 +114,14 @@ dependencies:
 - Skill, Item, Ability, Attack, Session, Campaign, Team (com SharedMap/Note)
 
 ## 🚧 Em andamento / Próximos passos
-- Ficha (Combate): listar perícias com `SkillRow`, ataques equipados e defesas calculadas
-- Inventário: CRUD, categorias e cálculo de peso/carga
-- Persistência local: Hive/SQLite + repositórios
-- Integração de estado: expandir Provider/Riverpod para personagens/campanhas/equipes
-- Validações/cálculos: NEX, distribuição de pontos, modificadores, defesas, resistências
-- UI/UX: ícones temáticos, animações sutis, responsividade e acessibilidade
-- Testes: widget tests para telas e utilitários
+- **Persistência de personagens**: Salvar personagens criados localmente e na API
+- **Ficha completa**: Implementar visualização detalhada com perícias, ataques e defesas
+- **Sistema de perícias**: Implementar perícias treinadas baseadas na classe e origem
+- **Inventário**: CRUD, categorias e cálculo de peso/carga
+- **Integração de estado**: Expandir Provider para gerenciar personagens criados
+- **Validações/cálculos**: NEX, modificadores, defesas, resistências baseadas nos atributos
+- **UI/UX**: Ícones temáticos, animações sutis, responsividade e acessibilidade
+- **Testes**: Widget tests para telas e utilitários
 
 ---
 

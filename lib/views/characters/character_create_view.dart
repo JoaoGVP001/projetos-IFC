@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:sigilrpg/models/character_class.dart';
+import 'package:sigilrpg/models/character_origin.dart';
+import 'package:sigilrpg/models/character.dart';
 
 class CharacterCreateView extends StatefulWidget {
   const CharacterCreateView({super.key});
@@ -14,53 +17,21 @@ class _CharacterCreateViewState extends State<CharacterCreateView> {
   final _formBasics = GlobalKey<FormState>();
   final TextEditingController _nameCtrl = TextEditingController();
   final TextEditingController _playerCtrl = TextEditingController();
-  int _nex = 5; // percent steps of 5 for simplicity
+  int _nex = 5;
   String? _avatarUrl;
 
-  // Step 2: Atributos (pontos)
+  // Step 2: Atributos (sistema novo)
   int _agi = 1, _int = 1, _vig = 1, _pre = 1, _for = 1;
   int get _attributesTotal => _agi + _int + _vig + _pre + _for;
-  int get _pointsAvailable => _pointsFromNex(_nex) - _attributesTotal;
+  int get _pointsAvailable =>
+      4 -
+      (_attributesTotal - 5); // 4 pontos para distribuir, todos começam em 1
 
-  // Step 3: Origem
-  final List<String> _origens = const [
-    'Policial',
-    'Investigador',
-    'Acadêmico',
-    'Operário',
-  ];
-  String? _origin;
+  // Step 3: Classe
+  CharacterClass? _selectedClass;
 
-  // Step 4: Classe
-  final List<String> _classes = const [
-    'Combatente',
-    'Especialista',
-    'Ocultista',
-  ];
-  String? _clazz;
-
-  // Step 5: Perícias/Habilidades (mock)
-  final List<String> _skills = const [
-    'Acrobacia',
-    'Atletismo',
-    'Percepção',
-    'Investigação',
-    'Luta',
-    'Pontaria',
-  ];
-  final Set<String> _selectedSkills = <String>{};
-
-  final List<String> _abilities = const ['Foco', 'Determinação', 'Intuição'];
-  final Set<String> _selectedAbilities = <String>{};
-
-  // Step 6: Equipamento Inicial (mock)
-  final List<String> _equipment = const [
-    'Pistola 9mm',
-    'Kit Médico',
-    'Lanterna',
-    'Rádio',
-  ];
-  final Set<String> _selectedEquipment = <String>{};
+  // Step 4: Origem
+  CharacterOrigin? _selectedOrigin;
 
   @override
   Widget build(BuildContext context) {
@@ -73,7 +44,7 @@ class _CharacterCreateViewState extends State<CharacterCreateView> {
         onStepContinue: _onContinue,
         onStepCancel: _onBack,
         controlsBuilder: (context, details) {
-          final isLast = _currentStep == 5;
+          final isLast = _currentStep == 3;
           return Row(
             children: [
               ElevatedButton(
@@ -127,7 +98,7 @@ class _CharacterCreateViewState extends State<CharacterCreateView> {
                           max: 50,
                           divisions: 9,
                           value: _nex.toDouble(),
-                          label: '$_nex% (${_pointsFromNex(_nex)} pts)',
+                          label: '$_nex%',
                           onChanged: (v) => setState(() => _nex = v.round()),
                         ),
                       ),
@@ -152,8 +123,21 @@ class _CharacterCreateViewState extends State<CharacterCreateView> {
             content: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceVariant,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Text(
+                    'Quando você cria um personagem, todos os seus atributos começam em 1 e você recebe 4 pontos para distribuir entre eles como quiser. Você também pode reduzir um atributo para 0 para receber 1 ponto adicional. O valor máximo inicial que você pode ter em cada atributo é 3.',
+                    style: TextStyle(fontSize: 14),
+                  ),
+                ),
+                const SizedBox(height: 16),
                 Text(
                   'Pontos disponíveis: ${_pointsAvailable >= 0 ? _pointsAvailable : 0}',
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(height: 8),
                 _attrRow('AGI', _agi, (v) => setState(() => _agi = v)),
@@ -165,110 +149,249 @@ class _CharacterCreateViewState extends State<CharacterCreateView> {
             ),
           ),
           Step(
-            title: const Text('Origem'),
+            title: const Text('Classe'),
             isActive: _currentStep >= 2,
             state: _stepState(2),
-            content: DropdownButtonFormField<String>(
-              value: _origin,
-              decoration: const InputDecoration(
-                labelText: 'Selecione a origem',
-              ),
-              items: _origens
-                  .map((o) => DropdownMenuItem(value: o, child: Text(o)))
-                  .toList(),
-              onChanged: (v) => setState(() => _origin = v),
-              validator: (v) => v == null ? 'Escolha uma origem' : null,
-            ),
-          ),
-          Step(
-            title: const Text('Classe'),
-            isActive: _currentStep >= 3,
-            state: _stepState(3),
-            content: DropdownButtonFormField<String>(
-              value: _clazz,
-              decoration: const InputDecoration(
-                labelText: 'Selecione a classe',
-              ),
-              items: _classes
-                  .map((c) => DropdownMenuItem(value: c, child: Text(c)))
-                  .toList(),
-              onChanged: (v) => setState(() => _clazz = v),
-              validator: (v) => v == null ? 'Escolha uma classe' : null,
-            ),
-          ),
-          Step(
-            title: const Text('Perícias e Habilidades'),
-            isActive: _currentStep >= 4,
-            state: _stepState(4),
             content: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Perícias'),
-                Wrap(
-                  spacing: 8,
-                  children: _skills
-                      .map(
-                        (s) => FilterChip(
-                          label: Text(s),
-                          selected: _selectedSkills.contains(s),
-                          onSelected: (on) => setState(() {
-                            if (on) {
-                              _selectedSkills.add(s);
-                            } else {
-                              _selectedSkills.remove(s);
-                            }
-                          }),
-                        ),
-                      )
-                      .toList(),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceVariant,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Text(
+                    'Sua classe indica o treinamento que você recebeu na Ordem para enfrentar os perigos do Outro Lado.\n\nEm termos de jogo, é a sua característica mais importante, pois define o que você faz e qual é o seu papel no grupo de investigadores.\n\nPerícias concedidas serão adicionadas automaticamente. Perícias opcionais podem ser adicionadas ao agente após sua criação.',
+                    style: TextStyle(fontSize: 14),
+                  ),
                 ),
-                const SizedBox(height: 12),
-                const Text('Habilidades'),
-                Wrap(
-                  spacing: 8,
-                  children: _abilities
-                      .map(
-                        (a) => FilterChip(
-                          label: Text(a),
-                          selected: _selectedAbilities.contains(a),
-                          onSelected: (on) => setState(() {
-                            if (on) {
-                              _selectedAbilities.add(a);
-                            } else {
-                              _selectedAbilities.remove(a);
-                            }
-                          }),
-                        ),
-                      )
-                      .toList(),
+                const SizedBox(height: 16),
+                ...CharacterClasses.allClasses.map(
+                  (classe) => _buildClassCard(classe),
                 ),
               ],
             ),
           ),
           Step(
-            title: const Text('Equipamento Inicial'),
-            isActive: _currentStep >= 5,
-            state: _stepState(5),
+            title: const Text('Origem'),
+            isActive: _currentStep >= 3,
+            state: _stepState(3),
             content: Column(
-              children: _equipment
-                  .map(
-                    (e) => CheckboxListTile(
-                      value: _selectedEquipment.contains(e),
-                      onChanged: (on) => setState(() {
-                        if (on == true) {
-                          _selectedEquipment.add(e);
-                        } else {
-                          _selectedEquipment.remove(e);
-                        }
-                      }),
-                      title: Text(e),
-                    ),
-                  )
-                  .toList(),
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceVariant,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Text(
+                    'Sua origem define seu passado antes de se tornar um agente da Ordem. Cada origem oferece perícias treinadas específicas e um poder único que reflete sua experiência anterior.',
+                    style: TextStyle(fontSize: 14),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: CharacterOrigins.allOrigins.length,
+                    itemBuilder: (context, index) {
+                      final origin = CharacterOrigins.allOrigins[index];
+                      return _buildOriginCard(origin);
+                    },
+                  ),
+                ),
+              ],
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildClassCard(CharacterClass classe) {
+    final isSelected = _selectedClass?.name == classe.name;
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: InkWell(
+        onTap: () => setState(() => _selectedClass = classe),
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: isSelected
+                ? Border.all(
+                    color: Theme.of(context).colorScheme.primary,
+                    width: 2,
+                  )
+                : null,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      classe.name,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  if (isSelected)
+                    Icon(
+                      Icons.check_circle,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                classe.description,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Famosos: ${classe.famousCharacters}',
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildStatInfo(
+                      'PV Iniciais',
+                      '${classe.stats.initialHealth}+VIGOR',
+                    ),
+                  ),
+                  Expanded(
+                    child: _buildStatInfo(
+                      'PE Iniciais',
+                      '${classe.stats.initialEffort}+PRESENÇA',
+                    ),
+                  ),
+                  Expanded(
+                    child: _buildStatInfo(
+                      'SAN Inicial',
+                      '${classe.stats.initialSanity}',
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatInfo(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: Theme.of(context).textTheme.bodySmall),
+        Text(
+          value,
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildOriginCard(CharacterOrigin origin) {
+    final isSelected = _selectedOrigin?.name == origin.name;
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: InkWell(
+        onTap: () => setState(() => _selectedOrigin = origin),
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: isSelected
+                ? Border.all(
+                    color: Theme.of(context).colorScheme.primary,
+                    width: 2,
+                  )
+                : null,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      origin.name,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  if (isSelected)
+                    Icon(
+                      Icons.check_circle,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                origin.description,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildOriginInfo(
+                      'Perícias Treinadas',
+                      origin.trainedSkills.join(', '),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(child: _buildOriginInfo('Poder', origin.powerName)),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                origin.powerDescription,
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOriginInfo(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
+        ),
+        Text(value, style: Theme.of(context).textTheme.bodyMedium),
+      ],
     );
   }
 
@@ -282,16 +405,16 @@ class _CharacterCreateViewState extends State<CharacterCreateView> {
         return;
       }
     }
-    if (_currentStep == 2 && _origin == null) {
-      _showSnack('Selecione uma origem.');
-      return;
-    }
-    if (_currentStep == 3 && _clazz == null) {
+    if (_currentStep == 2 && _selectedClass == null) {
       _showSnack('Selecione uma classe.');
       return;
     }
+    if (_currentStep == 3 && _selectedOrigin == null) {
+      _showSnack('Selecione uma origem.');
+      return;
+    }
 
-    if (_currentStep < 5) {
+    if (_currentStep < 3) {
       setState(() => _currentStep++);
       return;
     }
@@ -305,14 +428,31 @@ class _CharacterCreateViewState extends State<CharacterCreateView> {
   }
 
   void _finish() async {
-    // Here we could create a Character and persist. For now, just confirm.
-    final avatarLine = _avatarUrl != null ? '\nAvatar: \'$_avatarUrl\'' : '';
+    final attributes = CharacterAttributes(
+      agilidade: _agi,
+      intelecto: _int,
+      vigor: _vig,
+      presenca: _pre,
+      forca: _for,
+    );
+
+    final character = Character(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      name: _nameCtrl.text,
+      playerName: _playerCtrl.text,
+      origin: _selectedOrigin!.name,
+      characterClass: _selectedClass!.name,
+      nex: _nex,
+      avatarUrl: _avatarUrl,
+      attributes: attributes,
+    );
+
     await showDialog(
       context: context,
       builder: (_) => AlertDialog(
         title: const Text('Personagem criado!'),
         content: Text(
-          'Nome: ${_nameCtrl.text}\nJogador: ${_playerCtrl.text}\nNEX: $_nex%$avatarLine',
+          'Nome: ${character.name}\nJogador: ${character.playerName}\nClasse: ${character.characterClass}\nOrigem: ${character.origin}\nNEX: ${character.nex}%',
         ),
         actions: [
           TextButton(
@@ -330,14 +470,6 @@ class _CharacterCreateViewState extends State<CharacterCreateView> {
     return StepState.indexed;
   }
 
-  int _pointsFromNex(int nex) {
-    // Simple mapping: 5% => 10 pts, 50% => 30 pts, linear-ish
-    // Adjust as needed to match system specifics
-    final int base = 10;
-    final int extra = ((nex - 5) / 5).clamp(0, 9).round() * 2; // +2 per 5% step
-    return base + extra;
-  }
-
   Widget _attrRow(String label, int value, ValueChanged<int> onChanged) {
     return Row(
       children: [
@@ -345,8 +477,8 @@ class _CharacterCreateViewState extends State<CharacterCreateView> {
         Expanded(
           child: Slider(
             min: 0,
-            max: 10,
-            divisions: 10,
+            max: 3,
+            divisions: 3,
             label: '$value',
             value: value.toDouble(),
             onChanged: (v) => onChanged(v.round()),
