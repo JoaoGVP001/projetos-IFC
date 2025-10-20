@@ -1,14 +1,35 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:sigilrpg/constants/app_colors.dart';
 import 'package:sigilrpg/constants/app_routes.dart';
+import 'package:sigilrpg/controllers/auth_controller.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthController>();
     return Scaffold(
-      appBar: AppBar(title: const Text('SIGIL RPG')),
+      appBar: AppBar(
+        title: const Text('SIGIL RPG'),
+        actions: [
+          if (auth.isAuthenticated) ...[
+            Text('Olá, ${auth.username}'),
+            const SizedBox(width: 8),
+            IconButton(
+              icon: const Icon(Icons.logout),
+              onPressed: () => auth.logout(),
+              tooltip: 'Sair',
+            ),
+          ] else ...[
+            TextButton(
+              onPressed: () => Navigator.pushNamed(context, AppRoutes.login),
+              child: const Text('Entrar'),
+            ),
+          ],
+        ],
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [

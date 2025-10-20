@@ -10,10 +10,26 @@ class CharactersService {
     return data.map((e) => _fromJson(e as Map<String, dynamic>)).toList();
   }
 
+  Future<Character> fetchCharacter(String id) async {
+    final data = await _client.getJson('/api/v1/characters/$id');
+    return _fromJson(data);
+  }
+
   Future<Character> createCharacter(Character character) async {
     final data = await _client.postJson(
       '/api/v1/characters',
       body: _toJson(character),
+    );
+    return _fromJson(data);
+  }
+
+  Future<Character> updateCharacter(
+    String id,
+    Map<String, dynamic> updates,
+  ) async {
+    final data = await _client.patchJson(
+      '/api/v1/characters/$id',
+      body: updates,
     );
     return _fromJson(data);
   }

@@ -16,11 +16,13 @@ class ApiClient {
   ApiClient({String? baseUrl, http.Client? httpClient, Duration? timeout})
     : _baseUrl = baseUrl ?? resolveBaseUrl(),
       _client = httpClient ?? http.Client(),
-      _timeout = timeout ?? const Duration(seconds: 15);
+      _timeout = timeout ?? const Duration(seconds: 60);
 
   final String _baseUrl;
   final http.Client _client;
   final Duration _timeout;
+  String? _bearerToken;
+  static String? _globalBearerToken;
 
   Uri _uri(String path, [Map<String, dynamic>? query]) {
     return Uri.parse('$_baseUrl$path').replace(queryParameters: query);
@@ -30,7 +32,9 @@ class ApiClient {
     String path, {
     Map<String, dynamic>? query,
   }) async {
-    final res = await _client.get(_uri(path, query)).timeout(_timeout);
+    final res = await _client
+        .get(_uri(path, query), headers: _headers())
+        .timeout(_timeout);
     _ensureSuccess(res);
     return _decode(res.body) as Map<String, dynamic>;
   }
@@ -39,7 +43,9 @@ class ApiClient {
     String path, {
     Map<String, dynamic>? query,
   }) async {
-    final res = await _client.get(_uri(path, query)).timeout(_timeout);
+    final res = await _client
+        .get(_uri(path, query), headers: _headers())
+        .timeout(_timeout);
     _ensureSuccess(res);
     return _decode(res.body) as List<dynamic>;
   }
@@ -52,7 +58,7 @@ class ApiClient {
     final res = await _client
         .post(
           _uri(path, query),
-          headers: {'Content-Type': 'application/json'},
+          headers: _headers(contentType: true),
           body: body != null ? json.encode(body) : null,
         )
         .timeout(_timeout);
@@ -60,9 +66,55 @@ class ApiClient {
     return _decode(res.body) as Map<String, dynamic>;
   }
 
+  Future<Map<String, dynamic>> patchJson(
+    String path, {
+    Map<String, dynamic>? body,
+    Map<String, dynamic>? query,
+  }) async {
+    final res = await _client
+        .patch(
+          _uri(path, query),
+          headers: _headers(contentType: true),
+          body: body != null ? json.encode(body) : null,
+        )
+        .timeout(_timeout);
+    _ensureSuccess(res);
+    return _decode(res.body) as Map<String, dynamic>;
+  }
+
+  void setBearerToken(String? token) {
+    _bearerToken = token;
+  }
+
+  static void setGlobalBearerToken(String? token) {
+    _globalBearerToken = token;
+  }
+
+  Map<String, String> _headers({bool contentType = false}) {
+    final headers = <String, String>{};
+    if (contentType) headers['Content-Type'] = 'application/json';
+    final token = _bearerToken ?? _globalBearerToken;
+    if (token != null && token.isNotEmpty)
+      headers['Authorization'] = 'Bearer $token';
+    return headers;
+  }
+
   void _ensureSuccess(http.Response res) {
     if (res.statusCode < 200 || res.statusCode >= 300) {
       throw HttpException('HTTP ${res.statusCode}: ${res.body}');
+    }
+  }
+
+  String get baseUrl => _baseUrl;
+
+  Future<bool> testConnection() async {
+    try {
+      final res = await _client
+          .get(_uri('/docs'), headers: _headers())
+          .timeout(const Duration(seconds: 10));
+      return res.statusCode == 200;
+    } catch (e) {
+      return false;
     }
   }
 
