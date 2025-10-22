@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:sigilrpg/services/auth_service.dart';
 
 class DebugInfo extends StatelessWidget {
   const DebugInfo({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final authService = AuthService();
     return Container(
       padding: const EdgeInsets.all(8),
       margin: const EdgeInsets.all(8),
@@ -24,7 +22,7 @@ class DebugInfo extends StatelessWidget {
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 4),
-          Text('API URL: ${authService.baseUrl}'),
+          const Text('API URL: http://localhost:8000'),
           const SizedBox(height: 4),
           const Text(
             'Certifique-se de que a API está rodando:',

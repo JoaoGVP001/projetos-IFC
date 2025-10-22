@@ -82,6 +82,13 @@ class ApiClient {
     return _decode(res.body) as Map<String, dynamic>;
   }
 
+  Future<void> delete(String path) async {
+    final res = await _client
+        .delete(_uri(path), headers: _headers())
+        .timeout(_timeout);
+    _ensureSuccess(res);
+  }
+
   void setBearerToken(String? token) {
     _bearerToken = token;
   }

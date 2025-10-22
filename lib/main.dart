@@ -8,7 +8,7 @@ import 'package:sigilrpg/controllers/character_draft_controller.dart';
 import 'package:sigilrpg/controllers/campaigns_controller.dart';
 import 'package:sigilrpg/controllers/teams_controller.dart';
 import 'package:sigilrpg/controllers/dicecontroller.dart';
-import 'package:sigilrpg/views/auth/auth_wrapper.dart';
+import 'package:sigilrpg/views/home/home_view.dart';
 import 'package:sigilrpg/views/characters/characters_list_view.dart';
 import 'package:sigilrpg/views/characters/character_create_basics_view.dart';
 import 'package:sigilrpg/views/characters/character_create_origin_view.dart';
@@ -20,9 +20,6 @@ import 'package:sigilrpg/views/characters/character_attributes_edit_view.dart';
 import 'package:sigilrpg/views/campaigns/campaigns_view.dart';
 import 'package:sigilrpg/views/teams/teams_view.dart';
 import 'package:sigilrpg/views/dice/dice_view.dart';
-import 'package:sigilrpg/views/auth/login_view.dart';
-import 'package:sigilrpg/views/auth/register_view.dart';
-import 'package:sigilrpg/controllers/auth_controller.dart';
 
 void main() {
   runApp(const SigilRpgApp());
@@ -36,7 +33,6 @@ class SigilRpgApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => CharactersController()),
-        ChangeNotifierProvider(create: (_) => AuthController()..loadSession()),
         ChangeNotifierProvider(create: (_) => CharacterDraftController()),
         ChangeNotifierProvider(create: (_) => CampaignsController()),
         ChangeNotifierProvider(create: (_) => TeamsController()),
@@ -48,11 +44,9 @@ class SigilRpgApp extends StatelessWidget {
         theme: buildAppTheme(brightness: Brightness.dark, seed: AppColors.seed),
         initialRoute: AppRoutes.home,
         routes: {
-          AppRoutes.home: (_) => const AuthWrapper(),
+          AppRoutes.home: (_) => const HomeView(),
           AppRoutes.characters: (_) => const CharactersListView(),
           AppRoutes.characterCreate: (_) => const CharacterCreateBasicsView(),
-          AppRoutes.login: (_) => const LoginView(),
-          AppRoutes.register: (_) => const RegisterView(),
           CharacterCreateRoutes.basics: (_) =>
               const CharacterCreateBasicsView(),
           // Attributes moved to post-creation editing; route removed from flow

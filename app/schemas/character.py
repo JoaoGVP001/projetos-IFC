@@ -1,56 +1,56 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, validator
 from typing import Optional
+from datetime import datetime
 
 
 class CharacterBase(BaseModel):
-    name: str = Field(min_length=1)
-    playerName: str = Field(min_length=1)
+    name: str
+    player_name: str
     origin: str
-    characterClass: str
-    nex: int = Field(ge=0, le=100)
-    avatarUrl: Optional[str] = None
-    public: bool = True
-    # Atributos do personagem
-    agilidade: int = Field(default=1, ge=0, le=3)
-    intelecto: int = Field(default=1, ge=0, le=3)
-    vigor: int = Field(default=1, ge=0, le=3)
-    presenca: int = Field(default=1, ge=0, le=3)
-    forca: int = Field(default=1, ge=0, le=3)
-    # Detalhes do personagem
+    character_class: str
+    nex: int = 5
+    avatar_url: Optional[str] = None
+    agilidade: int = 1
+    intelecto: int = 1
+    vigor: int = 1
+    presenca: int = 1
+    forca: int = 1
     gender: Optional[str] = None
     age: Optional[int] = None
     appearance: Optional[str] = None
     personality: Optional[str] = None
     background: Optional[str] = None
     objective: Optional[str] = None
+
+    @validator('nex')
+    def nex_must_be_valid(cls, v):
+        if not 5 <= v <= 100:
+            raise ValueError('NEX must be between 5 and 100')
+        return v
+
+    @validator('agilidade', 'intelecto', 'vigor', 'presenca', 'forca')
+    def attributes_must_be_valid(cls, v):
+        if not 0 <= v <= 3:
+            raise ValueError('Attributes must be between 0 and 3')
+        return v
 
 
 class CharacterCreate(CharacterBase):
     pass
 
 
-class CharacterOut(CharacterBase):
-    id: str
-    owner: Optional[str] = None
-
-    class Config:
-        from_attributes = True
-
-
 class CharacterUpdate(BaseModel):
-    # all fields optional for partial updates
     name: Optional[str] = None
-    playerName: Optional[str] = None
+    player_name: Optional[str] = None
     origin: Optional[str] = None
-    characterClass: Optional[str] = None
-    nex: Optional[int] = Field(default=None, ge=0, le=100)
-    avatarUrl: Optional[str] = None
-    public: Optional[bool] = None
-    agilidade: Optional[int] = Field(default=None, ge=0, le=3)
-    intelecto: Optional[int] = Field(default=None, ge=0, le=3)
-    vigor: Optional[int] = Field(default=None, ge=0, le=3)
-    presenca: Optional[int] = Field(default=None, ge=0, le=3)
-    forca: Optional[int] = Field(default=None, ge=0, le=3)
+    character_class: Optional[str] = None
+    nex: Optional[int] = None
+    avatar_url: Optional[str] = None
+    agilidade: Optional[int] = None
+    intelecto: Optional[int] = None
+    vigor: Optional[int] = None
+    presenca: Optional[int] = None
+    forca: Optional[int] = None
     gender: Optional[str] = None
     age: Optional[int] = None
     appearance: Optional[str] = None
@@ -58,3 +58,24 @@ class CharacterUpdate(BaseModel):
     background: Optional[str] = None
     objective: Optional[str] = None
 
+    @validator('nex')
+    def nex_must_be_valid(cls, v):
+        if v is not None and not 5 <= v <= 100:
+            raise ValueError('NEX must be between 5 and 100')
+        return v
+
+    @validator('agilidade', 'intelecto', 'vigor', 'presenca', 'forca')
+    def attributes_must_be_valid(cls, v):
+        if v is not None and not 0 <= v <= 3:
+            raise ValueError('Attributes must be between 0 and 3')
+        return v
+
+
+class CharacterResponse(CharacterBase):
+    id: int
+    user_id: int
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True

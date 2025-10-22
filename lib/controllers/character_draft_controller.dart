@@ -112,7 +112,10 @@ class CharacterDraftController extends ChangeNotifier {
   }
 
   bool validateBasics() =>
-      name.trim().isNotEmpty && playerName.trim().isNotEmpty;
+      name.trim().isNotEmpty &&
+      playerName.trim().isNotEmpty &&
+      nex >= 5 &&
+      nex <= 100;
   bool validateAttributes() =>
       pointsAvailable >= 0 &&
       agilidade >= 0 &&

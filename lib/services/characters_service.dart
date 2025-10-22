@@ -37,11 +37,11 @@ class CharactersService {
   Map<String, dynamic> _toJson(Character character) {
     return {
       'name': character.name,
-      'playerName': character.playerName,
+      'player_name': character.playerName,
       'origin': character.origin,
-      'characterClass': character.characterClass,
+      'character_class': character.characterClass,
       'nex': character.nex,
-      'avatarUrl': character.avatarUrl,
+      'avatar_url': character.avatarUrl,
       'agilidade': character.attributes.agilidade,
       'intelecto': character.attributes.intelecto,
       'vigor': character.attributes.vigor,
@@ -60,11 +60,11 @@ class CharactersService {
     return Character(
       id: json['id'].toString(),
       name: json['name'] as String? ?? '',
-      playerName: json['playerName'] as String? ?? '',
+      playerName: json['player_name'] as String? ?? '',
       origin: json['origin'] as String? ?? '',
-      characterClass: json['characterClass'] as String? ?? '',
+      characterClass: json['character_class'] as String? ?? '',
       nex: (json['nex'] as num?)?.toInt() ?? 0,
-      avatarUrl: json['avatarUrl'] as String?,
+      avatarUrl: json['avatar_url'] as String?,
       attributes: CharacterAttributes(
         agilidade: (json['agilidade'] as num?)?.toInt() ?? 1,
         intelecto: (json['intelecto'] as num?)?.toInt() ?? 1,

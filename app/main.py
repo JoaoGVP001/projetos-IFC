@@ -1,61 +1,33 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
-# Support running from project root (absolute imports) or from app/ folder (relative)
-try:
-    from app.routes.root import router as root_router  # type: ignore
-    from app.routes.characters import router as characters_router  # type: ignore
-    from app.routes.campaigns import router as campaigns_router  # type: ignore
-except ModuleNotFoundError:
-    from .routes.root import router as root_router  # type: ignore
-    from .routes.characters import router as characters_router  # type: ignore
-    from .routes.campaigns import router as campaigns_router  # type: ignore
-
-app = FastAPI(title="RPG Helper API", version="0.1.0")
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # adjust in production
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-app.include_router(root_router, prefix="/api/v1")
-app.include_router(characters_router, prefix="/api/v1/characters", tags=["characters"])
-app.include_router(campaigns_router, prefix="/api/v1/campaigns", tags=["campaigns"])
-
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
-import redis.asyncio as redis
 
-from app.config.database import engine, Base
-from app.config.redis_client import get_redis_client
-from app.routes import auth, characters, campaigns, items, users
+from app.core.database import engine, Base
+from app.core.config import get_settings
+from app.api.v1.endpoints import characters, campaigns
+# Import all models to ensure they are registered with SQLAlchemy
+from app.models import Character, Campaign, Item, CharacterItem
+
+settings = get_settings()
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
-    print("🚀 Starting RPG Helper API...")
-    
+    print("🚀 Starting Sigil RPG API...")
+
     # Create database tables
     Base.metadata.create_all(bind=engine)
-    
-    # Initialize Redis connection
-    app.state.redis = await redis.from_url("redis://localhost:6379", decode_responses=True)
-    
+
     yield
-    
+
     # Shutdown
-    print("🛑 Shutting down RPG Helper API...")
-    await app.state.redis.close()
+    print("🛑 Shutting down Sigil RPG API...")
 
 
 app = FastAPI(
-    title="RPG Helper API",
-    description="API para gerenciamento de campanhas de RPG",
+    title="Sigil RPG API",
+    description="API para gerenciamento de personagens do sistema Sigil RPG",
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
@@ -65,24 +37,21 @@ app = FastAPI(
 # CORS Configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Em produção, especifique os domínios permitidos
+    allow_origins=settings.ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # Include routers
-app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
-app.include_router(users.router, prefix="/api/v1/users", tags=["Users"])
 app.include_router(characters.router, prefix="/api/v1/characters", tags=["Characters"])
 app.include_router(campaigns.router, prefix="/api/v1/campaigns", tags=["Campaigns"])
-app.include_router(items.router, prefix="/api/v1/items", tags=["Items"])
 
 
 @app.get("/")
 async def root():
     return {
-        "message": "RPG Helper API",
+        "message": "Sigil RPG API",
         "version": "1.0.0",
         "docs": "/docs"
     }
@@ -90,7 +59,7 @@ async def root():
 
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy", "service": "RPG Helper API"}
+    return {"status": "healthy", "service": "Sigil RPG API"}
 
 
 if __name__ == "__main__":

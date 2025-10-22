@@ -15,14 +15,37 @@ class _CharacterCreateBasicsViewState extends State<CharacterCreateBasicsView> {
   final _formKey = GlobalKey<FormState>();
   final _nameCtrl = TextEditingController();
   final _playerCtrl = TextEditingController();
-  int _nex = 5;
+  final _nexCtrl = TextEditingController();
   String? _avatarUrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _nexCtrl.text = '5';
+  }
 
   @override
   void dispose() {
     _nameCtrl.dispose();
     _playerCtrl.dispose();
+    _nexCtrl.dispose();
     super.dispose();
+  }
+
+  List<DropdownMenuItem<int>> _buildNexItems() {
+    final List<int> nexValues = [];
+
+    // Adiciona valores de 5 em 5 até 95
+    for (int i = 5; i <= 95; i += 5) {
+      nexValues.add(i);
+    }
+
+    // Adiciona valores especiais: 99 e 100
+    nexValues.addAll([99, 100]);
+
+    return nexValues.map((nex) {
+      return DropdownMenuItem<int>(value: nex, child: Text('$nex%'));
+    }).toList();
   }
 
   @override
@@ -30,7 +53,7 @@ class _CharacterCreateBasicsViewState extends State<CharacterCreateBasicsView> {
     final draft = context.watch<CharacterDraftController>();
     _nameCtrl.text = draft.name;
     _playerCtrl.text = draft.playerName;
-    _nex = draft.nex;
+    _nexCtrl.text = draft.nex.toString();
     _avatarUrl = draft.avatarUrl;
 
     return Scaffold(
@@ -60,20 +83,26 @@ class _CharacterCreateBasicsViewState extends State<CharacterCreateBasicsView> {
                     : null,
               ),
               const SizedBox(height: 12),
-              Row(
-                children: [
-                  const Text('NEX:'),
-                  Expanded(
-                    child: Slider(
-                      min: 5,
-                      max: 50,
-                      divisions: 9,
-                      value: _nex.toDouble(),
-                      label: '$_nex%',
-                      onChanged: (v) => setState(() => _nex = v.round()),
-                    ),
-                  ),
-                ],
+              DropdownButtonFormField<int>(
+                value: draft.nex,
+                decoration: const InputDecoration(
+                  labelText: 'NEX (%)',
+                  suffixText: '%',
+                ),
+                items: _buildNexItems(),
+                validator: (value) {
+                  if (value == null) {
+                    return 'Selecione o NEX';
+                  }
+                  return null;
+                },
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() {
+                      _nexCtrl.text = value.toString();
+                    });
+                  }
+                },
               ),
               const SizedBox(height: 12),
               TextFormField(
@@ -95,7 +124,7 @@ class _CharacterCreateBasicsViewState extends State<CharacterCreateBasicsView> {
                         draft.setBasics(
                           newName: _nameCtrl.text,
                           newPlayerName: _playerCtrl.text,
-                          newNex: _nex,
+                          newNex: draft.nex,
                           newAvatarUrl: _avatarUrl,
                         );
                         Navigator.pushNamed(
