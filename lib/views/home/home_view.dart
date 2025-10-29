@@ -1,14 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:sigilrpg/constants/app_colors.dart';
 import 'package:sigilrpg/constants/app_routes.dart';
+import 'package:provider/provider.dart';
+import 'package:sigilrpg/controllers/auth_controller.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthController>();
     return Scaffold(
-      appBar: AppBar(title: const Text('SIGIL RPG')),
+      appBar: AppBar(
+        title: const Text('SIGIL RPG'),
+        actions: [
+          if (auth.isAuthenticated)
+            IconButton(
+              tooltip: 'Sair',
+              onPressed: () => context.read<AuthController>().logout(),
+              icon: const Icon(Icons.logout),
+            )
+          else
+            IconButton(
+              tooltip: 'Entrar',
+              onPressed: () => Navigator.pushNamed(context, AppRoutes.login),
+              icon: const Icon(Icons.login),
+            ),
+        ],
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -25,8 +44,14 @@ class HomeView extends StatelessWidget {
                 icon: Icons.person_add_alt,
                 title: 'Criar Personagem',
                 subtitle: 'Wizard passo a passo',
-                onTap: () =>
-                    Navigator.pushNamed(context, AppRoutes.characterCreate),
+                onTap: () {
+                  final isAuth = context.read<AuthController>().isAuthenticated;
+                  if (!isAuth) {
+                    Navigator.pushNamed(context, AppRoutes.login);
+                    return;
+                  }
+                  Navigator.pushNamed(context, AppRoutes.characterCreate);
+                },
               ),
             ],
           ),
@@ -45,6 +70,18 @@ class HomeView extends StatelessWidget {
                 title: 'Equipes',
                 subtitle: 'Jogadores, mapas e anotações',
                 onTap: () => Navigator.pushNamed(context, AppRoutes.teams),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _Section(
+            title: 'Combate',
+            children: [
+              _ActionTile(
+                icon: Icons.sports_mma,
+                title: 'Lutas',
+                subtitle: 'Inicie lutas e veja histórico',
+                onTap: () => Navigator.pushNamed(context, AppRoutes.fights),
               ),
             ],
           ),

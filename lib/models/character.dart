@@ -6,6 +6,8 @@ class Character {
   final String characterClass;
   final int nex;
   final String? avatarUrl;
+  final String skilledIn;
+  final int? userId;
   final CharacterAttributes attributes;
   final CharacterDetails details;
 
@@ -17,6 +19,8 @@ class Character {
     required this.characterClass,
     required this.nex,
     this.avatarUrl,
+    required this.skilledIn,
+    this.userId,
     required this.attributes,
     required this.details,
   });

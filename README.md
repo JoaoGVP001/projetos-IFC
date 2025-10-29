@@ -2,6 +2,26 @@
 
 Um sistema completo para criação e gerenciamento de personagens do sistema Sigil RPG, com backend FastAPI e frontend Flutter, incluindo autenticação JWT e controle de personagens por usuário.
 
+## ✅ Atualizações Implementadas
+
+- Autenticação antes de criar personagens usando `AuthService` (fluxo de criação exige login).
+- Personagens do usuário agora usam `getUserCharacter()` em vez de `fetchCharacters()`.
+- Telas de Login e Registro adicionadas e integradas (`/auth/login`, `/auth/register`).
+- UI de Lutas criada e integrada com `FightsService` (rota `/fights`).
+
+### Como usar no App
+
+- Acesse Menu → botão de Login no AppBar ou vá em `Entrar` para autenticar.
+- Para criar personagem: após logar, use Home → Personagens → Criar Personagem.
+- Para ver seu personagem: Home → Personagens → Meus Personagens (carrega seu personagem autenticado).
+- Para Lutas: Home → Combate → Lutas (listar histórico e iniciar luta por ID de oponente).
+
+### Endpoints usados no Frontend
+
+- Auth: `POST /api/auth/login`, `POST /api/auth/register`, `GET /api/auth/user`, `PATCH/DELETE /api/auth/` (refresh/logout)
+- Personagem do usuário: `GET /api/me/`, `POST /api/me/`
+- Lutas do usuário: `GET /api/me/fights/`, `POST /api/me/fights/`
+
 ## 🚀 Funcionalidades
 
 ### Backend (FastAPI)

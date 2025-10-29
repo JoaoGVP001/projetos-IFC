@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:sigilrpg/widgets/character_card.dart';
 import 'package:sigilrpg/constants/app_routes.dart';
 import 'package:sigilrpg/controllers/characters_controller.dart';
+import 'package:sigilrpg/controllers/auth_controller.dart';
 
 class CharactersListView extends StatefulWidget {
   const CharactersListView({super.key});
@@ -40,7 +41,22 @@ class _CharactersListViewState extends State<CharactersListView> {
             return const Center(child: CircularProgressIndicator());
           }
           if (_error != null) {
-            return Center(child: Text(_error!));
+            final isAuth = context.watch<AuthController>().isAuthenticated;
+            return Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(_error!),
+                  const SizedBox(height: 12),
+                  if (!isAuth)
+                    ElevatedButton(
+                      onPressed: () =>
+                          Navigator.pushNamed(context, AppRoutes.login),
+                      child: const Text('Entrar para ver seu personagem'),
+                    ),
+                ],
+              ),
+            );
           }
           final characters = context.watch<CharactersController>().characters;
           if (characters.isEmpty) {

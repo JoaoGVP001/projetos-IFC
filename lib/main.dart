@@ -4,6 +4,7 @@ import 'package:sigilrpg/constants/app_routes.dart';
 import 'package:sigilrpg/constants/app_theme.dart';
 import 'package:provider/provider.dart';
 import 'package:sigilrpg/controllers/characters_controller.dart';
+import 'package:sigilrpg/controllers/auth_controller.dart';
 import 'package:sigilrpg/controllers/character_draft_controller.dart';
 import 'package:sigilrpg/controllers/campaigns_controller.dart';
 import 'package:sigilrpg/controllers/teams_controller.dart';
@@ -20,6 +21,9 @@ import 'package:sigilrpg/views/characters/character_attributes_edit_view.dart';
 import 'package:sigilrpg/views/campaigns/campaigns_view.dart';
 import 'package:sigilrpg/views/teams/teams_view.dart';
 import 'package:sigilrpg/views/dice/dice_view.dart';
+import 'package:sigilrpg/views/auth/login_view.dart';
+import 'package:sigilrpg/views/auth/register_view.dart';
+import 'package:sigilrpg/views/fights/fights_view.dart';
 
 void main() {
   runApp(const SigilRpgApp());
@@ -32,6 +36,7 @@ class SigilRpgApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => AuthController()),
         ChangeNotifierProvider(create: (_) => CharactersController()),
         ChangeNotifierProvider(create: (_) => CharacterDraftController()),
         ChangeNotifierProvider(create: (_) => CampaignsController()),
@@ -49,7 +54,7 @@ class SigilRpgApp extends StatelessWidget {
           AppRoutes.characterCreate: (_) => const CharacterCreateBasicsView(),
           CharacterCreateRoutes.basics: (_) =>
               const CharacterCreateBasicsView(),
-          // Attributes moved to post-creation editing; route removed from flow
+
           CharacterCreateRoutes.origin: (_) =>
               const CharacterCreateOriginView(),
           CharacterCreateRoutes.clazz: (_) => const CharacterCreateClassView(),
@@ -58,7 +63,9 @@ class SigilRpgApp extends StatelessWidget {
           AppRoutes.campaigns: (_) => const CampaignsView(),
           AppRoutes.teams: (_) => const TeamsView(),
           AppRoutes.dice: (_) => const DiceView(),
-          // simple dynamic route for detail via onGenerateRoute fallback
+          AppRoutes.login: (_) => const LoginView(),
+          AppRoutes.register: (_) => const RegisterView(),
+          AppRoutes.fights: (_) => const FightsView(),
         },
         onGenerateRoute: (settings) {
           final name = settings.name ?? '';

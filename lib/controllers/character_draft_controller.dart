@@ -29,6 +29,7 @@ class CharacterDraftController extends ChangeNotifier {
   // Origin and Class
   CharacterOrigin? selectedOrigin;
   CharacterClass? selectedClass;
+  String skilledIn = 'Combat'; // Habilidade padrão
 
   // Details
   String? gender;
@@ -140,6 +141,7 @@ class CharacterDraftController extends ChangeNotifier {
       characterClass: selectedClass?.name ?? '',
       nex: nex,
       avatarUrl: avatarUrl,
+      skilledIn: skilledIn,
       attributes: CharacterAttributes(
         agilidade: agilidade,
         intelecto: intelecto,
@@ -159,8 +161,27 @@ class CharacterDraftController extends ChangeNotifier {
   }
 
   Future<Character> submit() async {
-    final character = buildCharacter();
-    final created = await _service.createCharacter(character);
+    // Criar personagem vinculado ao usuário autenticado
+    final created = await _service.createUserCharacter(
+      name: name,
+      age: age ?? 0,
+      skilledIn: skilledIn,
+      playerName: playerName,
+      origin: selectedOrigin?.name,
+      characterClass: selectedClass?.name,
+      nex: nex,
+      avatarUrl: avatarUrl,
+      agilidade: agilidade,
+      intelecto: intelecto,
+      vigor: vigor,
+      presenca: presenca,
+      forca: forca,
+      gender: gender,
+      appearance: appearance,
+      personality: personality,
+      background: background,
+      objective: objective,
+    );
     return created;
   }
 }

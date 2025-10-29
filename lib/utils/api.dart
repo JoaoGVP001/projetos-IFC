@@ -47,7 +47,19 @@ class ApiClient {
         .get(_uri(path, query), headers: _headers())
         .timeout(_timeout);
     _ensureSuccess(res);
-    return _decode(res.body) as List<dynamic>;
+    final decoded = _decode(res.body);
+    // A API pode retornar um array diretamente ou um objeto com 'data'
+    if (decoded is List) {
+      return decoded;
+    } else if (decoded is Map<String, dynamic>) {
+      final data = decoded['data'];
+      if (data is List) {
+        return data;
+      }
+    }
+    throw FormatException(
+      'Expected array or object with data array, got: $decoded',
+    );
   }
 
   Future<Map<String, dynamic>> postJson(
@@ -108,7 +120,35 @@ class ApiClient {
 
   void _ensureSuccess(http.Response res) {
     if (res.statusCode < 200 || res.statusCode >= 300) {
-      throw HttpException('HTTP ${res.statusCode}: ${res.body}');
+      // Tentar extrair mensagem de erro da resposta da API
+      String errorMessage = 'HTTP ${res.statusCode}';
+      try {
+        final jsonBody = json.decode(res.body);
+        if (jsonBody is Map<String, dynamic>) {
+          final message = jsonBody['message'] as String?;
+          final error = jsonBody['error'] as String?;
+          final errorDetail = jsonBody['error_detail'] as String?;
+          if (errorDetail != null) {
+            errorMessage = errorDetail;
+          } else if (error != null) {
+            errorMessage = error;
+          } else if (message != null) {
+            errorMessage = message;
+          }
+          // Incluir erros de validação se existirem
+          final errors = jsonBody['errors'] as Map<String, dynamic>?;
+          if (errors != null && errors.isNotEmpty) {
+            final errorList = errors.values
+                .expand((e) => (e as List<dynamic>).map((e) => e.toString()))
+                .join(', ');
+            errorMessage = '$errorMessage: $errorList';
+          }
+        }
+      } catch (_) {
+        // Se não conseguir parsear, usar o body completo
+        errorMessage = 'HTTP ${res.statusCode}: ${res.body}';
+      }
+      throw HttpException(errorMessage);
     }
   }
 
@@ -116,8 +156,9 @@ class ApiClient {
 
   Future<bool> testConnection() async {
     try {
+      // Testar conexão com o endpoint raiz da API
       final res = await _client
-          .get(_uri('/docs'), headers: _headers())
+          .get(_uri('/'), headers: _headers())
           .timeout(const Duration(seconds: 10));
       return res.statusCode == 200;
     } catch (e) {

@@ -12,10 +12,11 @@ class CharactersController extends ChangeNotifier {
   List<Character> get characters => List.unmodifiable(_characters);
 
   Future<void> load() async {
-    final list = await _service.fetchCharacters();
+    // Carregar personagem do usuário autenticado
+    final me = await _service.getUserCharacter();
     _characters
       ..clear()
-      ..addAll(list);
+      ..add(me);
     notifyListeners();
   }
 
