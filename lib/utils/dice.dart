@@ -3,7 +3,17 @@ import 'dart:math';
 class DiceRollResult {
   final List<int> rolls;
   final int total;
-  const DiceRollResult(this.rolls, this.total);
+  final int count;
+  final int sides;
+  final int modifier;
+  
+  const DiceRollResult({
+    required this.rolls,
+    required this.total,
+    required this.count,
+    required this.sides,
+    this.modifier = 0,
+  });
 }
 
 class Dice {
@@ -19,7 +29,13 @@ class Dice {
       (_) => _rng.nextInt(sides) + 1,
     );
     final int sum = rolls.fold(0, (a, b) => a + b) + modifier;
-    return DiceRollResult(rolls, sum);
+    return DiceRollResult(
+      rolls: rolls,
+      total: sum,
+      count: count,
+      sides: sides,
+      modifier: modifier,
+    );
   }
 
   static DiceRollResult d20({int modifier = 0}) =>

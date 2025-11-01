@@ -2,25 +2,81 @@
 
 Um sistema completo para criação e gerenciamento de personagens do sistema Sigil RPG, com backend FastAPI e frontend Flutter, incluindo autenticação JWT e controle de personagens por usuário.
 
-## ✅ Atualizações Implementadas
+## 🎨 Atualizações Recentes (Frontend)
 
-- Autenticação antes de criar personagens usando `AuthService` (fluxo de criação exige login).
-- Personagens do usuário agora usam `getUserCharacter()` em vez de `fetchCharacters()`.
-- Telas de Login e Registro adicionadas e integradas (`/auth/login`, `/auth/register`).
-- UI de Lutas criada e integrada com `FightsService` (rota `/fights`).
+### Phase 1 - Fundação (✅ Implementado)
 
-### Como usar no App
+#### Sistema de Temas Moderno
+- ✅ **Tema Claro/Escuro** com toggle na AppBar
+- ✅ Suporte para modo sistema (detecta preferência do dispositivo)
+- ✅ **ThemeController** para gerenciamento centralizado de temas
+- ✅ Gradientes suaves e melhor contraste (WCAG AA)
+- ✅ Transições suaves entre temas
+- ✅ Cores consistentes em ambos os temas
 
-- Acesse Menu → botão de Login no AppBar ou vá em `Entrar` para autenticar.
-- Para criar personagem: após logar, use Home → Personagens → Criar Personagem.
-- Para ver seu personagem: Home → Personagens → Meus Personagens (carrega seu personagem autenticado).
-- Para Lutas: Home → Combate → Lutas (listar histórico e iniciar luta por ID de oponente).
+#### Navegação Moderna
+- ✅ **Bottom Navigation Bar** substituindo drawer
+- ✅ Ícones animados com feedback visual
+- ✅ Quatro seções principais: Início, Personagens, Campanhas, Ferramentas
+- ✅ Navegação por PageView com animações
+- ✅ **MainScaffold** para gerenciamento unificado de navegação
 
-### Endpoints usados no Frontend
+#### Dashboard Redesenhado (HomeView)
+- ✅ Header com gradiente e branding
+- ✅ Cards de estatísticas (Personagens, Campanhas) com ícones
+- ✅ **Ações Rápidas** com cards visuais modernos
+  - Criar Personagem
+  - Rolador de Dados
+  - Lutas
+  - Equipes
+- ✅ Seção de atividade recente
+- ✅ Pull-to-refresh para atualizar dados
+- ✅ Empty state elegante quando não autenticado
 
-- Auth: `POST /api/auth/login`, `POST /api/auth/register`, `GET /api/auth/user`, `PATCH/DELETE /api/auth/` (refresh/logout)
-- Personagem do usuário: `GET /api/me/`, `POST /api/me/`
-- Lutas do usuário: `GET /api/me/fights/`, `POST /api/me/fights/`
+#### Cards Aprimorados
+
+**CharacterCard:**
+- ✅ Avatar com placeholder elegante e Hero animation
+- ✅ Indicador de NEX com barra de progresso visual
+- ✅ Badges coloridos para atributos (AGI, INT, VIG, PRE, FOR)
+- ✅ Gradiente sutil no background
+- ✅ Menu contextual para editar/deletar
+- ✅ Animações de hover/press
+
+**CampaignCard:**
+- ✅ Gradiente baseado no status (ativa/inativa)
+- ✅ Badge visual de status com ícone
+- ✅ Ícones para sistema de RPG e jogadores
+- ✅ Indicadores visuais melhorados
+- ✅ Design mais espaçado e legível
+
+#### Widgets Reutilizáveis
+- ✅ **CustomButton** com variantes (primary, secondary, text, icon)
+- ✅ **EmptyState** com ilustração e CTA
+- ✅ **ErrorState** com retry button
+- ✅ **LoadingOverlay** para operações assíncronas
+- ✅ **StatCard** para exibir métricas com gradientes
+
+#### Melhorias no Sistema de Dados
+- ✅ Presets rápidos (d20, 2d6, d100, 4d6)
+- ✅ Display visual do último resultado
+- ✅ Histórico melhorado com cards estilizados
+- ✅ Confirmação antes de limpar histórico
+- ✅ Empty state quando não há rolagens
+- ✅ Formatação melhorada dos resultados
+
+#### Estados Consistentes
+- ✅ Loading states em todas as views
+- ✅ Error handling com retry
+- ✅ Empty states padronizados
+- ✅ Refresh indicators
+
+### ✅ Atualizações Implementadas (Anteriores)
+
+- Autenticação antes de criar personagens usando `AuthService`
+- Personagens do usuário usando `getUserCharacter()`
+- Telas de Login e Registro adicionadas e integradas
+- UI de Lutas criada e integrada com `FightsService`
 
 ## 🚀 Funcionalidades
 
@@ -31,95 +87,96 @@ Um sistema completo para criação e gerenciamento de personagens do sistema Sig
 - **Controle de Acesso**: Apenas donos podem ver/editar seus personagens
 - **API RESTful**: Endpoints organizados com validação de dados
 - **Sistema Sigil**: Atributos específicos (Agilidade, Intelecto, Vigor, Presença, Força)
+- **Sistema de Campanhas**: CRUD completo para campanhas
+- **Sistema de Lutas**: Gerenciamento de combates e histórico
 
 ### Frontend (Flutter)
+- **Sistema de Temas**: Modo claro/escuro com toggle
+- **Navegação Moderna**: Bottom navigation bar
+- **Dashboard Interativo**: HomeView com estatísticas e ações rápidas
 - **Sistema de Login/Registro**: Interface completa de autenticação
 - **Criação de Personagens**: Fluxo multi-etapas (Básico → Origem → Classe → Detalhes)
+- **Visualização de Personagens**: Cards modernos com badges e indicadores
 - **Edição de Atributos**: Tela dedicada para ajustar atributos pós-criação
-- **Gerenciamento de Sessão**: Persistência de login com SharedPreferences
+- **Rolador de Dados**: Sistema avançado com presets e histórico
+- **Gerenciamento de Sessão**: Persistência de login
 - **Interface Responsiva**: Design moderno com Material Design 3
+- **Estados Consistentes**: Loading, error e empty states padronizados
 
 ## 🏗️ Arquitetura
 
-### Backend (Python/FastAPI) - Nova Estrutura
+### Backend (Python/FastAPI)
 ```
-app/
-├── core/
-│   ├── config.py              # Configurações da aplicação
-│   ├── database.py            # Configuração do banco de dados
-│   └── security.py            # Segurança e JWT
-├── models/
-│   ├── user.py                # Modelo de usuário
-│   └── character.py           # Modelo de personagem (Sistema Sigil)
-├── schemas/
-│   ├── user.py                # Schemas de usuário
-│   ├── character.py           # Schemas de personagem
-│   └── token.py               # Schemas de token JWT
-├── crud/
-│   ├── user.py                # Operações CRUD de usuários
-│   └── character.py           # Operações CRUD de personagens
-├── api/
-│   └── v1/
-│       └── endpoints/
-│           ├── auth.py        # Endpoints de autenticação
-│           └── characters.py   # Endpoints de personagens
-└── main.py                    # Aplicação principal
+SigilRPG_API-main/
+├── app.py                      # Aplicação principal
+├── config.py                   # Configurações
+├── models.py                   # Modelos de dados
+├── routes.py                   # Rotas principais
+├── characters_routes.py        # Endpoints de personagens
+├── fights_routes.py            # Endpoints de lutas
+├── user_character_routes.py    # Rotas de personagem do usuário
+├── migrate_db.py               # Migrações do banco
+├── seed_data.py               # Dados iniciais
+└── requirements.txt            # Dependências
 ```
 
 ### Frontend (Flutter)
 ```
 lib/
 ├── constants/
-│   ├── app_colors.dart        # Paleta de cores
-│   ├── app_routes.dart        # Definição de rotas
-│   └── app_theme.dart         # Tema da aplicação
+│   ├── app_colors.dart         # Paleta de cores
+│   ├── app_routes.dart         # Definição de rotas
+│   └── app_theme.dart          # Sistema de temas (light/dark)
 ├── controllers/
-│   ├── auth_controller.dart   # Controle de autenticação
-│   ├── characters_controller.dart # Controle de personagens
-│   ├── character_draft_controller.dart # Controle de criação
-│   ├── campaigns_controller.dart # Controle de campanhas
-│   ├── teams_controller.dart  # Controle de times
-│   └── dicecontroller.dart    # Controle de dados
+│   ├── auth_controller.dart    # Controle de autenticação
+│   ├── theme_controller.dart   # Controle de temas
+│   ├── characters_controller.dart
+│   ├── character_draft_controller.dart
+│   ├── campaigns_controller.dart
+│   ├── teams_controller.dart
+│   └── dicecontroller.dart
 ├── models/
-│   ├── character.dart         # Modelo de personagem
-│   ├── character_class.dart   # Classes de personagem
-│   ├── character_origin.dart  # Origens de personagem
-│   ├── campaign.dart          # Modelo de campanha
-│   ├── item.dart             # Modelo de item
-│   └── user.dart             # Modelo de usuário
+│   ├── character.dart
+│   ├── character_class.dart
+│   ├── character_origin.dart
+│   ├── campaign.dart
+│   ├── item.dart
+│   └── user.dart
 ├── services/
-│   ├── auth_service.dart      # Serviço de autenticação
-│   └── characters_service.dart # Serviço de personagens
+│   ├── auth_service.dart
+│   ├── characters_service.dart
+│   └── campaigns_service.dart
 ├── utils/
-│   ├── api.dart              # Cliente HTTP com autenticação
-│   └── dice.dart             # Utilitários de dados
+│   ├── api.dart               # Cliente HTTP com autenticação
+│   └── dice.dart              # Utilitários de dados
 ├── views/
+│   ├── main_scaffold.dart     # Scaffold principal com bottom nav
 │   ├── auth/
-│   │   ├── login_view.dart    # Tela de login
-│   │   └── register_view.dart # Tela de registro
+│   │   ├── login_view.dart
+│   │   └── register_view.dart
+│   ├── home/
+│   │   └── home_view.dart     # Dashboard redesenhado
 │   ├── characters/
-│   │   ├── characters_list_view.dart # Lista de personagens
-│   │   ├── character_create_basics_view.dart # Criação - Básico
-│   │   ├── character_create_origin_view.dart # Criação - Origem
-│   │   ├── character_create_class_view.dart # Criação - Classe
-│   │   ├── character_create_details_view.dart # Criação - Detalhes
-│   │   ├── character_attributes_edit_view.dart # Edição de atributos
-│   │   └── character_detail_view.dart # Detalhes do personagem
+│   │   ├── characters_list_view.dart
+│   │   ├── character_create_*.dart
+│   │   └── character_detail_view.dart
 │   ├── campaigns/
-│   │   └── campaigns_view.dart # Gerenciamento de campanhas
-│   ├── teams/
-│   │   └── teams_view.dart    # Gerenciamento de times
+│   │   └── campaigns_view.dart
 │   ├── dice/
-│   │   └── dice_view.dart     # Rolagem de dados
-│   └── home/
-│       └── home_view.dart     # Tela inicial
-├── widgets/
-│   ├── character_card.dart    # Card de personagem
-│   ├── attribute_circle.dart # Círculo de atributo
-│   ├── health_bar.dart        # Barra de vida
-│   ├── skill_row.dart         # Linha de habilidade
-│   └── dice_roller.dart       # Rolador de dados
-└── main.dart                  # Aplicação principal
+│   │   └── dice_view.dart     # Rolador melhorado
+│   └── fights/
+│       └── fights_view.dart
+└── widgets/
+    ├── bottom_nav_bar.dart     # Navegação inferior
+    ├── character_card.dart    # Card aprimorado
+    ├── campaign_card.dart     # Card aprimorado
+    ├── custom_button.dart     # Botão reutilizável
+    ├── empty_state.dart       # Estado vazio
+    ├── error_state.dart       # Estado de erro
+    ├── loading_overlay.dart   # Overlay de loading
+    ├── stat_card.dart         # Card de estatística
+    ├── dice_roller.dart       # Rolador aprimorado
+    └── ... (outros widgets)
 ```
 
 ## 🔧 Tecnologias Utilizadas
@@ -131,55 +188,39 @@ lib/
 - **JWT**: Autenticação com tokens (python-jose)
 - **Bcrypt**: Hash de senhas (passlib)
 - **Uvicorn**: Servidor ASGI
+- **SQLite**: Banco de dados (desenvolvimento)
 
 ### Frontend
 - **Flutter**: Framework de UI multiplataforma
 - **Provider**: Gerenciamento de estado
 - **HTTP**: Cliente para APIs
-- **SharedPreferences**: Persistência local
-- **Material Design 3**: Design system
+- **Material Design 3**: Design system moderno
+- **Hero Animations**: Transições suaves
 
 ## 📋 Endpoints da API
 
-### Autenticação (`/api/v1/auth/`)
+### Autenticação (`/api/auth/`)
 - `POST /register` - Registrar novo usuário
-  - Body: `{username, email, password, full_name?}`
-  - Response: `{id, username, email, full_name, created_at}`
-  
 - `POST /login` - Login de usuário
-  - Body: `{username, password}`
-  - Response: `{access_token, token_type}`
-
 - `GET /me` - Obter dados do usuário atual
-  - Headers: `Authorization: Bearer <token>`
-  - Response: `{id, username, email, full_name, is_active, created_at}`
-
 - `POST /refresh` - Renovar token JWT
-  - Headers: `Authorization: Bearer <token>`
-  - Response: `{access_token, token_type}`
 
-### Personagens (`/api/v1/characters/`)
-- `GET /` - Listar personagens do usuário autenticado
-  - Headers: `Authorization: Bearer <token>`
-  - Response: `[{id, name, player_name, origin, character_class, nex, ...}]`
-
+### Personagens (`/api/characters/` ou `/api/me/`)
+- `GET /` - Listar personagens do usuário
 - `GET /{id}` - Obter personagem específico
-  - Headers: `Authorization: Bearer <token>`
-  - Response: `{id, name, player_name, origin, character_class, nex, ...}`
-
 - `POST /` - Criar novo personagem
-  - Headers: `Authorization: Bearer <token>`
-  - Body: `{name, player_name, origin, character_class, nex, agilidade, intelecto, vigor, presenca, forca, ...}`
-  - Response: `{id, name, player_name, origin, character_class, nex, ...}`
-
-- `PATCH /{id}` - Atualizar personagem parcialmente
-  - Headers: `Authorization: Bearer <token>`
-  - Body: `{name?, player_name?, origin?, character_class?, nex?, agilidade?, ...}`
-  - Response: `{id, name, player_name, origin, character_class, nex, ...}`
-
+- `PATCH /{id}` - Atualizar personagem
 - `DELETE /{id}` - Excluir personagem
-  - Headers: `Authorization: Bearer <token>`
-  - Response: `204 No Content`
+
+### Campanhas (`/api/campaigns/`)
+- `GET /` - Listar campanhas
+- `POST /` - Criar campanha
+- `PATCH /{id}` - Atualizar campanha
+- `DELETE /{id}` - Deletar campanha
+
+### Lutas (`/api/me/fights/`)
+- `GET /` - Listar lutas do usuário
+- `POST /` - Criar nova luta
 
 ## 🎮 Sistema Sigil RPG
 
@@ -212,35 +253,26 @@ lib/
 
 1. **Instalar dependências**:
 ```bash
-cd app
+cd SigilRPG_API-main
 pip install -r requirements.txt
 ```
 
-2. **Configurar variáveis de ambiente**:
+2. **Inicializar banco de dados**:
 ```bash
-# Copiar arquivo de exemplo
-cp .env.example .env
-
-# Editar .env com suas configurações
-DATABASE_URL=sqlite:///./sigilrpg.db
-SECRET_KEY=your-secret-key-change-in-production
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=30
+python migrate_db.py
+python seed_data.py  # Opcional: dados iniciais
 ```
 
-3. **Inicializar banco de dados**:
+3. **Executar servidor**:
 ```bash
-python create_db.py
-```
-
-4. **Executar servidor**:
-```bash
-# Opção 1: Usando uvicorn diretamente
-python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-
-# Opção 2: Usando script personalizado
 python run_server.py
+# ou
+python app.py
 ```
+
+O servidor estará disponível em `http://localhost:8000`
+- Documentação Swagger: `http://localhost:8000/docs`
+- ReDoc: `http://localhost:8000/redoc`
 
 ### Frontend
 
@@ -261,7 +293,15 @@ flutter run
 flutter run -d ios
 ```
 
+3. **Configurar URL da API**:
+Edite `lib/utils/api.dart` se necessário para apontar para o servidor correto.
+
 ## 📱 Funcionalidades do App
+
+### Interface Principal
+- **Bottom Navigation**: Navegação rápida entre seções
+- **Toggle de Tema**: Alterna entre modo claro e escuro
+- **Dashboard**: Visão geral com estatísticas e ações rápidas
 
 ### Autenticação
 - Login com username/email
@@ -271,15 +311,42 @@ flutter run -d ios
 
 ### Personagens
 - Criação em etapas (Básico → Origem → Classe → Detalhes)
+- Listagem com cards visuais modernos
+- Visualização detalhada com tabs
 - Edição de atributos pós-criação
-- Controle de acesso (apenas donos)
-- Listagem de personagens do usuário
+- Indicadores visuais (NEX, atributos)
 
-### Interface
-- Design responsivo
-- Navegação intuitiva
-- Feedback visual
-- Validação de formulários
+### Campanhas
+- Listagem de campanhas
+- Cards com status visual (ativa/inativa)
+- Informações de jogadores e sistema
+
+### Ferramentas
+- **Rolador de Dados**:
+  - Presets rápidos (d20, 2d6, d100, 4d6)
+  - Rolagem customizada
+  - Histórico completo
+  - Display do último resultado
+
+## 🎨 Design System
+
+### Cores
+- **Primária**: `#6B46C1` (Roxo místico)
+- **Background**: Escuro `#0F0F12` / Claro `#F9FAFB`
+- **Surface**: Escuro `#17171B` / Claro `#FFFFFF`
+- **Accent**: `#9F7AEA`
+- **Estados**: Success `#10B981`, Warning `#F59E0B`, Danger `#EF4444`
+
+### Componentes
+- Border radius: 8px, 12px, 16px
+- Elevação Material 3
+- Espaçamento baseado em 8px (8, 16, 24, 32)
+- Transições suaves (300ms)
+
+### Tipografia
+- Hierarquia clara (Display, Headline, Title, Body, Label)
+- Contraste adequado (WCAG AA)
+- System fonts (Material Design 3)
 
 ## 🔧 Configuração de Desenvolvimento
 
@@ -287,18 +354,19 @@ flutter run -d ios
 - **Porta**: 8000
 - **Documentação**: http://localhost:8000/docs
 - **ReDoc**: http://localhost:8000/redoc
-- **Health Check**: http://localhost:8000/health
+- **Database**: SQLite (`sigilrpg.db`)
 
 ### Frontend
 - **Web**: http://localhost:8000 (conecta automaticamente)
 - **Android Emulator**: http://10.0.2.2:8000
 - **iOS Simulator**: http://localhost:8000
+- **Hot Reload**: Ativado por padrão
 
 ## 📊 Exemplos de Uso
 
 ### Registro de Usuário
 ```bash
-curl -X POST "http://localhost:8000/api/v1/auth/register" \
+curl -X POST "http://localhost:8000/api/auth/register" \
   -H "Content-Type: application/json" \
   -d '{
     "username": "jogador1",
@@ -310,7 +378,7 @@ curl -X POST "http://localhost:8000/api/v1/auth/register" \
 
 ### Login
 ```bash
-curl -X POST "http://localhost:8000/api/v1/auth/login" \
+curl -X POST "http://localhost:8000/api/auth/login" \
   -H "Content-Type: application/json" \
   -d '{
     "username": "jogador1",
@@ -320,7 +388,7 @@ curl -X POST "http://localhost:8000/api/v1/auth/login" \
 
 ### Criar Personagem
 ```bash
-curl -X POST "http://localhost:8000/api/v1/characters" \
+curl -X POST "http://localhost:8000/api/characters" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <token>" \
   -d '{
@@ -337,15 +405,40 @@ curl -X POST "http://localhost:8000/api/v1/characters" \
   }'
 ```
 
-## 🔮 Próximas Funcionalidades
+## 🔮 Próximas Funcionalidades (Roadmap)
 
-- [ ] Sistema de campanhas completo
-- [ ] Gerenciamento de itens
-- [ ] Sistema de dados avançado
-- [ ] Compartilhamento de personagens
-- [ ] Sistema de notificações
-- [ ] Modo offline
-- [ ] Sincronização em tempo real
+### Phase 2 - Core Features
+- [ ] Wizard de criação de personagem completo com preview em tempo real
+- [ ] CharacterDetailView com todas as tabs (Combate, Habilidades, Rituais, Inventário, Descrição)
+- [ ] Sistema de dados avançado com vantagem/desvantagem
+- [ ] CampaignDetailView completo com dashboard, sessões e ferramentas do mestre
+- [ ] Perfil do usuário com configurações
+
+### Phase 3 - Enhancement
+- [ ] Sistema de combate melhorado com tracker de iniciativa
+- [ ] Ferramentas do mestre avançadas
+- [ ] Suporte offline com cache local
+- [ ] Animações e transições adicionais
+- [ ] Melhorias de acessibilidade
+
+### Phase 4 - Polish
+- [ ] Ilustrações e assets customizados
+- [ ] Sistema de conquistas/badges
+- [ ] Testes automatizados completos
+- [ ] Otimizações de performance
+- [ ] Funcionalidades avançadas (IA suggestions, etc.)
+
+## 📝 Notas de Desenvolvimento
+
+### Gitignore
+- ✅ Configurado para excluir `venv/`, `__pycache__/`, arquivos `.db` e outros arquivos temporários
+- ✅ Mantém estrutura limpa no repositório
+
+### Estrutura de Código
+- ✅ Separação clara de responsabilidades (controllers, services, views, widgets)
+- ✅ Widgets reutilizáveis para consistência
+- ✅ Padrões de nomenclatura consistentes
+- ✅ Código comentado onde necessário
 
 ## 📄 Licença
 
@@ -357,4 +450,23 @@ Para contribuir com o projeto, entre em contato com os desenvolvedores.
 
 ---
 
-**SIGIL RPG** - Sistema completo de gerenciamento de personagens do sistema Sigil RPG com autenticação JWT e controle de acesso por usuário.
+**SIGIL RPG** - Sistema completo de gerenciamento de personagens do sistema Sigil RPG com autenticação JWT, interface moderna e design responsivo.
+
+---
+
+## 🎯 Changelog
+
+### v2.0.0 (Atual)
+- ✅ Sistema de temas claro/escuro
+- ✅ Bottom navigation bar
+- ✅ Dashboard redesenhado
+- ✅ Cards aprimorados (Personagens e Campanhas)
+- ✅ Widgets reutilizáveis
+- ✅ Sistema de dados melhorado
+- ✅ Estados consistentes (loading, error, empty)
+- ✅ Melhorias de UX/UI gerais
+
+### v1.0.0
+- Sistema básico de autenticação
+- CRUD de personagens
+- Interface inicial

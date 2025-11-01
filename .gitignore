@@ -12,6 +12,33 @@
 .swiftpm/
 migrate_working_dir/
 
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+*.db
+*.sqlite
+*.sqlite3
+
+# Python virtual environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+SigilRPG_API-main/venv/
+
 # IntelliJ related
 *.iml
 *.ipr
