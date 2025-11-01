@@ -58,12 +58,27 @@ def create_user_character():
         if errors:
             return jsonify({'errors': errors}), 400
         
-        # Criar personagem
+        # Criar personagem com todos os campos opcionais
         character = Character(
             name=name.strip(),
             age=age,
             skilled_in=skilled_in.strip(),
-            user_id=user_id
+            user_id=user_id,
+            player_name=data.get('player_name'),
+            origin=data.get('origin'),
+            character_class=data.get('character_class'),
+            nex=data.get('nex', 5),  # Valor padrão de 5 se não fornecido
+            avatar_url=data.get('avatar_url'),
+            agilidade=data.get('agilidade', 1),
+            intelecto=data.get('intelecto', 1),
+            vigor=data.get('vigor', 1),
+            presenca=data.get('presenca', 1),
+            forca=data.get('forca', 1),
+            gender=data.get('gender'),
+            appearance=data.get('appearance'),
+            personality=data.get('personality'),
+            background=data.get('background'),
+            objective=data.get('objective')
         )
         
         db.session.add(character)
