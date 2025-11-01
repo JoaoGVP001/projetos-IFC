@@ -28,7 +28,7 @@ class CharactersService {
     return _fromJson(data);
   }
 
-  /// Atualizar personagem
+  /// Atualizar personagem (sistema)
   Future<Character> updateCharacter(
     String id,
     Map<String, dynamic> updates,
@@ -37,15 +37,57 @@ class CharactersService {
     return _fromJson(data);
   }
 
-  /// Obter personagem do usuário autenticado
-  Future<Character> getUserCharacter() async {
+  /// Listar todos os personagens do usuário autenticado
+  Future<List<Character>> getUserCharacters() async {
+    try {
+      // A API retorna: {'message': 'characters', 'data': [...]}
+      final response = await _client.getJson('/api/me/');
+      final dataList = response['data'];
+      
+      // Se data for uma lista, usar diretamente
+      if (dataList is List) {
+        return dataList.map((e) => _fromJson(e as Map<String, dynamic>)).toList();
+      }
+      
+      // Se data for null ou não for lista, retornar lista vazia (usuário sem personagens)
+      return [];
+    } catch (e) {
+      // Se houver erro (ex: 400 quando não há personagens), retornar lista vazia
+      // Isso evita quebrar o login quando usuário ainda não tem personagens
+      return [];
+    }
+  }
+
+  /// Obter personagem específico do usuário autenticado
+  Future<Character> getUserCharacter(String characterId) async {
     // A API retorna: {'message': 'character', 'data': {...}}
-    final response = await _client.getJson('/api/me/');
+    final response = await _client.getJson('/api/me/$characterId');
     final data = response['data'] as Map<String, dynamic>?;
     if (data == null) {
       throw Exception('Dados do personagem não encontrados');
     }
     return _fromJson(data);
+  }
+
+  /// Atualizar personagem do usuário autenticado
+  Future<Character> updateUserCharacter(
+    String characterId,
+    Map<String, dynamic> updates,
+  ) async {
+    final response = await _client.patchJson(
+      '/api/me/$characterId',
+      body: updates,
+    );
+    final data = response['data'] as Map<String, dynamic>?;
+    if (data == null) {
+      throw Exception('Dados do personagem não encontrados');
+    }
+    return _fromJson(data);
+  }
+
+  /// Deletar personagem do usuário autenticado
+  Future<void> deleteUserCharacter(String characterId) async {
+    await _client.deleteJson('/api/me/$characterId');
   }
 
   /// Criar personagem para o usuário autenticado

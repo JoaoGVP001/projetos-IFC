@@ -101,6 +101,18 @@ class ApiClient {
     _ensureSuccess(res);
   }
 
+  Future<Map<String, dynamic>> deleteJson(String path) async {
+    final res = await _client
+        .delete(_uri(path), headers: _headers())
+        .timeout(_timeout);
+    _ensureSuccess(res);
+    try {
+      return _decode(res.body) as Map<String, dynamic>;
+    } catch (_) {
+      return {'message': 'deleted'};
+    }
+  }
+
   void setBearerToken(String? token) {
     _bearerToken = token;
   }

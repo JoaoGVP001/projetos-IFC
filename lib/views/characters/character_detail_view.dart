@@ -15,6 +15,17 @@ class CharacterDetailView extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           title: Text(character.name),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.edit),
+              tooltip: 'Editar Atributos',
+              onPressed: () => Navigator.pushNamed(
+                context,
+                '/characters/attributes/edit',
+                arguments: character.id,
+              ),
+            ),
+          ],
           bottom: const TabBar(
             isScrollable: true,
             tabs: [
@@ -54,11 +65,11 @@ class _CombatTab extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              AttributeCircle(label: 'AGI', value: 1),
-              AttributeCircle(label: 'INT', value: 1),
-              AttributeCircle(label: 'VIG', value: 1),
-              AttributeCircle(label: 'PRE', value: 1),
-              AttributeCircle(label: 'FOR', value: 1),
+              AttributeCircle(label: 'AGI', value: character.attributes.agilidade),
+              AttributeCircle(label: 'INT', value: character.attributes.intelecto),
+              AttributeCircle(label: 'VIG', value: character.attributes.vigor),
+              AttributeCircle(label: 'PRE', value: character.attributes.presenca),
+              AttributeCircle(label: 'FOR', value: character.attributes.forca),
             ],
           ),
           const SizedBox(height: 16),
@@ -99,12 +110,42 @@ class _CombatTab extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'NEX: ${character.nex}%',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.seed,
+                          ),
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: () => Navigator.pushNamed(
+                        context,
+                        '/characters/attributes/edit',
+                        arguments: character.id,
+                      ),
+                      icon: const Icon(Icons.edit, size: 18),
+                      label: const Text('Editar'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.seed,
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
                 Text(
-                  'Defesa: 12',
+                  'Defesa: ${10 + character.attributes.agilidade}',
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(height: 8),
-                const Text('Resistências: Física 2, Balística 1, Mental 0'),
+                Text(
+                  'Resistências: Física ${character.attributes.vigor}, '
+                  'Balística ${character.attributes.vigor}, '
+                  'Mental ${character.attributes.intelecto}',
+                ),
               ],
             ),
           ),

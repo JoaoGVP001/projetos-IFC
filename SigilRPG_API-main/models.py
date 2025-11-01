@@ -20,8 +20,8 @@ class User(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    # Relacionamentos
-    character = db.relationship('Character', backref='user', uselist=False, lazy=True)
+    # Relacionamentos - Permite múltiplos personagens
+    characters = db.relationship('Character', backref='user', lazy=True)
     
     def set_password(self, password):
         """Define a senha do usuário"""

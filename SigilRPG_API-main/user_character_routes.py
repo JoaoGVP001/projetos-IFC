@@ -20,13 +20,7 @@ def create_user_character():
         if not user:
             return jsonify({'message': 'user_not_found'}), 404
         
-        # Verificar se o usuário já tem um personagem
-        existing_character = Character.query.filter_by(user_id=user_id).first()
-        if existing_character:
-            return jsonify({
-                'message': 'user_already_has_character',
-                'error_detail': 'Usuário já possui um personagem'
-            }), 400
+        # Permitir múltiplos personagens - remover restrição
         
         data = request.get_json()
         
@@ -95,8 +89,8 @@ def create_user_character():
 
 @user_character_bp.route('/', methods=['GET'])
 @jwt_required()
-def show_user_character():
-    """Mostra o personagem do usuário autenticado"""
+def list_user_characters():
+    """Lista todos os personagens do usuário autenticado"""
     try:
         user_id = get_jwt_identity()
         user = User.query.get(user_id)
@@ -104,13 +98,41 @@ def show_user_character():
         if not user:
             return jsonify({'message': 'user_not_found'}), 404
         
-        character = Character.query.filter_by(user_id=user_id).first()
+        characters = Character.query.filter_by(user_id=user_id).all()
+        
+        # Sempre retornar lista, mesmo se vazia (para compatibilidade)
+        return jsonify({
+            'message': 'characters',
+            'data': [char.to_dict() for char in characters]
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            'message': 'error_retrieving_characters',
+            'error': str(e)
+        }), 500
+
+@user_character_bp.route('/<int:character_id>', methods=['GET'])
+@jwt_required()
+def show_user_character(character_id):
+    """Mostra um personagem específico do usuário autenticado"""
+    try:
+        user_id = get_jwt_identity()
+        user = User.query.get(user_id)
+        
+        if not user:
+            return jsonify({'message': 'user_not_found'}), 404
+        
+        character = Character.query.filter_by(
+            id=character_id,
+            user_id=user_id
+        ).first()
         
         if not character:
             return jsonify({
-                'message': 'character_not_exist',
-                'error_detail': 'Nenhum personagem existe para este usuário, primeiro crie um personagem'
-            }), 400
+                'message': 'character_not_found',
+                'error_detail': 'Personagem não encontrado ou não pertence a este usuário'
+            }), 404
         
         return jsonify({
             'message': 'character',
@@ -119,3 +141,132 @@ def show_user_character():
         
     except Exception as e:
         return jsonify({'message': 'error_retrieving_character'}), 500
+
+@user_character_bp.route('/<int:character_id>', methods=['PATCH'])
+@jwt_required()
+def update_user_character(character_id):
+    """Atualiza um personagem do usuário autenticado"""
+    try:
+        user_id = get_jwt_identity()
+        user = User.query.get(user_id)
+        
+        if not user:
+            return jsonify({'message': 'user_not_found'}), 404
+        
+        character = Character.query.filter_by(
+            id=character_id,
+            user_id=user_id
+        ).first()
+        
+        if not character:
+            return jsonify({
+                'message': 'character_not_found',
+                'error_detail': 'Personagem não encontrado ou não pertence a este usuário'
+            }), 404
+        
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({'message': 'invalid_data'}), 400
+        
+        # Atualizar campos permitidos
+        if 'name' in data:
+            character.name = data['name'].strip()
+        if 'player_name' in data:
+            character.player_name = data['player_name']
+        if 'age' in data:
+            age = data['age']
+            if isinstance(age, int) and 1 <= age <= 200:
+                character.age = age
+        if 'skilled_in' in data:
+            character.skilled_in = data['skilled_in'].strip()
+        if 'origin' in data:
+            character.origin = data['origin']
+        if 'character_class' in data:
+            character.character_class = data['character_class']
+        if 'nex' in data:
+            nex = data['nex']
+            if isinstance(nex, int) and 5 <= nex <= 99:
+                character.nex = nex
+        if 'avatar_url' in data:
+            character.avatar_url = data['avatar_url']
+        if 'agilidade' in data:
+            agi = data['agilidade']
+            if isinstance(agi, int) and 0 <= agi <= 3:
+                character.agilidade = agi
+        if 'intelecto' in data:
+            inte = data['intelecto']
+            if isinstance(inte, int) and 0 <= inte <= 3:
+                character.intelecto = inte
+        if 'vigor' in data:
+            vig = data['vigor']
+            if isinstance(vig, int) and 0 <= vig <= 3:
+                character.vigor = vig
+        if 'presenca' in data:
+            pre = data['presenca']
+            if isinstance(pre, int) and 0 <= pre <= 3:
+                character.presenca = pre
+        if 'forca' in data:
+            forc = data['forca']
+            if isinstance(forc, int) and 0 <= forc <= 3:
+                character.forca = forc
+        if 'gender' in data:
+            character.gender = data['gender']
+        if 'appearance' in data:
+            character.appearance = data['appearance']
+        if 'personality' in data:
+            character.personality = data['personality']
+        if 'background' in data:
+            character.background = data['background']
+        if 'objective' in data:
+            character.objective = data['objective']
+        
+        db.session.commit()
+        
+        return jsonify({
+            'message': 'character_updated',
+            'data': character.to_dict()
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'message': 'error_updating_character',
+            'error': str(e)
+        }), 500
+
+@user_character_bp.route('/<int:character_id>', methods=['DELETE'])
+@jwt_required()
+def delete_user_character(character_id):
+    """Deleta um personagem do usuário autenticado"""
+    try:
+        user_id = get_jwt_identity()
+        user = User.query.get(user_id)
+        
+        if not user:
+            return jsonify({'message': 'user_not_found'}), 404
+        
+        character = Character.query.filter_by(
+            id=character_id,
+            user_id=user_id
+        ).first()
+        
+        if not character:
+            return jsonify({
+                'message': 'character_not_found',
+                'error_detail': 'Personagem não encontrado ou não pertence a este usuário'
+            }), 404
+        
+        db.session.delete(character)
+        db.session.commit()
+        
+        return jsonify({
+            'message': 'character_deleted'
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'message': 'error_deleting_character',
+            'error': str(e)
+        }), 500

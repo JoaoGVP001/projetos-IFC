@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:sigilrpg/constants/app_routes.dart';
 import 'package:sigilrpg/controllers/character_draft_controller.dart';
+import 'package:sigilrpg/controllers/characters_controller.dart';
 
 class CharacterCreateDetailsView extends StatefulWidget {
   const CharacterCreateDetailsView({super.key});
@@ -138,27 +140,29 @@ class _CharacterCreateDetailsViewState
                           );
                           setState(() => _submitting = true);
                           try {
-                            final created = await draft.submit();
+                            await draft.submit();
                             if (!context.mounted) return;
-                            await showDialog(
-                              context: context,
-                              builder: (_) => AlertDialog(
-                                title: const Text('Personagem criado!'),
-                                content: Text(
-                                  'Nome: ${created.name}\nClasse: ${created.characterClass}\nOrigem: ${created.origin}\nNEX: ${created.nex}%',
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(context),
-                                    child: const Text('OK'),
-                                  ),
-                                ],
-                              ),
+                            // Atualizar lista de personagens
+                            try {
+                              await context.read<CharactersController>().load();
+                            } catch (_) {
+                              // Ignorar erro ao recarregar lista
+                            }
+                            
+                            if (!context.mounted) return;
+                            
+                            // Fechar todas as telas do wizard e voltar para a lista de personagens
+                            Navigator.of(context).popUntil((route) => 
+                              route.isFirst || route.settings.name == AppRoutes.characters
                             );
-                            Navigator.popUntil(
-                              context,
-                              ModalRoute.withName('/characters'),
-                            );
+                            
+                            // Se não chegou na lista, navegar para ela
+                            if (context.mounted && Navigator.canPop(context)) {
+                              Navigator.pushReplacementNamed(context, AppRoutes.characters);
+                            } else if (context.mounted) {
+                              Navigator.popUntil(context, (route) => route.isFirst);
+                              Navigator.pushNamed(context, AppRoutes.characters);
+                            }
                           } catch (e) {
                             if (!context.mounted) return;
                             ScaffoldMessenger.of(context).showSnackBar(

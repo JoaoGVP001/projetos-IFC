@@ -42,182 +42,183 @@ class _DiceRollerState extends State<DiceRoller> {
   Widget build(BuildContext context) {
     final dice = context.watch<DiceController>();
     
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Quick presets
-        _buildPresets(context, dice),
-        const SizedBox(height: 24),
-        
-        // Custom roll
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Rolagem Customizada',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(child: _numberField('Quantidade', _count)),
-                    const SizedBox(width: 12),
-                    Expanded(child: _numberField('Lados', _sides)),
-                    const SizedBox(width: 12),
-                    Expanded(child: _numberField('Modificador', _mod)),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                CustomButton(
-                  label: 'Rolar Dados',
-                  icon: Icons.casino,
-                  onPressed: () => _rollDice(dice),
-                  variant: ButtonVariant.primary,
-                  isFullWidth: true,
-                ),
-              ],
-            ),
-          ),
-        ),
-        
-        // Last result display
-        if (_lastResult != null) ...[
-          const SizedBox(height: 16),
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Quick presets
+          _buildPresets(context, dice),
+          const SizedBox(height: 24),
+          
+          // Custom roll
           Card(
-            color: AppColors.seed.withOpacity(0.1),
             child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Center(
-                child: Column(
-                  children: [
-                    Text(
-                      'Último Resultado',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '$_lastResult',
-                      style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.seed,
-                          ),
-                    ),
-                  ],
-                ),
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Rolagem Customizada',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(child: _numberField('Quantidade', _count)),
+                      const SizedBox(width: 12),
+                      Expanded(child: _numberField('Lados', _sides)),
+                      const SizedBox(width: 12),
+                      Expanded(child: _numberField('Modificador', _mod)),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  CustomButton(
+                    label: 'Rolar Dados',
+                    icon: Icons.casino,
+                    onPressed: () => _rollDice(dice),
+                    variant: ButtonVariant.primary,
+                    isFullWidth: true,
+                  ),
+                ],
               ),
             ),
           ),
-        ],
-        
-        const SizedBox(height: 24),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Histórico',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
-            if (dice.history.isNotEmpty)
-              TextButton.icon(
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (ctx) => AlertDialog(
-                      title: const Text('Limpar histórico?'),
-                      content: const Text(
-                        'Tem certeza que deseja limpar todo o histórico?',
+          
+          // Last result display
+          if (_lastResult != null) ...[
+            const SizedBox(height: 16),
+            Card(
+              color: AppColors.seed.withOpacity(0.1),
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Center(
+                  child: Column(
+                    children: [
+                      Text(
+                        'Último Resultado',
+                        style: Theme.of(context).textTheme.bodySmall,
                       ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(ctx),
-                          child: const Text('Cancelar'),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            dice.clearHistory();
-                            setState(() => _lastResult = null);
-                            Navigator.pop(ctx);
-                          },
-                          child: const Text('Limpar', style: TextStyle(color: Colors.red)),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.clear_all, size: 18),
-                label: const Text('Limpar'),
+                      const SizedBox(height: 8),
+                      Text(
+                        '$_lastResult',
+                        style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.seed,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
+            ),
           ],
-        ),
-        const SizedBox(height: 12),
-        
-        // History list
-        Expanded(
-          child: dice.history.isEmpty
-              ? EmptyState(
-                  icon: Icons.history,
-                  title: 'Nenhuma rolagem',
-                  message: 'Suas rolagens aparecerão aqui',
-                )
-              : ListView.separated(
-                  itemCount: dice.history.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 8),
-                  itemBuilder: (context, i) {
-                    final h = dice.history[i];
-                    return Card(
-                      child: ListTile(
-                        leading: Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: AppColors.seed.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Icon(
-                            Icons.casino,
-                            color: AppColors.seed,
-                            size: 20,
-                          ),
+          
+          const SizedBox(height: 24),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Histórico',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              if (dice.history.isNotEmpty)
+                TextButton.icon(
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (ctx) => AlertDialog(
+                        title: const Text('Limpar histórico?'),
+                        content: const Text(
+                          'Tem certeza que deseja limpar todo o histórico?',
                         ),
-                        title: Text(
-                          '${h.count}d${h.sides}${h.modifier != 0 ? (h.modifier > 0 ? '+${h.modifier}' : h.modifier) : ''}',
-                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                fontWeight: FontWeight.w600,
-                              ),
-                        ),
-                        subtitle: Text(
-                          'Rolagens: ${h.rolls.join(', ')}',
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                        trailing: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(ctx),
+                            child: const Text('Cancelar'),
                           ),
-                          decoration: BoxDecoration(
-                            color: AppColors.seed.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(12),
+                          TextButton(
+                            onPressed: () {
+                              dice.clearHistory();
+                              setState(() => _lastResult = null);
+                              Navigator.pop(ctx);
+                            },
+                            child: const Text('Limpar', style: TextStyle(color: Colors.red)),
                           ),
-                          child: Text(
-                            '${h.total}',
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.seed,
-                                ),
-                          ),
-                        ),
+                        ],
                       ),
                     );
                   },
+                  icon: const Icon(Icons.clear_all, size: 18),
+                  label: const Text('Limpar'),
                 ),
-        ),
-      ],
+            ],
+          ),
+          const SizedBox(height: 12),
+          
+          // History list
+          if (dice.history.isEmpty)
+            EmptyState(
+              icon: Icons.history,
+              title: 'Nenhuma rolagem',
+              message: 'Suas rolagens aparecerão aqui',
+            )
+          else
+            ...dice.history.asMap().entries.map((entry) {
+              final i = entry.key;
+              final h = entry.value;
+              return Padding(
+                padding: EdgeInsets.only(bottom: i < dice.history.length - 1 ? 8 : 0),
+                child: Card(
+                  child: ListTile(
+                    leading: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.seed.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Icons.casino,
+                        color: AppColors.seed,
+                        size: 20,
+                      ),
+                    ),
+                    title: Text(
+                      '${h.count}d${h.sides}${h.modifier != 0 ? (h.modifier > 0 ? '+${h.modifier}' : h.modifier) : ''}',
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                    subtitle: Text(
+                      'Rolagens: ${h.rolls.join(', ')}',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    trailing: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.seed.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        '${h.total}',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.seed,
+                            ),
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+        ],
+      ),
     );
   }
 

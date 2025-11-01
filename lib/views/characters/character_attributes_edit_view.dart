@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sigilrpg/models/character.dart';
 import 'package:sigilrpg/services/characters_service.dart';
 
 class CharacterAttributesEditView extends StatefulWidget {
@@ -17,6 +18,7 @@ class _CharacterAttributesEditViewState
   bool _saving = false;
 
   int _agi = 1, _int = 1, _vig = 1, _pre = 1, _for = 1;
+  int _nex = 5;
 
   @override
   void initState() {
@@ -33,6 +35,7 @@ class _CharacterAttributesEditViewState
         _vig = c.attributes.vigor;
         _pre = c.attributes.presenca;
         _for = c.attributes.forca;
+        _nex = c.nex;
         _loading = false;
       });
     } catch (e) {
@@ -47,13 +50,47 @@ class _CharacterAttributesEditViewState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Editar Atributos')),
+      appBar: AppBar(title: const Text('Editar NEX e Atributos')),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Text(
+                    'NEX (Nível de Exposição)',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Slider(
+                          min: 5,
+                          max: 99,
+                          divisions: 94,
+                          label: '$_nex%',
+                          value: _nex.toDouble(),
+                          onChanged: (v) => setState(() => _nex = v.round()),
+                        ),
+                      ),
+                      SizedBox(
+                        width: 60,
+                        child: Text('$_nex%', textAlign: TextAlign.end),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    'Atributos',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                  const SizedBox(height: 8),
                   _attrRow('AGI', _agi, (v) => setState(() => _agi = v)),
                   _attrRow('INT', _int, (v) => setState(() => _int = v)),
                   _attrRow('VIG', _vig, (v) => setState(() => _vig = v)),
@@ -115,17 +152,32 @@ class _CharacterAttributesEditViewState
   Future<void> _save() async {
     setState(() => _saving = true);
     try {
-      final updated = await _service.updateCharacter(widget.characterId, {
-        'agilidade': _agi,
-        'intelecto': _int,
-        'vigor': _vig,
-        'presenca': _pre,
-        'forca': _for,
-      });
+      // Tentar atualizar como personagem do usuário primeiro
+      Character updated;
+      try {
+        updated = await _service.updateUserCharacter(widget.characterId, {
+          'nex': _nex,
+          'agilidade': _agi,
+          'intelecto': _int,
+          'vigor': _vig,
+          'presenca': _pre,
+          'forca': _for,
+        });
+      } catch (e) {
+        // Se falhar, tentar endpoint de personagens do sistema
+        updated = await _service.updateCharacter(widget.characterId, {
+          'nex': _nex,
+          'agilidade': _agi,
+          'intelecto': _int,
+          'vigor': _vig,
+          'presenca': _pre,
+          'forca': _for,
+        });
+      }
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Atributos atualizados.')));
+      ).showSnackBar(const SnackBar(content: Text('Atributos e NEX atualizados.')));
       Navigator.pop(context, updated);
     } catch (e) {
       if (!mounted) return;

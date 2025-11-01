@@ -12,12 +12,19 @@ class CharactersController extends ChangeNotifier {
   List<Character> get characters => List.unmodifiable(_characters);
 
   Future<void> load() async {
-    // Carregar personagem do usuário autenticado
-    final me = await _service.getUserCharacter();
-    _characters
-      ..clear()
-      ..add(me);
-    notifyListeners();
+    // Carregar todos os personagens do usuário autenticado
+    try {
+      final charactersList = await _service.getUserCharacters();
+      _characters
+        ..clear()
+        ..addAll(charactersList);
+      notifyListeners();
+    } catch (e) {
+      // Se não houver personagens ou erro, apenas limpar lista
+      _characters.clear();
+      notifyListeners();
+      // Não relançar o erro para não quebrar o login
+    }
   }
 
   void add(Character c) {

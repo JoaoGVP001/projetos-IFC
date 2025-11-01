@@ -51,7 +51,9 @@ class DiceView extends StatelessWidget {
             ),
           ],
         ),
-        body: const Padding(padding: EdgeInsets.all(16), child: DiceRoller()),
+        body: const SafeArea(
+          child: Padding(padding: EdgeInsets.all(16), child: DiceRoller()),
+        ),
       ),
     );
   }
