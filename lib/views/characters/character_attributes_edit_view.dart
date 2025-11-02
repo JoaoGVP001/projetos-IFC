@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:sigilrpg/models/character.dart';
 import 'package:sigilrpg/services/characters_service.dart';
+import 'package:sigilrpg/controllers/characters_controller.dart';
 
 class CharacterAttributesEditView extends StatefulWidget {
   const CharacterAttributesEditView({super.key, required this.characterId});
@@ -20,10 +22,31 @@ class _CharacterAttributesEditViewState
   int _agi = 1, _int = 1, _vig = 1, _pre = 1, _for = 1;
   int _nex = 5;
 
+  late final TextEditingController _agiController;
+  late final TextEditingController _intController;
+  late final TextEditingController _vigController;
+  late final TextEditingController _preController;
+  late final TextEditingController _forController;
+
   @override
   void initState() {
     super.initState();
+    _agiController = TextEditingController(text: _agi.toString());
+    _intController = TextEditingController(text: _int.toString());
+    _vigController = TextEditingController(text: _vig.toString());
+    _preController = TextEditingController(text: _pre.toString());
+    _forController = TextEditingController(text: _for.toString());
     _load();
+  }
+
+  @override
+  void dispose() {
+    _agiController.dispose();
+    _intController.dispose();
+    _vigController.dispose();
+    _preController.dispose();
+    _forController.dispose();
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -36,6 +59,11 @@ class _CharacterAttributesEditViewState
         _pre = c.attributes.presenca;
         _for = c.attributes.forca;
         _nex = c.nex;
+        _agiController.text = _agi.toString();
+        _intController.text = _int.toString();
+        _vigController.text = _vig.toString();
+        _preController.text = _pre.toString();
+        _forController.text = _for.toString();
         _loading = false;
       });
     } catch (e) {
@@ -53,7 +81,7 @@ class _CharacterAttributesEditViewState
       appBar: AppBar(title: const Text('Editar NEX e Atributos')),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
-          : Padding(
+          : SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -65,23 +93,28 @@ class _CharacterAttributesEditViewState
                         ),
                   ),
                   const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Slider(
-                          min: 5,
-                          max: 99,
-                          divisions: 94,
-                          label: '$_nex%',
-                          value: _nex.toDouble(),
-                          onChanged: (v) => setState(() => _nex = v.round()),
-                        ),
-                      ),
-                      SizedBox(
-                        width: 60,
-                        child: Text('$_nex%', textAlign: TextAlign.end),
-                      ),
+                  DropdownButtonFormField<int>(
+                    value: _nex,
+                    decoration: const InputDecoration(
+                      labelText: 'NEX (%)',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: [
+                      // Valores de 5 em 5 até 95
+                      ...List.generate(19, (index) {
+                        final value = 5 + (index * 5);
+                        return DropdownMenuItem<int>(
+                          value: value,
+                          child: Text('$value%'),
+                        );
+                      }),
+                      // Valores especiais: 99 e 100
+                      const DropdownMenuItem<int>(value: 99, child: Text('99%')),
+                      const DropdownMenuItem<int>(value: 100, child: Text('100%')),
                     ],
+                    onChanged: (v) {
+                      if (v != null) setState(() => _nex = v);
+                    },
                   ),
                   const SizedBox(height: 24),
                   Text(
@@ -91,12 +124,12 @@ class _CharacterAttributesEditViewState
                         ),
                   ),
                   const SizedBox(height: 8),
-                  _attrRow('AGI', _agi, (v) => setState(() => _agi = v)),
-                  _attrRow('INT', _int, (v) => setState(() => _int = v)),
-                  _attrRow('VIG', _vig, (v) => setState(() => _vig = v)),
-                  _attrRow('PRE', _pre, (v) => setState(() => _pre = v)),
-                  _attrRow('FOR', _for, (v) => setState(() => _for = v)),
-                  const Spacer(),
+                  _attrRow('AGI', _agiController, (v) => setState(() => _agi = v)),
+                  _attrRow('INT', _intController, (v) => setState(() => _int = v)),
+                  _attrRow('VIG', _vigController, (v) => setState(() => _vig = v)),
+                  _attrRow('PRE', _preController, (v) => setState(() => _pre = v)),
+                  _attrRow('FOR', _forController, (v) => setState(() => _for = v)),
+                  const SizedBox(height: 24),
                   Row(
                     children: [
                       Expanded(
@@ -130,51 +163,75 @@ class _CharacterAttributesEditViewState
     );
   }
 
-  Widget _attrRow(String label, int value, ValueChanged<int> onChanged) {
-    return Row(
-      children: [
-        SizedBox(width: 48, child: Text(label)),
-        Expanded(
-          child: Slider(
-            min: 0,
-            max: 3,
-            divisions: 3,
-            label: '$value',
-            value: value.toDouble(),
-            onChanged: (v) => onChanged(v.round()),
+  Widget _attrRow(String label, TextEditingController controller, ValueChanged<int> onChanged) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Row(
+        children: [
+          SizedBox(width: 48, child: Text(label, style: const TextStyle(fontWeight: FontWeight.w500))),
+          Expanded(
+            child: TextField(
+              controller: controller,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Valor',
+                border: OutlineInputBorder(),
+                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+              ),
+              onChanged: (text) {
+                final parsed = int.tryParse(text);
+                if (parsed != null && parsed >= 0) {
+                  onChanged(parsed);
+                }
+              },
+            ),
           ),
-        ),
-        SizedBox(width: 32, child: Text('$value', textAlign: TextAlign.end)),
-      ],
+        ],
+      ),
     );
   }
 
   Future<void> _save() async {
     setState(() => _saving = true);
     try {
+      // Ler valores dos controllers para garantir que salvamos o que o usuário digitou
+      final agi = int.tryParse(_agiController.text) ?? _agi;
+      final intel = int.tryParse(_intController.text) ?? _int;
+      final vig = int.tryParse(_vigController.text) ?? _vig;
+      final pre = int.tryParse(_preController.text) ?? _pre;
+      final forca = int.tryParse(_forController.text) ?? _for;
+      
       // Tentar atualizar como personagem do usuário primeiro
       Character updated;
       try {
         updated = await _service.updateUserCharacter(widget.characterId, {
           'nex': _nex,
-          'agilidade': _agi,
-          'intelecto': _int,
-          'vigor': _vig,
-          'presenca': _pre,
-          'forca': _for,
+          'agilidade': agi >= 0 ? agi : _agi,
+          'intelecto': intel >= 0 ? intel : _int,
+          'vigor': vig >= 0 ? vig : _vig,
+          'presenca': pre >= 0 ? pre : _pre,
+          'forca': forca >= 0 ? forca : _for,
         });
       } catch (e) {
         // Se falhar, tentar endpoint de personagens do sistema
         updated = await _service.updateCharacter(widget.characterId, {
           'nex': _nex,
-          'agilidade': _agi,
-          'intelecto': _int,
-          'vigor': _vig,
-          'presenca': _pre,
-          'forca': _for,
+          'agilidade': agi >= 0 ? agi : _agi,
+          'intelecto': intel >= 0 ? intel : _int,
+          'vigor': vig >= 0 ? vig : _vig,
+          'presenca': pre >= 0 ? pre : _pre,
+          'forca': forca >= 0 ? forca : _for,
         });
       }
       if (!mounted) return;
+      
+      // Atualizar o controller para que a lista seja atualizada
+      try {
+        context.read<CharactersController>().updateById(widget.characterId, updated);
+      } catch (e) {
+        // Se não conseguir acessar o controller, não é problema crítico
+      }
+      
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Atributos e NEX atualizados.')));

@@ -36,4 +36,12 @@ class CharactersController extends ChangeNotifier {
     _characters.removeWhere((c) => c.id == id);
     notifyListeners();
   }
+
+  void updateById(String id, Character updated) {
+    final index = _characters.indexWhere((c) => c.id == id);
+    if (index != -1) {
+      _characters[index] = updated;
+      notifyListeners();
+    }
+  }
 }

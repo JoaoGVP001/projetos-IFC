@@ -1,472 +1,573 @@
-# SIGIL RPG - Sistema de Gerenciamento de Personagens
+# 🎲 SIGIL RPG - Sistema Completo de Gerenciamento
 
-Um sistema completo para criação e gerenciamento de personagens do sistema Sigil RPG, com backend FastAPI e frontend Flutter, incluindo autenticação JWT e controle de personagens por usuário.
+Sistema completo de gerenciamento de personagens para o sistema de RPG **Sigil**, desenvolvido com **Flutter** (frontend mobile/web) e **Flask** (backend API REST).
 
-## 🎨 Atualizações Recentes (Frontend)
+![Flutter](https://img.shields.io/badge/Flutter-3.9.2-02569B?logo=flutter)
+![Flask](https://img.shields.io/badge/Flask-2.3.3-000000?logo=flask)
+![Python](https://img.shields.io/badge/Python-3.7+-3776AB?logo=python)
 
-### Phase 1 - Fundação (✅ Implementado)
+## 📱 Sobre o Projeto
 
-#### Sistema de Temas Moderno
-- ✅ **Tema Claro/Escuro** com toggle na AppBar
-- ✅ Suporte para modo sistema (detecta preferência do dispositivo)
-- ✅ **ThemeController** para gerenciamento centralizado de temas
-- ✅ Gradientes suaves e melhor contraste (WCAG AA)
-- ✅ Transições suaves entre temas
-- ✅ Cores consistentes em ambos os temas
+O **SIGIL RPG** é uma aplicação completa para gerenciar personagens do sistema de RPG Sigil, permitindo que jogadores criem, editem e gerenciem seus personagens de forma intuitiva. O sistema inclui:
 
-#### Navegação Moderna
-- ✅ **Bottom Navigation Bar** substituindo drawer
-- ✅ Ícones animados com feedback visual
-- ✅ Quatro seções principais: Início, Personagens, Campanhas, Ferramentas
-- ✅ Navegação por PageView com animações
-- ✅ **MainScaffold** para gerenciamento unificado de navegação
+- ✅ Autenticação de usuários com JWT
+- ✅ Criação e gerenciamento de personagens
+- ✅ Sistema de campanhas
+- ✅ Rolador de dados avançado
+- ✅ Sistema de combates
+- ✅ **Recursos mobile**: Vibração e notificações push
+- ✅ Interface moderna com tema claro/escuro
 
-#### Dashboard Redesenhado (HomeView)
-- ✅ Header com gradiente e branding
-- ✅ Cards de estatísticas (Personagens, Campanhas) com ícones
-- ✅ **Ações Rápidas** com cards visuais modernos
-  - Criar Personagem
-  - Rolador de Dados
-  - Lutas
-  - Equipes
-- ✅ Seção de atividade recente
-- ✅ Pull-to-refresh para atualizar dados
-- ✅ Empty state elegante quando não autenticado
+## 🏗️ Arquitetura do Projeto
 
-#### Cards Aprimorados
+O projeto é dividido em duas partes principais:
 
-**CharacterCard:**
-- ✅ Avatar com placeholder elegante e Hero animation
-- ✅ Indicador de NEX com barra de progresso visual
-- ✅ Badges coloridos para atributos (AGI, INT, VIG, PRE, FOR)
-- ✅ Gradiente sutil no background
-- ✅ Menu contextual para editar/deletar
-- ✅ Animações de hover/press
+### Backend (API Flask)
+Localizado em `SigilRPG_API-main/`, é uma API RESTful desenvolvida em Flask que fornece todos os dados e operações do sistema.
 
-**CampaignCard:**
-- ✅ Gradiente baseado no status (ativa/inativa)
-- ✅ Badge visual de status com ícone
-- ✅ Ícones para sistema de RPG e jogadores
-- ✅ Indicadores visuais melhorados
-- ✅ Design mais espaçado e legível
+### Frontend (App Flutter)
+Localizado na raiz do projeto, é uma aplicação Flutter multiplataforma (Android, iOS, Web) que consome a API Flask.
 
-#### Widgets Reutilizáveis
-- ✅ **CustomButton** com variantes (primary, secondary, text, icon)
-- ✅ **EmptyState** com ilustração e CTA
-- ✅ **ErrorState** com retry button
-- ✅ **LoadingOverlay** para operações assíncronas
-- ✅ **StatCard** para exibir métricas com gradientes
-
-#### Melhorias no Sistema de Dados
-- ✅ Presets rápidos (d20, 2d6, d100, 4d6)
-- ✅ Display visual do último resultado
-- ✅ Histórico melhorado com cards estilizados
-- ✅ Confirmação antes de limpar histórico
-- ✅ Empty state quando não há rolagens
-- ✅ Formatação melhorada dos resultados
-
-#### Estados Consistentes
-- ✅ Loading states em todas as views
-- ✅ Error handling com retry
-- ✅ Empty states padronizados
-- ✅ Refresh indicators
-
-### ✅ Atualizações Implementadas (Anteriores)
-
-- Autenticação antes de criar personagens usando `AuthService`
-- Personagens do usuário usando `getUserCharacter()`
-- Telas de Login e Registro adicionadas e integradas
-- UI de Lutas criada e integrada com `FightsService`
-
-## 🚀 Funcionalidades
-
-### Backend (FastAPI)
-- **Autenticação JWT**: Sistema completo de login/registro com tokens JWT
-- **Gerenciamento de Usuários**: Criação, autenticação e sessões persistentes
-- **CRUD de Personagens**: Criação, listagem, atualização e exclusão
-- **Controle de Acesso**: Apenas donos podem ver/editar seus personagens
-- **API RESTful**: Endpoints organizados com validação de dados
-- **Sistema Sigil**: Atributos específicos (Agilidade, Intelecto, Vigor, Presença, Força)
-- **Sistema de Campanhas**: CRUD completo para campanhas
-- **Sistema de Lutas**: Gerenciamento de combates e histórico
-
-### Frontend (Flutter)
-- **Sistema de Temas**: Modo claro/escuro com toggle
-- **Navegação Moderna**: Bottom navigation bar
-- **Dashboard Interativo**: HomeView com estatísticas e ações rápidas
-- **Sistema de Login/Registro**: Interface completa de autenticação
-- **Criação de Personagens**: Fluxo multi-etapas (Básico → Origem → Classe → Detalhes)
-- **Visualização de Personagens**: Cards modernos com badges e indicadores
-- **Edição de Atributos**: Tela dedicada para ajustar atributos pós-criação
-- **Rolador de Dados**: Sistema avançado com presets e histórico
-- **Gerenciamento de Sessão**: Persistência de login
-- **Interface Responsiva**: Design moderno com Material Design 3
-- **Estados Consistentes**: Loading, error e empty states padronizados
-
-## 🏗️ Arquitetura
-
-### Backend (Python/FastAPI)
 ```
-SigilRPG_API-main/
-├── app.py                      # Aplicação principal
-├── config.py                   # Configurações
-├── models.py                   # Modelos de dados
-├── routes.py                   # Rotas principais
-├── characters_routes.py        # Endpoints de personagens
-├── fights_routes.py            # Endpoints de lutas
-├── user_character_routes.py    # Rotas de personagem do usuário
-├── migrate_db.py               # Migrações do banco
-├── seed_data.py               # Dados iniciais
-└── requirements.txt            # Dependências
+sigilrpg/
+├── SigilRPG_API-main/        # Backend Flask
+│   ├── app.py               # Aplicação principal
+│   ├── models.py            # Modelos SQLAlchemy
+│   ├── routes.py            # Rotas de autenticação
+│   ├── characters_routes.py # Rotas de personagens
+│   └── requirements.txt     # Dependências Python
+│
+├── lib/                     # Código Flutter
+│   ├── main.dart           # Entry point
+│   ├── services/           # Serviços (API, auth, etc.)
+│   ├── controllers/        # Gerenciamento de estado
+│   ├── views/              # Telas do app
+│   └── widgets/            # Componentes reutilizáveis
+│
+└── pubspec.yaml            # Dependências Flutter
 ```
 
-### Frontend (Flutter)
-```
-lib/
-├── constants/
-│   ├── app_colors.dart         # Paleta de cores
-│   ├── app_routes.dart         # Definição de rotas
-│   └── app_theme.dart          # Sistema de temas (light/dark)
-├── controllers/
-│   ├── auth_controller.dart    # Controle de autenticação
-│   ├── theme_controller.dart   # Controle de temas
-│   ├── characters_controller.dart
-│   ├── character_draft_controller.dart
-│   ├── campaigns_controller.dart
-│   ├── teams_controller.dart
-│   └── dicecontroller.dart
-├── models/
-│   ├── character.dart
-│   ├── character_class.dart
-│   ├── character_origin.dart
-│   ├── campaign.dart
-│   ├── item.dart
-│   └── user.dart
-├── services/
-│   ├── auth_service.dart
-│   ├── characters_service.dart
-│   └── campaigns_service.dart
-├── utils/
-│   ├── api.dart               # Cliente HTTP com autenticação
-│   └── dice.dart              # Utilitários de dados
-├── views/
-│   ├── main_scaffold.dart     # Scaffold principal com bottom nav
-│   ├── auth/
-│   │   ├── login_view.dart
-│   │   └── register_view.dart
-│   ├── home/
-│   │   └── home_view.dart     # Dashboard redesenhado
-│   ├── characters/
-│   │   ├── characters_list_view.dart
-│   │   ├── character_create_*.dart
-│   │   └── character_detail_view.dart
-│   ├── campaigns/
-│   │   └── campaigns_view.dart
-│   ├── dice/
-│   │   └── dice_view.dart     # Rolador melhorado
-│   └── fights/
-│       └── fights_view.dart
-└── widgets/
-    ├── bottom_nav_bar.dart     # Navegação inferior
-    ├── character_card.dart    # Card aprimorado
-    ├── campaign_card.dart     # Card aprimorado
-    ├── custom_button.dart     # Botão reutilizável
-    ├── empty_state.dart       # Estado vazio
-    ├── error_state.dart       # Estado de erro
-    ├── loading_overlay.dart   # Overlay de loading
-    ├── stat_card.dart         # Card de estatística
-    ├── dice_roller.dart       # Rolador aprimorado
-    └── ... (outros widgets)
-```
+---
 
-## 🔧 Tecnologias Utilizadas
+## 🚀 Como Rodar o Projeto
 
-### Backend
-- **FastAPI**: Framework web moderno e rápido
-- **SQLAlchemy**: ORM para Python
-- **Pydantic**: Validação de dados
-- **JWT**: Autenticação com tokens (python-jose)
-- **Bcrypt**: Hash de senhas (passlib)
-- **Uvicorn**: Servidor ASGI
-- **SQLite**: Banco de dados (desenvolvimento)
+### Pré-requisitos
 
-### Frontend
-- **Flutter**: Framework de UI multiplataforma
-- **Provider**: Gerenciamento de estado
-- **HTTP**: Cliente para APIs
-- **Material Design 3**: Design system moderno
-- **Hero Animations**: Transições suaves
+- **Python 3.7+** com pip instalado
+- **Flutter SDK** 3.9.2 ou superior
+- **Git** (opcional, para clonar o repositório)
 
-## 📋 Endpoints da API
+### 1️⃣ Backend (API Flask)
 
-### Autenticação (`/api/auth/`)
-- `POST /register` - Registrar novo usuário
-- `POST /login` - Login de usuário
-- `GET /me` - Obter dados do usuário atual
-- `POST /refresh` - Renovar token JWT
-
-### Personagens (`/api/characters/` ou `/api/me/`)
-- `GET /` - Listar personagens do usuário
-- `GET /{id}` - Obter personagem específico
-- `POST /` - Criar novo personagem
-- `PATCH /{id}` - Atualizar personagem
-- `DELETE /{id}` - Excluir personagem
-
-### Campanhas (`/api/campaigns/`)
-- `GET /` - Listar campanhas
-- `POST /` - Criar campanha
-- `PATCH /{id}` - Atualizar campanha
-- `DELETE /{id}` - Deletar campanha
-
-### Lutas (`/api/me/fights/`)
-- `GET /` - Listar lutas do usuário
-- `POST /` - Criar nova luta
-
-## 🎮 Sistema Sigil RPG
-
-### Atributos do Personagem
-- **Agilidade**: Valor entre 0 e 3
-- **Intelecto**: Valor entre 0 e 3
-- **Vigor**: Valor entre 0 e 3
-- **Presença**: Valor entre 0 e 3
-- **Força**: Valor entre 0 e 3
-- **NEX**: Valor entre 5 e 99
-
-### Validações
-- **Username**: Mínimo 3 caracteres, único
-- **Email**: Formato válido, único
-- **Password**: Mínimo 6 caracteres
-- **Atributos**: Valores entre 0 e 3
-- **NEX**: Valores entre 5 e 99
-
-## 🔐 Sistema de Autenticação
-
-- **Registro**: Username, email, senha, nome completo (opcional)
-- **Login**: Username + senha
-- **Sessão Persistente**: Token JWT salvo localmente
-- **Controle de Acesso**: Apenas donos podem ver/editar seus personagens
-- **Autorização**: Bearer token em todas as requisições autenticadas
-
-## 🚀 Como Executar
-
-### Backend
-
-1. **Instalar dependências**:
+#### Passo 1: Navegar para a pasta da API
 ```bash
 cd SigilRPG_API-main
+```
+
+#### Passo 2: Criar ambiente virtual (recomendado)
+```bash
+# Windows
+python -m venv venv
+venv\Scripts\activate
+
+# Linux/Mac
+python3 -m venv venv
+source venv/bin/activate
+```
+
+#### Passo 3: Instalar dependências
+```bash
 pip install -r requirements.txt
 ```
 
-2. **Inicializar banco de dados**:
+#### Passo 4: Configurar variáveis de ambiente (opcional)
 ```bash
-python migrate_db.py
-python seed_data.py  # Opcional: dados iniciais
+# Copiar arquivo de exemplo
+copy env_example.txt .env  # Windows
+cp env_example.txt .env    # Linux/Mac
+
+# Editar .env com suas configurações
+# (opcional - valores padrão funcionam para desenvolvimento)
 ```
 
-3. **Executar servidor**:
+#### Passo 5: Inicializar banco de dados
 ```bash
-python run_server.py
-# ou
+python migrate_db.py
+```
+
+#### Passo 6: Popular banco com dados de exemplo (opcional)
+```bash
+python seed_data.py
+```
+
+Este script cria:
+- 3 usuários de exemplo (joao@example.com, maria@example.com, pedro@example.com)
+- Senha padrão: `123456`
+- Personagens e campanhas de exemplo
+
+#### Passo 7: Executar o servidor
+```bash
 python app.py
 ```
 
-O servidor estará disponível em `http://localhost:8000`
-- Documentação Swagger: `http://localhost:8000/docs`
-- ReDoc: `http://localhost:8000/redoc`
+O servidor estará disponível em:
+- **API**: http://localhost:8000
+- **Health Check**: http://localhost:8000/
+- **Documentação**: http://localhost:8000/docs (se configurado)
 
-### Frontend
+---
 
-1. **Instalar dependências**:
+### 2️⃣ Frontend (App Flutter)
+
+#### Passo 1: Voltar para a raiz do projeto
+```bash
+cd ..
+```
+
+#### Passo 2: Instalar dependências Flutter
 ```bash
 flutter pub get
 ```
 
-2. **Executar aplicação**:
+#### Passo 3: Executar o aplicativo
+
+**Para Android/iOS (emulador físico):**
 ```bash
-# Web
-flutter run -d chrome
-
-# Android
 flutter run
+```
 
-# iOS (apenas no macOS)
+**Para Web:**
+```bash
+flutter run -d chrome
+```
+
+**Para Android (específico):**
+```bash
+flutter run -d android
+```
+
+**Para iOS (macOS apenas):**
+```bash
 flutter run -d ios
 ```
 
-3. **Configurar URL da API**:
-Edite `lib/utils/api.dart` se necessário para apontar para o servidor correto.
+#### ⚠️ Configuração da URL da API
 
-## 📱 Funcionalidades do App
+O app Flutter já está configurado para conectar na API local. A URL é resolvida automaticamente:
 
-### Interface Principal
-- **Bottom Navigation**: Navegação rápida entre seções
-- **Toggle de Tema**: Alterna entre modo claro e escuro
-- **Dashboard**: Visão geral com estatísticas e ações rápidas
+- **Web**: `http://localhost:8000`
+- **Android Emulator**: `http://10.0.2.2:8000`
+- **iOS Simulator**: `http://localhost:8000`
+- **Dispositivo físico**: Ajuste `lib/utils/api.dart` com o IP da sua máquina
+
+**Para dispositivo físico Android:**
+1. Descubra o IP da sua máquina na rede local
+2. Edite `lib/utils/api.dart` e altere a URL para: `http://SEU_IP:8000`
+
+---
+
+## 🔧 Como a API Flask foi Construída
+
+### Estrutura da API
+
+A API Flask segue uma arquitetura modular e organizada:
+
+#### **app.py** - Aplicação Principal
+```python
+# Configuração base do Flask
+- Inicialização do Flask, SQLAlchemy, JWT, CORS
+- Registro de blueprints (rotas modulares)
+- Configuração de banco de dados (SQLite por padrão)
+- Servidor roda na porta 8000
+```
+
+#### **models.py** - Modelos de Dados (SQLAlchemy ORM)
+```python
+# Principais modelos:
+- User: Usuários do sistema
+- Character: Personagens do jogo
+- Fight: Sistema de combates
+- Skill: Habilidades dos personagens
+- Ritual: Rituais mágicos
+- Item: Itens do inventário
+```
+
+#### **Rotas Modulares (Blueprints)**
+
+1. **routes.py** (`/api/auth/`)
+   - `POST /register` - Registrar novo usuário
+   - `POST /login` - Login com username/email + senha
+   - `GET /user` - Obter dados do usuário logado
+   - `PATCH /` - Atualizar token JWT
+   - `DELETE /` - Logout (invalidar token)
+
+2. **characters_routes.py** (`/api/characters/`)
+   - `GET /` - Listar todos os personagens
+   - `GET /{id}` - Detalhes de um personagem
+   - `POST /` - Criar personagem (admin/sistema)
+   - `PATCH /{id}` - Atualizar personagem
+   - `DELETE /{id}` - Deletar personagem
+
+3. **user_character_routes.py** (`/api/me/`)
+   - `POST /` - Criar personagem do usuário logado
+   - `GET /` - Obter personagem do usuário
+   - `PATCH /` - Atualizar personagem do usuário
+   - `DELETE /` - Deletar personagem do usuário
+
+4. **fights_routes.py** (`/api/me/fights/`)
+   - `GET /` - Listar lutas do usuário
+   - `POST /` - Criar nova luta
+
+5. **skills_routes.py**, **rituals_routes.py**, **items_routes.py**
+   - CRUD completo para habilidades, rituais e itens
+
+### Tecnologias Utilizadas na API
+
+- **Flask 2.3.3**: Framework web Python
+- **SQLAlchemy**: ORM para banco de dados
+- **Flask-JWT-Extended**: Autenticação JWT (tokens de acesso)
+- **Flask-CORS**: Suporte para requisições cross-origin
+- **Werkzeug**: Hash de senhas seguro (bcrypt)
+- **SQLite**: Banco de dados padrão (pode ser trocado por PostgreSQL/MySQL)
+
+### Autenticação JWT
+
+```python
+# Como funciona:
+1. Usuário faz login → API retorna token JWT
+2. Token é enviado em todas as requisições autenticadas:
+   Header: Authorization: Bearer <token>
+3. Token expira em 24 horas (configurável)
+4. Pode ser renovado com endpoint /api/auth/refresh
+```
+
+### Banco de Dados
+
+```sql
+-- Estrutura principal:
+users
+  ├── id, name, email, password_hash
+  └── created_at, updated_at
+
+characters
+  ├── id, name, player_name, age, nex
+  ├── agilidade, intelecto, vigor, presenca, forca
+  ├── origin, character_class, skilled_in
+  ├── gender, appearance, personality, background, objective
+  └── user_id (relacionamento com users)
+
+fights
+  ├── id, character_id, opponent_id
+  ├── status (won/lost/draw)
+  └── experience, created_at
+```
+
+---
+
+## 📱 Sobre o App Flutter
+
+### Funcionalidades Principais
+
+#### 🎨 **Interface Moderna**
+- **Tema claro/escuro** com toggle na AppBar
+- **Bottom Navigation Bar** para navegação rápida
+- **Dashboard interativo** com estatísticas e ações rápidas
+- **Cards visuais** para personagens e campanhas
+- **Animações suaves** e transições
+
+#### 👤 **Autenticação**
+- Login com username/email + senha
+- Registro de novos usuários
+- Sessão persistente (token JWT salvo localmente)
+- Logout automático
+
+#### 👥 **Personagens**
+- **Criação em 4 etapas**:
+  1. Dados básicos (nome, idade, etc.)
+  2. Origem do personagem
+  3. Classe do personagem
+  4. Detalhes (aparência, personalidade, histórico)
+- **Visualização detalhada** com tabs
+- **Edição de atributos** pós-criação
+- **Indicadores visuais** de NEX e atributos
+
+#### 🎲 **Rolador de Dados**
+- **Presets rápidos** (d20, 2d6, d100, 4d6)
+- **Rolagem customizada** (quantidade, lados, modificador)
+- **Histórico completo** de rolagens
+- **Vibração ao rolar** (recursos mobile)
+
+#### 🏛️ **Campanhas**
+- Listagem de campanhas
+- Criação e edição
+- Status visual (ativa/inativa)
+- Informações de jogadores
+
+#### ⚔️ **Combates**
+- Sistema de lutas
+- Histórico de combates
+- Pontos de experiência
+
+### Recursos Mobile
+
+#### 📳 **Vibração**
+```dart
+// Serviço disponível em lib/services/vibration_service.dart
+VibrationService().vibrate();           // Vibração simples
+VibrationService().success();          // Vibração de sucesso
+VibrationService().error();            // Vibração de erro
+VibrationService().mediumImpact();     // Feedback tátil
+```
+
+**Onde está sendo usado:**
+- Rolagem de dados (`lib/widgets/dice_roller.dart`)
+
+#### 🔔 **Notificações**
+```dart
+// Serviço disponível em lib/services/notification_service.dart
+NotificationService().showNotification(
+  id: 1,
+  title: 'Sessão Iniciada!',
+  body: 'A campanha começa agora!',
+);
+
+// Notificação agendada
+NotificationService().scheduleNotification(
+  id: 2,
+  title: 'Lembrete',
+  body: 'Sua sessão começa em 1 hora',
+  scheduledDate: DateTime.now().add(Duration(hours: 1)),
+);
+```
+
+**Permissões necessárias:**
+- Android: Configurado automaticamente via `AndroidManifest.xml`
+- iOS: Requer permissão do usuário (solicitada automaticamente)
+
+### Arquitetura do App Flutter
+
+```
+lib/
+├── constants/              # Constantes globais
+│   ├── app_colors.dart    # Paleta de cores
+│   ├── app_routes.dart    # Definição de rotas
+│   └── app_theme.dart     # Sistema de temas
+│
+├── controllers/           # Gerenciamento de estado (Provider)
+│   ├── auth_controller.dart
+│   ├── characters_controller.dart
+│   ├── campaigns_controller.dart
+│   └── theme_controller.dart
+│
+├── services/              # Serviços e comunicação com API
+│   ├── auth_service.dart
+│   ├── characters_service.dart
+│   ├── vibration_service.dart       # ✨ Vibração
+│   └── notification_service.dart    # 🔔 Notificações
+│
+├── models/                # Modelos de dados
+│   ├── character.dart
+│   ├── campaign.dart
+│   └── ...
+│
+├── views/                 # Telas do aplicativo
+│   ├── auth/             # Login e registro
+│   ├── home/             # Dashboard
+│   ├── characters/       # Gerenciamento de personagens
+│   ├── campaigns/        # Gerenciamento de campanhas
+│   └── dice/             # Rolador de dados
+│
+└── widgets/              # Componentes reutilizáveis
+    ├── character_card.dart
+    ├── custom_button.dart
+    └── ...
+```
+
+### Tecnologias Utilizadas no App
+
+- **Flutter 3.9.2**: Framework multiplataforma
+- **Provider**: Gerenciamento de estado
+- **HTTP**: Cliente para comunicação com API
+- **Material Design 3**: Design system moderno
+- **vibration**: Plugin para vibração
+- **flutter_local_notifications**: Notificações locais
+- **permission_handler**: Gerenciamento de permissões
+
+---
+
+## 📋 Endpoints Principais da API
 
 ### Autenticação
-- Login com username/email
-- Registro de novos usuários
-- Logout automático
-- Sessão persistente com JWT
+```
+POST   /api/auth/register    # Registrar usuário
+POST   /api/auth/login       # Login
+GET    /api/auth/user        # Usuário atual
+```
 
 ### Personagens
-- Criação em etapas (Básico → Origem → Classe → Detalhes)
-- Listagem com cards visuais modernos
-- Visualização detalhada com tabs
-- Edição de atributos pós-criação
-- Indicadores visuais (NEX, atributos)
+```
+GET    /api/me/              # Personagem do usuário
+POST   /api/me/              # Criar personagem
+PATCH  /api/me/              # Atualizar personagem
+GET    /api/characters       # Listar todos (admin)
+GET    /api/characters/{id}  # Detalhes de um personagem
+```
 
 ### Campanhas
-- Listagem de campanhas
-- Cards com status visual (ativa/inativa)
-- Informações de jogadores e sistema
-
-### Ferramentas
-- **Rolador de Dados**:
-  - Presets rápidos (d20, 2d6, d100, 4d6)
-  - Rolagem customizada
-  - Histórico completo
-  - Display do último resultado
-
-## 🎨 Design System
-
-### Cores
-- **Primária**: `#6B46C1` (Roxo místico)
-- **Background**: Escuro `#0F0F12` / Claro `#F9FAFB`
-- **Surface**: Escuro `#17171B` / Claro `#FFFFFF`
-- **Accent**: `#9F7AEA`
-- **Estados**: Success `#10B981`, Warning `#F59E0B`, Danger `#EF4444`
-
-### Componentes
-- Border radius: 8px, 12px, 16px
-- Elevação Material 3
-- Espaçamento baseado em 8px (8, 16, 24, 32)
-- Transições suaves (300ms)
-
-### Tipografia
-- Hierarquia clara (Display, Headline, Title, Body, Label)
-- Contraste adequado (WCAG AA)
-- System fonts (Material Design 3)
-
-## 🔧 Configuração de Desenvolvimento
-
-### Backend
-- **Porta**: 8000
-- **Documentação**: http://localhost:8000/docs
-- **ReDoc**: http://localhost:8000/redoc
-- **Database**: SQLite (`sigilrpg.db`)
-
-### Frontend
-- **Web**: http://localhost:8000 (conecta automaticamente)
-- **Android Emulator**: http://10.0.2.2:8000
-- **iOS Simulator**: http://localhost:8000
-- **Hot Reload**: Ativado por padrão
-
-## 📊 Exemplos de Uso
-
-### Registro de Usuário
-```bash
-curl -X POST "http://localhost:8000/api/auth/register" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "jogador1",
-    "email": "jogador@email.com",
-    "password": "senha123",
-    "full_name": "João Silva"
-  }'
+```
+GET    /api/campaigns        # Listar campanhas
+POST   /api/campaigns        # Criar campanha
+PATCH  /api/campaigns/{id}   # Atualizar
+DELETE /api/campaigns/{id}   # Deletar
 ```
 
-### Login
-```bash
-curl -X POST "http://localhost:8000/api/auth/login" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "jogador1",
-    "password": "senha123"
-  }'
+### Combates
+```
+GET    /api/me/fights/       # Lutas do usuário
+POST   /api/me/fights/       # Criar luta
 ```
 
-### Criar Personagem
-```bash
-curl -X POST "http://localhost:8000/api/characters" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <token>" \
-  -d '{
-    "name": "Alex Silva",
-    "player_name": "João Silva",
-    "origin": "Cultista",
-    "character_class": "Ocultista",
-    "nex": 15,
-    "agilidade": 2,
-    "intelecto": 3,
-    "vigor": 1,
-    "presenca": 2,
-    "forca": 1
-  }'
+---
+
+## 🎮 Sistema Sigil RPG
+
+### Atributos do Personagem
+- **Agilidade (AGI)**: 0-3
+- **Intelecto (INT)**: 0-3
+- **Vigor (VIG)**: 0-3
+- **Presença (PRE)**: 0-3
+- **Força (FOR)**: 0-3
+
+### NEX (Nível de Exposição)
+- Valor entre **5 e 99**
+- Representa o nível de exposição ao paranormal
+- Padrão: **5** (mínimo)
+
+---
+
+## 🔐 Credenciais de Teste
+
+Após executar `python seed_data.py`, você pode usar:
+
+```
+Email: joao@example.com
+Senha: 123456
+
+Email: maria@example.com
+Senha: 123456
+
+Email: pedro@example.com
+Senha: 123456
 ```
 
-## 🔮 Próximas Funcionalidades (Roadmap)
+---
 
-### Phase 2 - Core Features
-- [ ] Wizard de criação de personagem completo com preview em tempo real
-- [ ] CharacterDetailView com todas as tabs (Combate, Habilidades, Rituais, Inventário, Descrição)
-- [ ] Sistema de dados avançado com vantagem/desvantagem
-- [ ] CampaignDetailView completo com dashboard, sessões e ferramentas do mestre
-- [ ] Perfil do usuário com configurações
+## 🛠️ Desenvolvimento
 
-### Phase 3 - Enhancement
-- [ ] Sistema de combate melhorado com tracker de iniciativa
-- [ ] Ferramentas do mestre avançadas
-- [ ] Suporte offline com cache local
-- [ ] Animações e transições adicionais
-- [ ] Melhorias de acessibilidade
+### Executar em modo debug
+```bash
+# Backend
+python app.py  # Já roda em modo debug
 
-### Phase 4 - Polish
-- [ ] Ilustrações e assets customizados
-- [ ] Sistema de conquistas/badges
-- [ ] Testes automatizados completos
-- [ ] Otimizações de performance
-- [ ] Funcionalidades avançadas (IA suggestions, etc.)
+# Frontend
+flutter run  # Hot reload ativado
+```
 
-## 📝 Notas de Desenvolvimento
+### Testar a API
+```bash
+cd SigilRPG_API-main
+python test_api.py
+```
 
-### Gitignore
-- ✅ Configurado para excluir `venv/`, `__pycache__/`, arquivos `.db` e outros arquivos temporários
-- ✅ Mantém estrutura limpa no repositório
+### Estrutura de Banco de Dados
+```bash
+# Visualizar banco SQLite
+sqlite3 instance/rpg.db
+# ou usar ferramenta visual como DB Browser for SQLite
+```
 
-### Estrutura de Código
-- ✅ Separação clara de responsabilidades (controllers, services, views, widgets)
-- ✅ Widgets reutilizáveis para consistência
-- ✅ Padrões de nomenclatura consistentes
-- ✅ Código comentado onde necessário
+---
+
+## 📦 Dependências Principais
+
+### Backend (requirements.txt)
+```
+Flask==2.3.3
+Flask-SQLAlchemy==3.0.5
+Flask-JWT-Extended==4.5.3
+Flask-CORS==4.0.0
+Werkzeug==2.3.7
+```
+
+### Frontend (pubspec.yaml)
+```yaml
+flutter: sdk: flutter
+http: ^1.2.2
+provider: ^6.1.2
+vibration: ^1.8.4
+flutter_local_notifications: ^17.2.3
+permission_handler: ^11.3.1
+```
+
+---
+
+## 📝 Notas Importantes
+
+- ✅ O backend deve estar rodando antes de usar o app Flutter
+- ✅ Para dispositivos físicos Android, configure o IP da API em `lib/utils/api.dart`
+- ✅ Vibração funciona apenas em dispositivos físicos (não em emuladores)
+- ✅ Notificações requerem permissões do sistema (solicitadas automaticamente)
+- ✅ O banco de dados SQLite é criado automaticamente na primeira execução
+- ✅ Tokens JWT expiram em 24 horas (configurável em `app.py`)
+
+---
+
+## 🐛 Solução de Problemas
+
+### API não conecta
+- Verifique se o servidor Flask está rodando em `http://localhost:8000`
+- Teste acessando `http://localhost:8000/` no navegador
+- Para Android físico, use o IP da sua máquina na rede
+
+### Erro de dependências Python
+```bash
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+### Erro de dependências Flutter
+```bash
+flutter pub get
+flutter clean
+flutter pub get
+```
+
+### Banco de dados não cria
+```bash
+cd SigilRPG_API-main
+python migrate_db.py
+```
+
+---
 
 ## 📄 Licença
 
 Este projeto é privado e desenvolvido para fins educacionais e pessoais.
 
-## 👥 Contribuição
+---
 
-Para contribuir com o projeto, entre em contato com os desenvolvedores.
+## 👥 Autor
+
+Desenvolvido para o sistema de RPG **Sigil**.
 
 ---
 
-**SIGIL RPG** - Sistema completo de gerenciamento de personagens do sistema Sigil RPG com autenticação JWT, interface moderna e design responsivo.
+**🎲 SIGIL RPG** - Sistema completo de gerenciamento de personagens com API Flask e aplicativo Flutter multiplataforma.
 
 ---
 
-## 🎯 Changelog
+## 📚 Documentação Adicional
 
-### v2.0.0 (Atual)
-- ✅ Sistema de temas claro/escuro
-- ✅ Bottom navigation bar
-- ✅ Dashboard redesenhado
-- ✅ Cards aprimorados (Personagens e Campanhas)
-- ✅ Widgets reutilizáveis
-- ✅ Sistema de dados melhorado
-- ✅ Estados consistentes (loading, error, empty)
-- ✅ Melhorias de UX/UI gerais
-
-### v1.0.0
-- Sistema básico de autenticação
-- CRUD de personagens
-- Interface inicial
+- **API Flask**: Veja `SigilRPG_API-main/README.md` para documentação detalhada da API
+- **Exemplos de uso**: Veja `lib/services/mobile_features_example.dart` para exemplos de vibração e notificações
+- **Estrutura do projeto**: Consulte as seções de arquitetura acima

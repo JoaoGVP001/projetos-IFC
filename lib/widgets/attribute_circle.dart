@@ -1,20 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:sigilrpg/constants/app_colors.dart';
 
 class AttributeCircle extends StatelessWidget {
   final String label;
   final int value;
   final double size;
+  final VoidCallback? onTap;
   const AttributeCircle({
     super.key,
     required this.label,
     required this.value,
     this.size = 72,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    Widget circle = Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
@@ -52,5 +55,26 @@ class AttributeCircle extends StatelessWidget {
         ),
       ),
     );
+
+    if (onTap != null) {
+      return MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          onTap: onTap,
+          child: Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: AppColors.seed.withOpacity(0.5),
+                width: 2,
+              ),
+            ),
+            child: circle,
+          ),
+        ),
+      );
+    }
+
+    return circle;
   }
 }

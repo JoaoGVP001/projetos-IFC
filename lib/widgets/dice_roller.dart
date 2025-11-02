@@ -4,6 +4,7 @@ import 'package:sigilrpg/constants/app_colors.dart';
 import 'package:sigilrpg/controllers/dicecontroller.dart';
 import 'package:sigilrpg/widgets/custom_button.dart';
 import 'package:sigilrpg/widgets/empty_state.dart';
+import 'package:sigilrpg/services/vibration_service.dart';
 
 class DiceRoller extends StatefulWidget {
   const DiceRoller({super.key});
@@ -31,11 +32,11 @@ class _DiceRollerState extends State<DiceRoller> {
     final s = int.tryParse(_sides.text) ?? 20;
     final m = int.tryParse(_mod.text) ?? 0;
     
+    // Vibração ao rolar dados
+    VibrationService().mediumImpact();
+    
     final result = dice.roll(count: c, sides: s, modifier: m);
     setState(() => _lastResult = result.total);
-    
-    // Haptic feedback
-    // HapticFeedback.mediumImpact();
   }
 
   @override
@@ -246,6 +247,9 @@ class _DiceRollerState extends State<DiceRoller> {
           children: presets.map((preset) {
             return InkWell(
               onTap: () {
+                // Vibração ao rolar dados via preset
+                VibrationService().mediumImpact();
+                
                 final result = dice.roll(
                   count: preset['count'] as int,
                   sides: preset['sides'] as int,

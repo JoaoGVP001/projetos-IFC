@@ -13,7 +13,7 @@ import os
 import random
 
 # Importar modelos primeiro
-from models import db, User, Character, Fight
+from models import db, User, Character, Fight, Skill, Ritual, Item
 
 # Inicializar Flask app
 app = Flask(__name__)
@@ -39,12 +39,18 @@ from routes import auth_bp
 from characters_routes import characters_bp
 from user_character_routes import user_character_bp
 from fights_routes import fights_bp
+from skills_routes import skills_bp
+from rituals_routes import rituals_bp
+from items_routes import items_bp
 
 # Registrar blueprints
 app.register_blueprint(auth_bp, url_prefix='/api/auth')
 app.register_blueprint(characters_bp, url_prefix='/api/characters')
 app.register_blueprint(user_character_bp, url_prefix='/api/me')
 app.register_blueprint(fights_bp, url_prefix='/api/me/fights')
+app.register_blueprint(skills_bp, url_prefix='/api/me')
+app.register_blueprint(rituals_bp, url_prefix='/api/me')
+app.register_blueprint(items_bp, url_prefix='/api/me')
 
 @app.route('/')
 def index():

@@ -74,6 +74,9 @@ class Character(db.Model):
     
     # Relacionamentos
     fights = db.relationship('Fight', backref='character', lazy=True, foreign_keys='Fight.character_id')
+    skills = db.relationship('Skill', backref='character', lazy=True, cascade='all, delete-orphan')
+    rituals = db.relationship('Ritual', backref='character', lazy=True, cascade='all, delete-orphan')
+    items = db.relationship('Item', backref='character', lazy=True, cascade='all, delete-orphan')
     
     def to_dict(self):
         """Converte o personagem para dicionário"""
@@ -124,6 +127,97 @@ class Fight(db.Model):
             'character_id': self.character_id,
             'status': self.status,
             'experience': self.experience,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+
+class Skill(db.Model):
+    __tablename__ = 'skills'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    character_id = db.Column(db.Integer, db.ForeignKey('characters.id'), nullable=False)
+    name = db.Column(db.String(255), nullable=False)
+    attribute = db.Column(db.String(10), nullable=False)  # AGI, INT, VIG, PRE, FOR
+    bonus_dice = db.Column(db.Integer, default=0)
+    training = db.Column(db.Integer, default=0)
+    others = db.Column(db.Integer, default=0)
+    description = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def to_dict(self):
+        """Converte a habilidade para dicionário"""
+        return {
+            'id': self.id,
+            'character_id': self.character_id,
+            'name': self.name,
+            'attribute': self.attribute,
+            'bonus_dice': self.bonus_dice,
+            'training': self.training,
+            'others': self.others,
+            'description': self.description,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+
+class Ritual(db.Model):
+    __tablename__ = 'rituals'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    character_id = db.Column(db.Integer, db.ForeignKey('characters.id'), nullable=False)
+    name = db.Column(db.String(255), nullable=False)
+    circle = db.Column(db.Integer, nullable=False)  # Círculo do ritual (1-10)
+    cost = db.Column(db.Integer, nullable=False)  # Custo em PE
+    execution_time = db.Column(db.String(255), nullable=True)  # Tempo de execução
+    range = db.Column(db.String(255), nullable=True)  # Alcance
+    duration = db.Column(db.String(255), nullable=True)  # Duração
+    resistance_test = db.Column(db.String(255), nullable=True)  # Teste de resistência
+    description = db.Column(db.Text, nullable=True)
+    effect = db.Column(db.Text, nullable=True)  # Efeito do ritual
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def to_dict(self):
+        """Converte o ritual para dicionário"""
+        return {
+            'id': self.id,
+            'character_id': self.character_id,
+            'name': self.name,
+            'circle': self.circle,
+            'cost': self.cost,
+            'execution_time': self.execution_time,
+            'range': self.range,
+            'duration': self.duration,
+            'resistance_test': self.resistance_test,
+            'description': self.description,
+            'effect': self.effect,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+
+class Item(db.Model):
+    __tablename__ = 'items'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    character_id = db.Column(db.Integer, db.ForeignKey('characters.id'), nullable=False)
+    name = db.Column(db.String(255), nullable=False)
+    category = db.Column(db.String(255), nullable=False)  # arma, equipamento, consumível, etc.
+    weight = db.Column(db.Float, default=0.0)
+    description = db.Column(db.Text, nullable=True)
+    quantity = db.Column(db.Integer, default=1)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def to_dict(self):
+        """Converte o item para dicionário"""
+        return {
+            'id': self.id,
+            'character_id': self.character_id,
+            'name': self.name,
+            'category': self.category,
+            'weight': self.weight,
+            'description': self.description,
+            'quantity': self.quantity,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }

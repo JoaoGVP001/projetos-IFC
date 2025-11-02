@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:sigilrpg/widgets/character_card.dart';
 import 'package:sigilrpg/widgets/empty_state.dart';
 import 'package:sigilrpg/widgets/error_state.dart';
-import 'package:sigilrpg/widgets/loading_overlay.dart';
 import 'package:sigilrpg/constants/app_routes.dart';
 import 'package:sigilrpg/controllers/characters_controller.dart';
 import 'package:sigilrpg/controllers/auth_controller.dart';
@@ -18,6 +17,8 @@ class CharactersListView extends StatefulWidget {
 class _CharactersListViewState extends State<CharactersListView> {
   bool _loading = true;
   String? _error;
+  bool _hasLoaded = false;
+  DateTime? _lastReload;
 
   @override
   void initState() {
@@ -25,6 +26,20 @@ class _CharactersListViewState extends State<CharactersListView> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _loadCharacters();
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Recarregar quando voltar para esta tela (evitar recarregar muito rápido)
+    final now = DateTime.now();
+    if (_hasLoaded && 
+        !_loading && 
+        ModalRoute.of(context)?.isCurrent == true &&
+        (_lastReload == null || now.difference(_lastReload!).inSeconds > 1)) {
+      _lastReload = now;
+      _loadCharacters();
+    }
   }
 
   Future<void> _loadCharacters() async {
@@ -36,6 +51,7 @@ class _CharactersListViewState extends State<CharactersListView> {
     try {
       final controller = context.read<CharactersController>();
       await controller.load();
+      _hasLoaded = true;
     } catch (e) {
       setState(() => _error = e.toString());
     } finally {

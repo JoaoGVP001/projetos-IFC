@@ -24,8 +24,14 @@ import 'package:sigilrpg/views/dice/dice_view.dart';
 import 'package:sigilrpg/views/auth/login_view.dart';
 import 'package:sigilrpg/views/auth/register_view.dart';
 import 'package:sigilrpg/views/fights/fights_view.dart';
+import 'package:sigilrpg/services/notification_service.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Inicializa o serviço de notificações
+  await NotificationService().initialize();
+  
   runApp(const SigilRpgApp());
 }
 

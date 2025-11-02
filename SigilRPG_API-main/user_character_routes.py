@@ -9,6 +9,22 @@ import re
 
 user_character_bp = Blueprint('user_character', __name__)
 
+def _safe_int(value, default=None):
+    """Converte um valor para int de forma segura, retornando default se falhar"""
+    if value is None:
+        return default
+    if isinstance(value, int):
+        return value
+    if isinstance(value, str):
+        try:
+            return int(value)
+        except (ValueError, TypeError):
+            return default
+    try:
+        return int(value)
+    except (ValueError, TypeError):
+        return default
+
 @user_character_bp.route('/', methods=['POST'])
 @jwt_required()
 def create_user_character():
@@ -61,13 +77,13 @@ def create_user_character():
             player_name=data.get('player_name'),
             origin=data.get('origin'),
             character_class=data.get('character_class'),
-            nex=data.get('nex', 5),  # Valor padrão de 5 se não fornecido
+            nex=_safe_int(data.get('nex'), 5),  # Valor padrão de 5 se não fornecido
             avatar_url=data.get('avatar_url'),
-            agilidade=data.get('agilidade', 1),
-            intelecto=data.get('intelecto', 1),
-            vigor=data.get('vigor', 1),
-            presenca=data.get('presenca', 1),
-            forca=data.get('forca', 1),
+            agilidade=_safe_int(data.get('agilidade'), 1),
+            intelecto=_safe_int(data.get('intelecto'), 1),
+            vigor=_safe_int(data.get('vigor'), 1),
+            presenca=_safe_int(data.get('presenca'), 1),
+            forca=_safe_int(data.get('forca'), 1),
             gender=data.get('gender'),
             appearance=data.get('appearance'),
             personality=data.get('personality'),
@@ -185,30 +201,30 @@ def update_user_character(character_id):
         if 'character_class' in data:
             character.character_class = data['character_class']
         if 'nex' in data:
-            nex = data['nex']
-            if isinstance(nex, int) and 5 <= nex <= 99:
+            nex = _safe_int(data['nex'])
+            if nex is not None and 5 <= nex <= 100:
                 character.nex = nex
         if 'avatar_url' in data:
             character.avatar_url = data['avatar_url']
         if 'agilidade' in data:
-            agi = data['agilidade']
-            if isinstance(agi, int) and 0 <= agi <= 3:
+            agi = _safe_int(data['agilidade'])
+            if agi is not None and agi >= 0:
                 character.agilidade = agi
         if 'intelecto' in data:
-            inte = data['intelecto']
-            if isinstance(inte, int) and 0 <= inte <= 3:
+            inte = _safe_int(data['intelecto'])
+            if inte is not None and inte >= 0:
                 character.intelecto = inte
         if 'vigor' in data:
-            vig = data['vigor']
-            if isinstance(vig, int) and 0 <= vig <= 3:
+            vig = _safe_int(data['vigor'])
+            if vig is not None and vig >= 0:
                 character.vigor = vig
         if 'presenca' in data:
-            pre = data['presenca']
-            if isinstance(pre, int) and 0 <= pre <= 3:
+            pre = _safe_int(data['presenca'])
+            if pre is not None and pre >= 0:
                 character.presenca = pre
         if 'forca' in data:
-            forc = data['forca']
-            if isinstance(forc, int) and 0 <= forc <= 3:
+            forc = _safe_int(data['forca'])
+            if forc is not None and forc >= 0:
                 character.forca = forc
         if 'gender' in data:
             character.gender = data['gender']
