@@ -13,7 +13,19 @@ import os
 import random
 
 # Importar modelos primeiro
-from models import db, User, Character, Fight, Skill, Ritual, Item
+from models import (
+    db,
+    User,
+    Character,
+    Fight,
+    Skill,
+    Ritual,
+    Item,
+    Campaign,
+    CampaignCharacter,
+    Party,
+    PartyMember,
+)
 
 # Inicializar Flask app
 app = Flask(__name__)
@@ -43,6 +55,7 @@ from skills_routes import skills_bp
 from rituals_routes import rituals_bp
 from items_routes import items_bp
 from users_routes import users_bp
+from campaigns_routes import campaigns_bp
 
 # Registrar blueprints
 app.register_blueprint(auth_bp, url_prefix='/api/auth')
@@ -53,6 +66,7 @@ app.register_blueprint(skills_bp, url_prefix='/api/me')
 app.register_blueprint(rituals_bp, url_prefix='/api/me')
 app.register_blueprint(items_bp, url_prefix='/api/me')
 app.register_blueprint(users_bp, url_prefix='/api/users')
+app.register_blueprint(campaigns_bp, url_prefix='/api/v1/campaigns')
 
 @app.route('/')
 def index():
@@ -61,6 +75,11 @@ def index():
         'version': '1.0',
         'framework': 'Flask'
     })
+
+
+@app.route('/health')
+def health():
+    return jsonify({'status': 'ok'}), 200
 
 if __name__ == '__main__':
     with app.app_context():

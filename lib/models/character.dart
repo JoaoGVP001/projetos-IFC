@@ -24,6 +24,22 @@ class Character {
     required this.attributes,
     required this.details,
   });
+
+  factory Character.fromJson(Map<String, dynamic> json) {
+    return Character(
+      id: json['id'].toString(),
+      name: json['name'] as String? ?? '',
+      playerName: json['player_name'] as String? ?? '',
+      origin: json['origin'] as String? ?? '',
+      characterClass: json['character_class'] as String? ?? '',
+      nex: (json['nex'] as num?)?.toInt() ?? 0,
+      avatarUrl: json['avatar_url'] as String?,
+      skilledIn: json['skilled_in'] as String? ?? 'Combat',
+      userId: (json['user_id'] as num?)?.toInt(),
+      attributes: CharacterAttributes.fromJson(json),
+      details: CharacterDetails.fromJson(json),
+    );
+  }
 }
 
 class CharacterDetails {
@@ -42,6 +58,17 @@ class CharacterDetails {
     this.background,
     this.objective,
   });
+
+  factory CharacterDetails.fromJson(Map<String, dynamic> json) {
+    return CharacterDetails(
+      gender: json['gender'] as String?,
+      age: (json['age'] as num?)?.toInt(),
+      appearance: json['appearance'] as String?,
+      personality: json['personality'] as String?,
+      background: json['background'] as String?,
+      objective: json['objective'] as String?,
+    );
+  }
 }
 
 class CharacterAttributes {
@@ -60,4 +87,14 @@ class CharacterAttributes {
   });
 
   int get total => agilidade + intelecto + vigor + presenca + forca;
+
+  factory CharacterAttributes.fromJson(Map<String, dynamic> json) {
+    return CharacterAttributes(
+      agilidade: (json['agilidade'] as num?)?.toInt() ?? 1,
+      intelecto: (json['intelecto'] as num?)?.toInt() ?? 1,
+      vigor: (json['vigor'] as num?)?.toInt() ?? 1,
+      presenca: (json['presenca'] as num?)?.toInt() ?? 1,
+      forca: (json['forca'] as num?)?.toInt() ?? 1,
+    );
+  }
 }

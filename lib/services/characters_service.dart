@@ -9,14 +9,16 @@ class CharactersService {
   Future<List<Character>> fetchCharacters() async {
     // A API retorna um array diretamente
     final data = await _client.getJsonList('/api/characters/');
-    return data.map((e) => _fromJson(e as Map<String, dynamic>)).toList();
+    return data
+        .map((e) => Character.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   /// Obter personagem específico por ID
   Future<Character> fetchCharacter(String id) async {
     // A API retorna o objeto diretamente
     final data = await _client.getJson('/api/characters/$id');
-    return _fromJson(data);
+    return Character.fromJson(data);
   }
 
   /// Criar novo personagem (sistema)
@@ -25,7 +27,7 @@ class CharactersService {
       '/api/characters/',
       body: _toJson(character),
     );
-    return _fromJson(data);
+    return Character.fromJson(data);
   }
 
   /// Atualizar personagem (sistema)
@@ -34,7 +36,7 @@ class CharactersService {
     Map<String, dynamic> updates,
   ) async {
     final data = await _client.patchJson('/api/characters/$id', body: updates);
-    return _fromJson(data);
+    return Character.fromJson(data);
   }
 
   /// Listar todos os personagens do usuário autenticado
@@ -46,7 +48,9 @@ class CharactersService {
       
       // Se data for uma lista, usar diretamente
       if (dataList is List) {
-        return dataList.map((e) => _fromJson(e as Map<String, dynamic>)).toList();
+        return dataList
+            .map((e) => Character.fromJson(e as Map<String, dynamic>))
+            .toList();
       }
       
       // Se data for null ou não for lista, retornar lista vazia (usuário sem personagens)
@@ -66,7 +70,7 @@ class CharactersService {
     if (data == null) {
       throw Exception('Dados do personagem não encontrados');
     }
-    return _fromJson(data);
+    return Character.fromJson(data);
   }
 
   /// Atualizar personagem do usuário autenticado
@@ -82,7 +86,7 @@ class CharactersService {
     if (data == null) {
       throw Exception('Dados do personagem não encontrados');
     }
-    return _fromJson(data);
+    return Character.fromJson(data);
   }
 
   /// Deletar personagem do usuário autenticado
@@ -139,7 +143,7 @@ class CharactersService {
     if (data == null) {
       throw Exception('Dados do personagem não encontrados');
     }
-    return _fromJson(data);
+    return Character.fromJson(data);
   }
 
   Map<String, dynamic> _toJson(Character character) {
@@ -163,34 +167,5 @@ class CharactersService {
       'background': character.details.background,
       'objective': character.details.objective,
     };
-  }
-
-  Character _fromJson(Map<String, dynamic> json) {
-    return Character(
-      id: json['id'].toString(),
-      name: json['name'] as String? ?? '',
-      playerName: json['player_name'] as String? ?? '',
-      origin: json['origin'] as String? ?? '',
-      characterClass: json['character_class'] as String? ?? '',
-      nex: (json['nex'] as num?)?.toInt() ?? 0,
-      avatarUrl: json['avatar_url'] as String?,
-      skilledIn: json['skilled_in'] as String? ?? 'Combat',
-      userId: (json['user_id'] as num?)?.toInt(),
-      attributes: CharacterAttributes(
-        agilidade: (json['agilidade'] as num?)?.toInt() ?? 1,
-        intelecto: (json['intelecto'] as num?)?.toInt() ?? 1,
-        vigor: (json['vigor'] as num?)?.toInt() ?? 1,
-        presenca: (json['presenca'] as num?)?.toInt() ?? 1,
-        forca: (json['forca'] as num?)?.toInt() ?? 1,
-      ),
-      details: CharacterDetails(
-        gender: json['gender'] as String?,
-        age: (json['age'] as num?)?.toInt(),
-        appearance: json['appearance'] as String?,
-        personality: json['personality'] as String?,
-        background: json['background'] as String?,
-        objective: json['objective'] as String?,
-      ),
-    );
   }
 }

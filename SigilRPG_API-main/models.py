@@ -77,10 +77,22 @@ class Character(db.Model):
     skills = db.relationship('Skill', backref='character', lazy=True, cascade='all, delete-orphan')
     rituals = db.relationship('Ritual', backref='character', lazy=True, cascade='all, delete-orphan')
     items = db.relationship('Item', backref='character', lazy=True, cascade='all, delete-orphan')
+    campaign_memberships = db.relationship(
+        'CampaignCharacter',
+        back_populates='character',
+        lazy=True,
+        cascade='all, delete-orphan'
+    )
+    party_memberships = db.relationship(
+        'PartyMember',
+        back_populates='character',
+        lazy=True,
+        cascade='all, delete-orphan'
+    )
     
-    def to_dict(self):
+    def to_dict(self, include_relationships=False):
         """Converte o personagem para dicionário"""
-        return {
+        data = {
             'id': self.id,
             'name': self.name,
             'player_name': self.player_name,
@@ -104,6 +116,18 @@ class Character(db.Model):
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
+
+        if include_relationships:
+            data['campaigns'] = [
+                membership.to_dict(include_campaign=True, include_character=False)
+                for membership in self.campaign_memberships
+            ]
+            data['parties'] = [
+                membership.to_dict(include_party=True, include_character=False)
+                for membership in self.party_memberships
+            ]
+
+        return data
 
 class Fight(db.Model):
     __tablename__ = 'fights'
@@ -221,3 +245,186 @@ class Item(db.Model):
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
+
+
+class Campaign(db.Model):
+    __tablename__ = 'campaigns'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(255), nullable=False)
+    description = db.Column(db.Text, default='')
+    system = db.Column(db.String(255), default='Sigil RPG')
+    max_players = db.Column(db.Integer, default=6)
+    is_active = db.Column(db.Boolean, default=True)
+    is_public = db.Column(db.Boolean, default=False)
+    setting = db.Column(db.Text, default='')
+    rules = db.Column(db.Text, default='')
+    notes = db.Column(db.Text, default='')
+    master_name = db.Column(db.String(255), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    memberships = db.relationship(
+        'CampaignCharacter',
+        back_populates='campaign',
+        lazy=True,
+        cascade='all, delete-orphan'
+    )
+    parties = db.relationship(
+        'Party',
+        backref='campaign',
+        lazy=True,
+        cascade='all, delete-orphan'
+    )
+
+    def to_dict(self, include_members=False, include_parties=False):
+        data = {
+            'id': self.id,
+            'name': self.name,
+            'description': self.description or '',
+            'system': self.system or 'Sigil RPG',
+            'max_players': self.max_players,
+            'is_active': bool(self.is_active),
+            'is_public': bool(self.is_public),
+            'setting': self.setting or '',
+            'rules': self.rules or '',
+            'notes': self.notes or '',
+            'master_name': self.master_name,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+
+        if include_members:
+            data['members'] = [
+                membership.to_dict(include_character=True)
+                for membership in self.memberships
+            ]
+
+        if include_parties:
+            data['parties'] = [
+                party.to_dict(include_members=True)
+                for party in self.parties
+            ]
+
+        return data
+
+
+class CampaignCharacter(db.Model):
+    __tablename__ = 'campaign_characters'
+
+    id = db.Column(db.Integer, primary_key=True)
+    campaign_id = db.Column(db.Integer, db.ForeignKey('campaigns.id'), nullable=False)
+    character_id = db.Column(db.Integer, db.ForeignKey('characters.id'), nullable=False)
+    role = db.Column(db.String(100), nullable=True)
+    is_active = db.Column(db.Boolean, default=True)
+    notes = db.Column(db.Text, nullable=True)
+    joined_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    campaign = db.relationship('Campaign', back_populates='memberships')
+    character = db.relationship('Character', back_populates='campaign_memberships')
+
+    __table_args__ = (
+        db.UniqueConstraint('campaign_id', 'character_id', name='uq_campaign_character'),
+    )
+
+    def to_dict(
+        self,
+        include_campaign=False,
+        include_character=False,
+        include_parties=False
+    ):
+        data = {
+            'id': self.id,
+            'campaign_id': self.campaign_id,
+            'character_id': self.character_id,
+            'role': self.role,
+            'is_active': bool(self.is_active),
+            'notes': self.notes,
+            'joined_at': self.joined_at.isoformat() if self.joined_at else None
+        }
+
+        if include_campaign and self.campaign:
+            data['campaign'] = self.campaign.to_dict()
+
+        if include_character and self.character:
+            data['character'] = self.character.to_dict(include_relationships=include_parties)
+
+        return data
+
+
+class Party(db.Model):
+    __tablename__ = 'parties'
+
+    id = db.Column(db.Integer, primary_key=True)
+    campaign_id = db.Column(db.Integer, db.ForeignKey('campaigns.id'), nullable=False)
+    name = db.Column(db.String(255), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    members = db.relationship(
+        'PartyMember',
+        back_populates='party',
+        lazy=True,
+        cascade='all, delete-orphan'
+    )
+
+    def to_dict(self, include_members=False):
+        data = {
+            'id': self.id,
+            'campaign_id': self.campaign_id,
+            'name': self.name,
+            'description': self.description,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+
+        if include_members:
+            data['members'] = [
+                member.to_dict(include_character=True)
+                for member in self.members
+            ]
+
+        return data
+
+
+class PartyMember(db.Model):
+    __tablename__ = 'party_members'
+
+    id = db.Column(db.Integer, primary_key=True)
+    party_id = db.Column(db.Integer, db.ForeignKey('parties.id'), nullable=False)
+    character_id = db.Column(db.Integer, db.ForeignKey('characters.id'), nullable=False)
+    role = db.Column(db.String(100), nullable=True)
+    joined_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    party = db.relationship('Party', back_populates='members')
+    character = db.relationship('Character', back_populates='party_memberships')
+
+    __table_args__ = (
+        db.UniqueConstraint('party_id', 'character_id', name='uq_party_character'),
+    )
+
+    def to_dict(
+        self,
+        include_party=False,
+        include_character=False,
+        include_campaign=False
+    ):
+        data = {
+            'id': self.id,
+            'party_id': self.party_id,
+            'character_id': self.character_id,
+            'role': self.role,
+            'joined_at': self.joined_at.isoformat() if self.joined_at else None
+        }
+
+        if include_party and self.party:
+            data['party'] = self.party.to_dict(include_members=False)
+
+        if include_character and self.character:
+            data['character'] = self.character.to_dict(include_relationships=include_campaign)
+
+        if include_campaign and self.party and self.party.campaign:
+            data['campaign'] = self.party.campaign.to_dict()
+
+        return data

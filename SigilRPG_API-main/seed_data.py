@@ -3,7 +3,15 @@ Script para popular o banco de dados com dados iniciais
 """
 
 from app import app, db
-from models import User, Character, Fight
+from models import (
+    User,
+    Character,
+    Fight,
+    Campaign,
+    CampaignCharacter,
+    Party,
+    PartyMember,
+)
 from werkzeug.security import generate_password_hash
 
 def create_sample_data():
@@ -125,10 +133,130 @@ def create_sample_data():
         
         db.session.commit()
         
+        # Criar campanhas de exemplo
+        campaigns_data = [
+            {
+                'name': 'Defensores de Sigil',
+                'description': 'Campanha oficial da Ordem para proteger Sigil das ameaças paranormais.',
+                'master_name': 'João Silva',
+                'system': 'Sigil RPG',
+                'max_players': 5,
+                'is_active': True,
+                'is_public': True,
+                'setting': 'Sigil City',
+                'rules': 'Regulamento interno da Ordem.',
+                'notes': 'Sessões semanais às quintas.',
+            },
+            {
+                'name': 'Sombras do Passado',
+                'description': 'Campanha investigativa com foco em mistérios e horror psicológico.',
+                'master_name': 'Maria Santos',
+                'system': 'Sigil RPG',
+                'max_players': 4,
+                'is_active': False,
+                'is_public': False,
+                'setting': 'Interior do Brasil, década de 90',
+                'rules': 'Adaptação narrativa com checkpoints reduzidos.',
+                'notes': 'Retorno previsto para o próximo trimestre.',
+            },
+        ]
+
+        campaigns = []
+        for campaign_data in campaigns_data:
+            campaign = Campaign(**campaign_data)
+            campaigns.append(campaign)
+            db.session.add(campaign)
+
+        db.session.commit()
+
+        # Vincular personagens às campanhas
+        campaign_memberships = [
+            {
+                'campaign': campaigns[0],
+                'character': characters[0],  # Aragorn
+                'role': 'Líder tático',
+            },
+            {
+                'campaign': campaigns[0],
+                'character': characters[1],  # Legolas
+                'role': 'Especialista em reconhecimento',
+            },
+            {
+                'campaign': campaigns[0],
+                'character': characters[2],  # Gandalf
+                'role': 'Consultor arcano',
+            },
+            {
+                'campaign': campaigns[1],
+                'character': characters[3],  # Gimli
+                'role': 'Contato da Ordem',
+            },
+            {
+                'campaign': campaigns[1],
+                'character': characters[4],  # Frodo
+                'role': 'Investigador de campo',
+            },
+        ]
+
+        for membership_data in campaign_memberships:
+            membership = CampaignCharacter(
+                campaign_id=membership_data['campaign'].id,
+                character_id=membership_data['character'].id,
+                role=membership_data.get('role'),
+            )
+            db.session.add(membership)
+
+        db.session.commit()
+
+        # Criar equipes (parties) para as campanhas
+        parties = []
+        party_specs = [
+            {
+                'campaign': campaigns[0],
+                'name': 'Força de Resposta Alfa',
+                'description': 'Equipe principal de incursão.',
+                'members': [
+                    {'character': characters[0], 'role': 'Comandante'},
+                    {'character': characters[1], 'role': 'Atirador de elite'},
+                ],
+            },
+            {
+                'campaign': campaigns[0],
+                'name': 'Suporte Arcano',
+                'description': 'Equipe dedicada a suporte mágico.',
+                'members': [
+                    {'character': characters[2], 'role': 'Mago de campo'},
+                ],
+            },
+        ]
+
+        for party_spec in party_specs:
+            party = Party(
+                campaign_id=party_spec['campaign'].id,
+                name=party_spec['name'],
+                description=party_spec.get('description'),
+            )
+            db.session.add(party)
+            db.session.flush()  # Garantir ID para membros
+            parties.append(party)
+
+            for member_info in party_spec.get('members', []):
+                party_member = PartyMember(
+                    party_id=party.id,
+                    character_id=member_info['character'].id,
+                    role=member_info.get('role'),
+                )
+                db.session.add(party_member)
+
+        db.session.commit()
+
         print("Dados de exemplo criados com sucesso!")
         print(f"Criados {len(users)} usuários")
         print(f"Criados {len(characters)} personagens")
         print(f"Criadas {len(fights_data)} lutas")
+        print(f"Criadas {len(campaigns)} campanhas")
+        print(f"Criados {len(campaign_memberships)} vínculos de campanha")
+        print(f"Criadas {len(parties)} equipes")
 
 if __name__ == '__main__':
     create_sample_data()
