@@ -118,7 +118,7 @@ class NotificationService {
     required String title,
     required String body,
     String? payload,
-    List<NotificationAction>? actions,
+    List<AndroidNotificationAction>? actions,
   }) async {
     if (!_isInitialized) {
       await initialize();

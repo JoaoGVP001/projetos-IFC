@@ -12,6 +12,7 @@ import 'package:sigilrpg/views/characters/character_items_tab.dart';
 import 'package:sigilrpg/views/characters/character_description_tab.dart';
 import 'package:sigilrpg/widgets/attribute_circle.dart';
 import 'package:sigilrpg/widgets/health_bar.dart';
+import 'package:sigilrpg/utils/combat.dart';
 
 class CharacterDetailView extends StatefulWidget {
   final Character character;
@@ -322,20 +323,24 @@ class _CombatTab extends StatelessWidget {
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                HealthBar(label: 'PV', current: 20, max: 30),
-                SizedBox(height: 12),
+              children: [
+                HealthBar(
+                  label: 'PV',
+                  current: CombatCalculator.calculateMaxPV(character),
+                  max: CombatCalculator.calculateMaxPV(character),
+                ),
+                const SizedBox(height: 12),
                 HealthBar(
                   label: 'PE',
-                  current: 8,
-                  max: 12,
+                  current: CombatCalculator.calculateMaxPE(character),
+                  max: CombatCalculator.calculateMaxPE(character),
                   color: Colors.blueAccent,
                 ),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
                 HealthBar(
                   label: 'PS',
-                  current: 10,
-                  max: 15,
+                  current: CombatCalculator.calculateMaxPS(character),
+                  max: CombatCalculator.calculateMaxPS(character),
                   color: Colors.purpleAccent,
                 ),
               ],
@@ -377,14 +382,14 @@ class _CombatTab extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Defesa: ${10 + character.attributes.agilidade}',
+                  'Defesa: ${CombatCalculator.calculateDefense(character)}',
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Resistências: Física ${character.attributes.vigor}, '
-                  'Balística ${character.attributes.vigor}, '
-                  'Mental ${character.attributes.intelecto}',
+                  'Resistências: Física ${CombatCalculator.resistanceFisica(character)}, '
+                  'Balística ${CombatCalculator.resistanceBalistica(character)}, '
+                  'Mental ${CombatCalculator.resistanceMental(character)}',
                 ),
               ],
             ),

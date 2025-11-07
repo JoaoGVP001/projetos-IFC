@@ -25,6 +25,7 @@ import 'package:sigilrpg/views/auth/login_view.dart';
 import 'package:sigilrpg/views/auth/register_view.dart';
 import 'package:sigilrpg/views/fights/fights_view.dart';
 import 'package:sigilrpg/services/notification_service.dart';
+import 'package:sigilrpg/views/admin/admin_users_list_view.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -86,6 +87,7 @@ class SigilRpgApp extends StatelessWidget {
               AppRoutes.login: (_) => const LoginView(),
               AppRoutes.register: (_) => const RegisterView(),
               AppRoutes.fights: (_) => const FightsView(),
+              '/admin/users': (_) => const AdminUsersListView(),
             },
             onGenerateRoute: (settings) {
               final name = settings.name ?? '';

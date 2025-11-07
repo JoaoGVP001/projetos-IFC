@@ -42,6 +42,7 @@ from fights_routes import fights_bp
 from skills_routes import skills_bp
 from rituals_routes import rituals_bp
 from items_routes import items_bp
+from users_routes import users_bp
 
 # Registrar blueprints
 app.register_blueprint(auth_bp, url_prefix='/api/auth')
@@ -51,6 +52,7 @@ app.register_blueprint(fights_bp, url_prefix='/api/me/fights')
 app.register_blueprint(skills_bp, url_prefix='/api/me')
 app.register_blueprint(rituals_bp, url_prefix='/api/me')
 app.register_blueprint(items_bp, url_prefix='/api/me')
+app.register_blueprint(users_bp, url_prefix='/api/users')
 
 @app.route('/')
 def index():
