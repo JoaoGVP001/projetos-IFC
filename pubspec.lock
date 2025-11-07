@@ -392,10 +392,9 @@ packages:
   vibration:
     dependency: "direct main"
     description:
-      name: vibration
-      sha256: "06588a845a4ebc73ab7ff7da555c2b3dbcd9676164b5856a38bf0b2287f1045d"
-      url: "https://pub.dev"
-    source: hosted
+      path: "plugins/vibration"
+      relative: true
+    source: path
     version: "1.9.0"
   vibration_platform_interface:
     dependency: transitive

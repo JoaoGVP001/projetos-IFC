@@ -38,7 +38,8 @@ dependencies:
   cupertino_icons: ^1.0.8
   
   # Mobile features - Vibração e Notificações
-  vibration: ^1.8.4
+  vibration:
+    path: plugins/vibration
   flutter_local_notifications: ^17.2.3
   permission_handler: ^11.3.1
 
