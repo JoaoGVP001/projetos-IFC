@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sigilrpg/constants/app_routes.dart';
 import 'package:sigilrpg/controllers/auth_controller.dart';
+import 'package:sigilrpg/config/api_config.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -34,6 +35,28 @@ class _LoginViewState extends State<LoginView> {
           key: _formKey,
           child: Column(
             children: [
+              // Informação de debug sobre a URL da API
+              Container(
+                padding: const EdgeInsets.all(12),
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline, size: 20, color: Colors.blue[700]),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Conectando em: ${ApiConfig.baseUrl}',
+                        style: TextStyle(fontSize: 12, color: Colors.blue[900]),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               TextFormField(
                 controller: _emailCtrl,
                 decoration: const InputDecoration(labelText: 'E-mail'),
@@ -72,8 +95,24 @@ class _LoginViewState extends State<LoginView> {
                                 Navigator.pop(context);
                               } catch (e) {
                                 if (!mounted) return;
+                                String errorMessage = 'Falha no login';
+                                if (e.toString().contains('conectar') || 
+                                    e.toString().contains('timeout') ||
+                                    e.toString().contains('SocketException')) {
+                                  errorMessage = 'Erro de conexão:\n'
+                                      'Verifique se a API está rodando e se o celular está na mesma rede Wi-Fi do notebook.';
+                                } else if (e.toString().contains('401') || 
+                                          e.toString().contains('credenciais')) {
+                                  errorMessage = 'E-mail ou senha incorretos';
+                                } else {
+                                  errorMessage = 'Erro: ${e.toString().replaceAll('HttpException(', '').replaceAll(')', '')}';
+                                }
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Falha no login: $e')),
+                                  SnackBar(
+                                    content: Text(errorMessage),
+                                    duration: const Duration(seconds: 5),
+                                    backgroundColor: Colors.red,
+                                  ),
                                 );
                               } finally {
                                 if (mounted)

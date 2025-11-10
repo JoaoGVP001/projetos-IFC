@@ -11,7 +11,6 @@ import 'package:sigilrpg/views/characters/character_rituals_tab.dart';
 import 'package:sigilrpg/views/characters/character_items_tab.dart';
 import 'package:sigilrpg/views/characters/character_description_tab.dart';
 import 'package:sigilrpg/widgets/attribute_circle.dart';
-import 'package:sigilrpg/widgets/health_bar.dart';
 import 'package:sigilrpg/utils/combat.dart';
 
 class CharacterDetailView extends StatefulWidget {
@@ -93,6 +92,33 @@ class _CharacterDetailViewState extends State<CharacterDetailView> {
           SnackBar(content: Text('Erro ao atualizar NEX: $e')),
         );
       }
+    }
+  }
+
+  Future<void> _updateCombatStat(String statName, int newValue) async {
+    try {
+      Character updated;
+      try {
+        updated = await _service.updateUserCharacter(_character.id, {
+          statName: newValue,
+        });
+      } catch (e) {
+        updated = await _service.updateCharacter(_character.id, {
+          statName: newValue,
+        });
+      }
+      setState(() {
+        _character = updated;
+      });
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Valor atualizado')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao atualizar: $e')),
+      );
     }
   }
 
@@ -255,6 +281,7 @@ class _CharacterDetailViewState extends State<CharacterDetailView> {
               character: _character,
               onEditNex: _editNex,
               onEditAttribute: _editAttribute,
+              onUpdateCombatStat: _updateCombatStat,
             ),
             CharacterSkillsTab(characterId: _character.id),
             CharacterRitualsTab(characterId: _character.id),
@@ -271,10 +298,12 @@ class _CombatTab extends StatelessWidget {
   final Character character;
   final VoidCallback onEditNex;
   final Function(String, int) onEditAttribute;
+  final Function(String, int) onUpdateCombatStat;
   const _CombatTab({
     required this.character,
     required this.onEditNex,
     required this.onEditAttribute,
+    required this.onUpdateCombatStat,
   });
 
   @override
@@ -324,24 +353,31 @@ class _CombatTab extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                HealthBar(
+                _EditableHealthBar(
                   label: 'PV',
-                  current: CombatCalculator.calculateMaxPV(character),
+                  character: character,
+                  current: CombatCalculator.getCurrentPV(character),
                   max: CombatCalculator.calculateMaxPV(character),
+                  color: AppColors.success,
+                  onUpdate: (newValue) => onUpdateCombatStat('current_pv', newValue),
                 ),
                 const SizedBox(height: 12),
-                HealthBar(
+                _EditableHealthBar(
                   label: 'PE',
-                  current: CombatCalculator.calculateMaxPE(character),
+                  character: character,
+                  current: CombatCalculator.getCurrentPE(character),
                   max: CombatCalculator.calculateMaxPE(character),
                   color: Colors.blueAccent,
+                  onUpdate: (newValue) => onUpdateCombatStat('current_pe', newValue),
                 ),
                 const SizedBox(height: 12),
-                HealthBar(
+                _EditableHealthBar(
                   label: 'PS',
-                  current: CombatCalculator.calculateMaxPS(character),
+                  character: character,
+                  current: CombatCalculator.getCurrentPS(character),
                   max: CombatCalculator.calculateMaxPS(character),
                   color: Colors.purpleAccent,
+                  onUpdate: (newValue) => onUpdateCombatStat('current_ps', newValue),
                 ),
               ],
             ),
@@ -519,6 +555,197 @@ class _AttributeEditDialogState extends State<_AttributeEditDialog> {
                 setState(() => _value = num);
               }
             },
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancelar'),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(context, _value),
+          child: const Text('Salvar'),
+        ),
+      ],
+    );
+  }
+}
+
+// Widget editável para barras de vida
+class _EditableHealthBar extends StatelessWidget {
+  final String label;
+  final Character character;
+  final int current;
+  final int max;
+  final Color color;
+  final Function(int) onUpdate;
+
+  const _EditableHealthBar({
+    required this.label,
+    required this.character,
+    required this.current,
+    required this.max,
+    required this.color,
+    required this.onUpdate,
+  });
+
+  Future<void> _showEditDialog(BuildContext context) async {
+    final result = await showDialog<int>(
+      context: context,
+      builder: (context) => _CombatStatEditDialog(
+        label: label,
+        currentValue: current,
+        maxValue: max,
+      ),
+    );
+
+    if (result != null && result != current) {
+      onUpdate(result);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final double pct = max > 0 ? (current.clamp(0, max) / max) : 0;
+    return InkWell(
+      onTap: () => _showEditDialog(context),
+      borderRadius: BorderRadius.circular(8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Text(label, style: Theme.of(context).textTheme.labelLarge),
+                  const SizedBox(width: 8),
+                  Icon(Icons.edit, size: 16, color: Colors.grey[600]),
+                ],
+              ),
+              Text('$current / $max'),
+            ],
+          ),
+          const SizedBox(height: 6),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: LinearProgressIndicator(
+              value: pct,
+              minHeight: 10,
+              backgroundColor: Colors.white10,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// Dialog para editar valores de combate
+class _CombatStatEditDialog extends StatefulWidget {
+  final String label;
+  final int currentValue;
+  final int maxValue;
+
+  const _CombatStatEditDialog({
+    required this.label,
+    required this.currentValue,
+    required this.maxValue,
+  });
+
+  @override
+  State<_CombatStatEditDialog> createState() => _CombatStatEditDialogState();
+}
+
+class _CombatStatEditDialogState extends State<_CombatStatEditDialog> {
+  late int _value;
+  final _controller = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _value = widget.currentValue;
+    _controller.text = _value.toString();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _adjustValue(int delta) {
+    setState(() {
+      _value = (_value + delta).clamp(0, widget.maxValue);
+      _controller.text = _value.toString();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text('Editar ${widget.label}'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'Máximo: ${widget.maxValue}',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton(
+                onPressed: () => _adjustValue(-5),
+                icon: const Icon(Icons.remove_circle_outline),
+                iconSize: 32,
+              ),
+              const SizedBox(width: 16),
+              SizedBox(
+                width: 80,
+                child: TextField(
+                  controller: _controller,
+                  textAlign: TextAlign.center,
+                  keyboardType: TextInputType.number,
+                  style: Theme.of(context).textTheme.headlineMedium,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                  ),
+                  onChanged: (v) {
+                    final num = int.tryParse(v);
+                    if (num != null) {
+                      setState(() {
+                        _value = num.clamp(0, widget.maxValue);
+                      });
+                    }
+                  },
+                ),
+              ),
+              const SizedBox(width: 16),
+              IconButton(
+                onPressed: () => _adjustValue(5),
+                icon: const Icon(Icons.add_circle_outline),
+                iconSize: 32,
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              TextButton(
+                onPressed: () => _adjustValue(-1),
+                child: const Text('-1'),
+              ),
+              const SizedBox(width: 8),
+              TextButton(
+                onPressed: () => _adjustValue(1),
+                child: const Text('+1'),
+              ),
+            ],
           ),
         ],
       ),

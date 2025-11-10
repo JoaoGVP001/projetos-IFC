@@ -10,6 +10,11 @@ class Character {
   final int? userId;
   final CharacterAttributes attributes;
   final CharacterDetails details;
+  
+  // Sistema de Combate - Valores atuais
+  final int? currentPv;
+  final int? currentPe;
+  final int? currentPs;
 
   const Character({
     required this.id,
@@ -23,6 +28,9 @@ class Character {
     this.userId,
     required this.attributes,
     required this.details,
+    this.currentPv,
+    this.currentPe,
+    this.currentPs,
   });
 
   factory Character.fromJson(Map<String, dynamic> json) {
@@ -38,6 +46,9 @@ class Character {
       userId: (json['user_id'] as num?)?.toInt(),
       attributes: CharacterAttributes.fromJson(json),
       details: CharacterDetails.fromJson(json),
+      currentPv: (json['current_pv'] as num?)?.toInt(),
+      currentPe: (json['current_pe'] as num?)?.toInt(),
+      currentPs: (json['current_ps'] as num?)?.toInt(),
     );
   }
 }

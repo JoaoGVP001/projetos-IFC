@@ -54,6 +54,9 @@ def create_character():
             user_id=data.get('user_id')
         )
         
+        # Inicializar valores de combate com os máximos calculados
+        character.initialize_combat_stats()
+        
         db.session.add(character)
         db.session.commit()
         

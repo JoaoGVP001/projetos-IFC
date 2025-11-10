@@ -68,6 +68,11 @@ class Character(db.Model):
     objective = db.Column(db.Text, nullable=True)
     origin = db.Column(db.String(255), nullable=True)
     
+    # Sistema de Combate - Valores atuais (podem ser alterados durante o jogo)
+    current_pv = db.Column(db.Integer, nullable=True)  # Pontos de Vida atuais
+    current_pe = db.Column(db.Integer, nullable=True)  # Pontos de Esforço atuais
+    current_ps = db.Column(db.Integer, nullable=True)  # Pontos de Sanidade atuais
+    
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -89,6 +94,27 @@ class Character(db.Model):
         lazy=True,
         cascade='all, delete-orphan'
     )
+    
+    def calculate_max_pv(self):
+        """Calcula o PV máximo baseado nos atributos: 10 + 5*VIG + 2*FOR"""
+        return 10 + (self.vigor * 5) + (self.forca * 2)
+    
+    def calculate_max_pe(self):
+        """Calcula o PE máximo baseado nos atributos: 6 + 4*INT + 2*PRE"""
+        return 6 + (self.intelecto * 4) + (self.presenca * 2)
+    
+    def calculate_max_ps(self):
+        """Calcula o PS máximo baseado nos atributos: 8 + 3*INT + 3*PRE"""
+        return 8 + (self.intelecto * 3) + (self.presenca * 3)
+    
+    def initialize_combat_stats(self):
+        """Inicializa os valores atuais de combate com os valores máximos"""
+        if self.current_pv is None:
+            self.current_pv = self.calculate_max_pv()
+        if self.current_pe is None:
+            self.current_pe = self.calculate_max_pe()
+        if self.current_ps is None:
+            self.current_ps = self.calculate_max_ps()
     
     def to_dict(self, include_relationships=False):
         """Converte o personagem para dicionário"""
@@ -113,6 +139,12 @@ class Character(db.Model):
             'objective': self.objective,
             'origin': self.origin,
             'user_id': self.user_id,
+            'current_pv': self.current_pv,
+            'current_pe': self.current_pe,
+            'current_ps': self.current_ps,
+            'max_pv': self.calculate_max_pv(),
+            'max_pe': self.calculate_max_pe(),
+            'max_ps': self.calculate_max_ps(),
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }

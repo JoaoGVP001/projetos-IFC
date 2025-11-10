@@ -1,14 +1,37 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io' show Platform;
+import 'dart:io' show Platform, SocketException;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
+import 'package:sigilrpg/config/api_config.dart';
 
+/// Resolve a URL base da API dependendo do ambiente
+/// 
+/// - Web: localhost:8000
+/// - Android Emulator: 10.0.2.2:8000 (IP especial do emulador)
+/// - Android Dispositivo Físico: usa o IP configurado em ApiConfig
+/// - Outros: localhost:8000
 String resolveBaseUrl() {
-  if (kIsWeb) return 'http://localhost:8000';
+  if (kIsWeb) {
+    return 'http://localhost:8000';
+  }
+  
   try {
-    if (Platform.isAndroid) return 'http://10.0.2.2:8000';
+    if (Platform.isAndroid) {
+      // Tentar detectar se está rodando no emulador
+      // Emulador Android geralmente tem o hostname contendo "emulator" ou "sdk"
+      // Mas a forma mais simples é verificar se estamos em modo debug (geralmente emulador)
+      // ou usar uma variável de ambiente
+      
+      // Para produção (APK instalado), sempre usar o IP configurado
+      // Para desenvolvimento (emulador), pode usar 10.0.2.2
+      // 
+      // Por padrão, vamos usar o IP configurado que funciona tanto para
+      // emulador (se você configurar o IP do host) quanto para dispositivo físico
+      return ApiConfig.baseUrl;
+    }
   } catch (_) {}
+  
   return 'http://localhost:8000';
 }
 
@@ -32,11 +55,24 @@ class ApiClient {
     String path, {
     Map<String, dynamic>? query,
   }) async {
-    final res = await _client
-        .get(_uri(path, query), headers: _headers())
-        .timeout(_timeout);
-    _ensureSuccess(res);
-    return _decode(res.body) as Map<String, dynamic>;
+    try {
+      final res = await _client
+          .get(_uri(path, query), headers: _headers())
+          .timeout(_timeout);
+      _ensureSuccess(res);
+      return _decode(res.body) as Map<String, dynamic>;
+    } on TimeoutException {
+      throw HttpException('Tempo de conexão esgotado. Verifique se a API está rodando em $_baseUrl');
+    } on SocketException catch (e) {
+      throw HttpException('Não foi possível conectar ao servidor ($_baseUrl). Verifique:\n'
+          '1. Se a API está rodando\n'
+          '2. Se o celular e notebook estão na mesma rede Wi-Fi\n'
+          '3. Se o firewall permite conexões na porta 8000\n\n'
+          'Erro: ${e.message}');
+    } catch (e) {
+      if (e is HttpException) rethrow;
+      throw HttpException('Erro de conexão: $e');
+    }
   }
 
   Future<List<dynamic>> getJsonList(
@@ -67,15 +103,28 @@ class ApiClient {
     Map<String, dynamic>? body,
     Map<String, dynamic>? query,
   }) async {
-    final res = await _client
-        .post(
-          _uri(path, query),
-          headers: _headers(contentType: true),
-          body: body != null ? json.encode(body) : null,
-        )
-        .timeout(_timeout);
-    _ensureSuccess(res);
-    return _decode(res.body) as Map<String, dynamic>;
+    try {
+      final res = await _client
+          .post(
+            _uri(path, query),
+            headers: _headers(contentType: true),
+            body: body != null ? json.encode(body) : null,
+          )
+          .timeout(_timeout);
+      _ensureSuccess(res);
+      return _decode(res.body) as Map<String, dynamic>;
+    } on TimeoutException {
+      throw HttpException('Tempo de conexão esgotado. Verifique se a API está rodando em $_baseUrl');
+    } on SocketException catch (e) {
+      throw HttpException('Não foi possível conectar ao servidor ($_baseUrl). Verifique:\n'
+          '1. Se a API está rodando\n'
+          '2. Se o celular e notebook estão na mesma rede Wi-Fi\n'
+          '3. Se o firewall permite conexões na porta 8000\n\n'
+          'Erro: ${e.message}');
+    } catch (e) {
+      if (e is HttpException) rethrow;
+      throw HttpException('Erro de conexão: $e');
+    }
   }
 
   Future<Map<String, dynamic>> patchJson(

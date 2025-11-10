@@ -25,10 +25,14 @@ import 'package:sigilrpg/views/auth/login_view.dart';
 import 'package:sigilrpg/views/auth/register_view.dart';
 import 'package:sigilrpg/views/fights/fights_view.dart';
 import 'package:sigilrpg/services/notification_service.dart';
+import 'package:sigilrpg/services/permission_service.dart';
 import 'package:sigilrpg/views/admin/admin_users_list_view.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Solicitar permissões necessárias (notificações, etc)
+  await PermissionService().ensurePermissions();
   
   // Inicializa o serviço de notificações
   await NotificationService().initialize();

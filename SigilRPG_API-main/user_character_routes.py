@@ -91,6 +91,9 @@ def create_user_character():
             objective=data.get('objective')
         )
         
+        # Inicializar valores de combate com os máximos calculados
+        character.initialize_combat_stats()
+        
         db.session.add(character)
         db.session.commit()
         
@@ -101,7 +104,15 @@ def create_user_character():
         
     except Exception as e:
         db.session.rollback()
-        return jsonify({'message': 'error_creating_character'}), 500
+        import traceback
+        error_trace = traceback.format_exc()
+        print(f"Erro ao criar personagem: {str(e)}")
+        print(f"Traceback: {error_trace}")
+        return jsonify({
+            'message': 'error_creating_character',
+            'error': str(e),
+            'error_type': type(e).__name__
+        }), 500
 
 @user_character_bp.route('/', methods=['GET'])
 @jwt_required()
@@ -123,9 +134,14 @@ def list_user_characters():
         }), 200
         
     except Exception as e:
+        import traceback
+        error_trace = traceback.format_exc()
+        print(f"Erro ao listar personagens: {str(e)}")
+        print(f"Traceback: {error_trace}")
         return jsonify({
             'message': 'error_retrieving_characters',
-            'error': str(e)
+            'error': str(e),
+            'error_type': type(e).__name__
         }), 500
 
 @user_character_bp.route('/<int:character_id>', methods=['GET'])
@@ -236,6 +252,20 @@ def update_user_character(character_id):
             character.background = data['background']
         if 'objective' in data:
             character.objective = data['objective']
+        
+        # Atualizar valores de combate se fornecidos
+        if 'current_pv' in data:
+            pv = _safe_int(data.get('current_pv'))
+            if pv is not None and pv >= 0:
+                character.current_pv = min(pv, character.calculate_max_pv())  # Não pode exceder o máximo
+        if 'current_pe' in data:
+            pe = _safe_int(data.get('current_pe'))
+            if pe is not None and pe >= 0:
+                character.current_pe = min(pe, character.calculate_max_pe())  # Não pode exceder o máximo
+        if 'current_ps' in data:
+            ps = _safe_int(data.get('current_ps'))
+            if ps is not None and ps >= 0:
+                character.current_ps = min(ps, character.calculate_max_ps())  # Não pode exceder o máximo
         
         db.session.commit()
         
