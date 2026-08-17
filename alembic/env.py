@@ -10,7 +10,7 @@ from app.core.config import settings
 
 from app.models.produto import Produto
 from app.models.usuario import Usuario
-
+from app.models.venda import Venda, ItemVenda
 
 # Configuração do Alembic
 config = context.config
