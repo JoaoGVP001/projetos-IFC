@@ -1,11 +1,6 @@
 from fastapi import FastAPI
 
-from app.core.database import Base, engine
 from app.routers import auth, produtos
-
-# Cria as tabelas no banco automaticamente se ainda não existirem.
-# Para projetos maiores, o ideal é trocar isso por migrations com Alembic.
-Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="Dashboard de Vendas e Estoque",
