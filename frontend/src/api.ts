@@ -5,6 +5,7 @@ export type Usuario = {
   username: string;
   email: string;
   ativo: boolean;
+  perfil: "ADMIN" | "OPERADOR" | "FISCAL";
 };
 
 export type Produto = {
@@ -27,9 +28,34 @@ export type ItemVenda = {
 export type Venda = {
   id: number;
   usuario_id: number;
+  cliente_id: number | null;
   data: string;
   valor_total: string;
+  status: "CONCLUIDA" | "CANCELADA";
+  data_cancelamento: string | null;
+  motivo_cancelamento: string | null;
   itens: ItemVenda[];
+};
+
+export type Cliente = {
+  id: number;
+  nome: string;
+  cpf_cnpj: string | null;
+  email: string | null;
+  telefone: string | null;
+  endereco: string | null;
+};
+
+export type MovimentacaoEstoque = {
+  id: number;
+  produto_id: number;
+  tipo: string;
+  quantidade: number;
+  origem: string;
+  descricao: string | null;
+  venda_id: number | null;
+  usuario_id: number | null;
+  data: string;
 };
 
 export type Resumo = {
@@ -90,6 +116,28 @@ export const api = {
   excluirProduto: (token: string, id: number) =>
     request<void>(`/produtos/${id}`, token, { method: "DELETE" }),
   vendas: (token: string) => request<Venda[]>("/vendas", token),
-  registrarVenda: (token: string, itens: { produto_id: number; quantidade: number }[]) =>
-    request<Venda>("/vendas", token, { method: "POST", body: JSON.stringify({ itens }) }),
+  registrarVenda: (
+    token: string,
+    itens: { produto_id: number; quantidade: number }[],
+    clienteId?: number,
+  ) => request<Venda>("/vendas", token, {
+    method: "POST",
+    body: JSON.stringify({ itens, ...(clienteId ? { cliente_id: clienteId } : {}) }),
+  }),
+  cancelarVenda: (token: string, id: number, motivo: string) =>
+    request<Venda>(`/vendas/${id}/cancelamento`, token, {
+      method: "POST", body: JSON.stringify({ motivo }),
+    }),
+  clientes: (token: string, busca = "") =>
+    request<Cliente[]>(`/clientes${busca ? `?busca=${encodeURIComponent(busca)}` : ""}`, token),
+  criarCliente: (token: string, cliente: Omit<Cliente, "id">) =>
+    request<Cliente>("/clientes", token, { method: "POST", body: JSON.stringify(cliente) }),
+  atualizarCliente: (token: string, id: number, cliente: Partial<Omit<Cliente, "id">>) =>
+    request<Cliente>(`/clientes/${id}`, token, { method: "PUT", body: JSON.stringify(cliente) }),
+  movimentacoes: (token: string) =>
+    request<MovimentacaoEstoque[]>("/estoque/movimentacoes", token),
+  entradaEstoque: (token: string, dados: { produto_id: number; quantidade: number; descricao?: string }) =>
+    request<Produto>("/estoque/entradas", token, { method: "POST", body: JSON.stringify(dados) }),
+  ajusteEstoque: (token: string, dados: { produto_id: number; quantidade: number; descricao: string }) =>
+    request<Produto>("/estoque/ajustes", token, { method: "POST", body: JSON.stringify(dados) }),
 };
