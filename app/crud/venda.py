@@ -40,38 +40,45 @@ def criar_venda(db: Session, usuario_id: int, venda: VendaCreate) -> Venda:
     a quantidade vendida de cada produto. Tudo dentro de uma única
     transação: se qualquer item falhar, nada é gravado.
     """
+    quantidades_por_produto: dict[int, int] = {}
+
+    for item in venda.itens:
+        quantidades_por_produto[item.produto_id] = (
+            quantidades_por_produto.get(item.produto_id, 0) + item.quantidade
+        )
+
     produtos_cache: dict[int, Produto] = {}
 
     # 1. Validar todos os itens antes de mexer em qualquer coisa
-    for item in venda.itens:
-        produto = db.query(Produto).filter(Produto.id == item.produto_id).first()
+    for produto_id, quantidade in quantidades_por_produto.items():
+        produto = db.query(Produto).filter(Produto.id == produto_id).first()
         if not produto:
-            raise ProdutoNaoEncontradoError(item.produto_id)
-        if produto.quantidade_estoque < item.quantidade:
+            raise ProdutoNaoEncontradoError(produto_id)
+        if produto.quantidade_estoque < quantidade:
             raise EstoqueInsuficienteError(
-                produto.nome, produto.quantidade_estoque, item.quantidade
+                produto.nome, produto.quantidade_estoque, quantidade
             )
-        produtos_cache[item.produto_id] = produto
+        produtos_cache[produto_id] = produto
 
     # 2. Calcular o valor total e montar os itens da venda
     valor_total = sum(
-        produtos_cache[item.produto_id].preco * item.quantidade
-        for item in venda.itens
+        produtos_cache[produto_id].preco * quantidade
+        for produto_id, quantidade in quantidades_por_produto.items()
     )
 
     nova_venda = Venda(usuario_id=usuario_id, valor_total=valor_total)
 
-    for item in venda.itens:
-        produto = produtos_cache[item.produto_id]
+    for produto_id, quantidade in quantidades_por_produto.items():
+        produto = produtos_cache[produto_id]
         nova_venda.itens.append(
             ItemVenda(
                 produto_id=produto.id,
-                quantidade=item.quantidade,
+                quantidade=quantidade,
                 preco_unitario=produto.preco,
             )
         )
         # 3. Baixa de estoque
-        produto.quantidade_estoque -= item.quantidade
+        produto.quantidade_estoque -= quantidade
 
     try:
         db.add(nova_venda)
