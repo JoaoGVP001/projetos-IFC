@@ -2,7 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.deps import get_current_user
+from app.core.deps import get_current_user, require_roles
+from app.models.usuario import PerfilUsuario, Usuario
+from app.modules.estoque.service import EstoqueInsuficienteError, EstoqueService
 from app.schemas.produto import ProdutoCreate, ProdutoUpdate, ProdutoOut
 from app.crud import produto as crud_produto
 
@@ -39,18 +41,60 @@ def obter(produto_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("", response_model=ProdutoOut, status_code=status.HTTP_201_CREATED)
-def criar(produto: ProdutoCreate, db: Session = Depends(get_db)):
+def criar(
+    produto: ProdutoCreate,
+    db: Session = Depends(get_db),
+    usuario: Usuario = Depends(require_roles(PerfilUsuario.ADMIN)),
+):
     try:
-        return crud_produto.criar_produto(db, produto)
-    except crud_produto.ProdutoConflitoError as error:
+        quantidade_inicial = produto.quantidade_estoque
+        produto_sem_saldo = produto.model_copy(update={"quantidade_estoque": 0})
+        novo_produto = crud_produto.criar_produto(db, produto_sem_saldo, commit=False)
+        if quantidade_inicial:
+            EstoqueService(db).registrar_entrada(
+                novo_produto.id,
+                quantidade_inicial,
+                usuario.id,
+                "Estoque inicial do cadastro do produto",
+            )
+        db.commit()
+        db.refresh(novo_produto)
+        return novo_produto
+    except (crud_produto.ProdutoConflitoError, EstoqueInsuficienteError) as error:
+        db.rollback()
         raise HTTPException(status_code=409, detail=str(error))
 
 
 @router.put("/{produto_id}", response_model=ProdutoOut)
-def atualizar(produto_id: int, dados: ProdutoUpdate, db: Session = Depends(get_db)):
+def atualizar(
+    produto_id: int,
+    dados: ProdutoUpdate,
+    db: Session = Depends(get_db),
+    usuario: Usuario = Depends(require_roles(PerfilUsuario.ADMIN)),
+):
     try:
-        produto = crud_produto.atualizar_produto(db, produto_id, dados)
-    except crud_produto.ProdutoConflitoError as error:
+        produto_atual = crud_produto.obter_produto(db, produto_id)
+        if not produto_atual:
+            raise HTTPException(status_code=404, detail="Produto não encontrado")
+        campos = dados.model_dump(exclude_unset=True)
+        estoque_informado = campos.pop("quantidade_estoque", None)
+        produto = crud_produto.atualizar_produto(
+            db, produto_id, ProdutoUpdate(**campos), commit=False
+        )
+        if (
+            estoque_informado is not None
+            and estoque_informado != produto_atual.quantidade_estoque
+        ):
+            EstoqueService(db).ajustar(
+                produto_id,
+                estoque_informado - produto_atual.quantidade_estoque,
+                usuario.id,
+                "Ajuste pelo cadastro do produto",
+            )
+        db.commit()
+        db.refresh(produto)
+    except (crud_produto.ProdutoConflitoError, EstoqueInsuficienteError) as error:
+        db.rollback()
         raise HTTPException(status_code=409, detail=str(error))
     if not produto:
         raise HTTPException(status_code=404, detail="Produto não encontrado")
@@ -58,7 +102,11 @@ def atualizar(produto_id: int, dados: ProdutoUpdate, db: Session = Depends(get_d
 
 
 @router.delete("/{produto_id}", status_code=status.HTTP_204_NO_CONTENT)
-def deletar(produto_id: int, db: Session = Depends(get_db)):
+def deletar(
+    produto_id: int,
+    db: Session = Depends(get_db),
+    _: Usuario = Depends(require_roles(PerfilUsuario.ADMIN)),
+):
     try:
         deletado = crud_produto.deletar_produto(db, produto_id)
     except crud_produto.ProdutoComVendasError as error:

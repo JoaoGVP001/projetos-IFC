@@ -11,6 +11,11 @@ class ItemVendaCreate(BaseModel):
 
 class VendaCreate(BaseModel):
     itens: list[ItemVendaCreate] = Field(min_length=1)
+    cliente_id: int | None = Field(default=None, gt=0)
+
+
+class VendaCancelamento(BaseModel):
+    motivo: str = Field(min_length=3, max_length=255)
 
 
 class ItemVendaOut(BaseModel):
@@ -27,8 +32,12 @@ class ItemVendaOut(BaseModel):
 class VendaOut(BaseModel):
     id: int
     usuario_id: int
+    cliente_id: int | None
     data: datetime
     valor_total: Decimal
+    status: str
+    data_cancelamento: datetime | None
+    motivo_cancelamento: str | None
     itens: list[ItemVendaOut]
 
     model_config = ConfigDict(from_attributes=True)

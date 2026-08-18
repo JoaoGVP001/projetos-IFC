@@ -11,6 +11,8 @@ from app.core.config import settings
 from app.models.produto import Produto
 from app.models.usuario import Usuario
 from app.models.venda import Venda, ItemVenda
+from app.modules.clientes.models import Cliente
+from app.modules.estoque.models import MovimentacaoEstoque, ReservaEstoque
 
 # Configuração do Alembic
 config = context.config

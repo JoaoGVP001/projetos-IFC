@@ -1,5 +1,7 @@
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
+from app.models.usuario import PerfilUsuario
+
 
 class UsuarioBase(BaseModel):
     username: str = Field(min_length=1, max_length=50)
@@ -13,6 +15,7 @@ class UsuarioCreate(UsuarioBase):
 class UsuarioOut(UsuarioBase):
     id: int
     ativo: bool
+    perfil: PerfilUsuario
 
     model_config = ConfigDict(from_attributes=True)
 

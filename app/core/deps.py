@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.security import decode_access_token
-from app.models.usuario import Usuario
+from app.models.usuario import PerfilUsuario, Usuario
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
@@ -41,3 +41,17 @@ def get_current_user(
         )
 
     return usuario
+
+
+def require_roles(*perfis: PerfilUsuario):
+    """Cria uma dependencia que limita a rota aos perfis informados."""
+
+    def validar_perfil(usuario: Usuario = Depends(get_current_user)) -> Usuario:
+        if usuario.perfil not in {perfil.value for perfil in perfis}:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Usuário não possui permissão para esta operação",
+            )
+        return usuario
+
+    return validar_perfil

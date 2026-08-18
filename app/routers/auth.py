@@ -12,7 +12,7 @@ from app.crud.usuario import (
     get_usuario_by_email,
     get_usuario_by_username,
 )
-from app.models.usuario import Usuario
+from app.models.usuario import PerfilUsuario, Usuario
 
 router = APIRouter(prefix="/auth", tags=["Autenticação"])
 
@@ -23,7 +23,8 @@ def registrar(usuario: UsuarioCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=409, detail="Username já está em uso")
     if get_usuario_by_email(db, usuario.email):
         raise HTTPException(status_code=409, detail="E-mail já está em uso")
-    return criar_usuario(db, usuario)
+    perfil = PerfilUsuario.ADMIN if db.query(Usuario).count() == 0 else PerfilUsuario.OPERADOR
+    return criar_usuario(db, usuario, perfil=perfil)
 
 
 @router.post("/login", response_model=Token)

@@ -1,6 +1,6 @@
 # Dashboard de Vendas e Estoque
 
-API REST para gerenciamento de produtos, estoque, usuários e vendas.
+API REST para gerenciamento de produtos, estoque, clientes, usuários e vendas.
 
 Projeto desenvolvido com Python e FastAPI, utilizando PostgreSQL como banco de dados e Alembic para controle de migrations.
 
@@ -45,6 +45,30 @@ Cada produto possui:
 - Código de barras
 - Preço
 - Quantidade em estoque
+
+Somente usuários `ADMIN` podem criar, editar e excluir produtos. Toda quantidade
+inicial ou alteração de saldo gera uma movimentação de estoque.
+
+### Estoque
+
+- Entrada e ajuste manual de estoque
+- Reserva e baixa automática em vendas
+- Devolução automática no cancelamento da venda
+- Histórico auditável de entradas, saídas, reservas, ajustes e devoluções
+
+### Vendas e clientes
+
+- Venda com múltiplos itens e preço registrado no momento da compra
+- Cliente opcional vinculado à venda
+- Cancelamento de venda com reversão do estoque
+- Dashboard considera somente vendas concluídas no faturamento
+
+### Permissões
+
+- O primeiro usuário registrado recebe o perfil `ADMIN`
+- Usuários posteriores recebem o perfil `OPERADOR`
+- `ADMIN`: produtos, estoque e dashboard
+- `OPERADOR`: vendas e clientes
 
 ### Banco de dados
 
@@ -264,6 +288,25 @@ DELETE /produtos/{produto_id}
 POST /vendas
 GET  /vendas
 GET  /vendas/{venda_id}
+POST /vendas/{venda_id}/cancelamento
+```
+
+## Clientes
+
+```text
+GET  /clientes
+POST /clientes
+GET  /clientes/{cliente_id}
+PUT  /clientes/{cliente_id}
+```
+
+## Estoque
+
+```text
+GET  /estoque/{produto_id}
+GET  /estoque/movimentacoes?produto_id=1
+POST /estoque/entradas
+POST /estoque/ajustes
 ```
 
 ## Dashboard
@@ -398,24 +441,18 @@ Usuário
 
 ### Vendas
 
-* [ ] Criar modelo `Venda`
-* [ ] Criar modelo `ItemVenda`
-* [ ] Relacionar vendas aos usuários
-* [ ] Relacionar itens aos produtos
-* [ ] Registrar quantidade vendida
-* [ ] Registrar preço praticado na venda
-* [ ] Calcular valor total da venda
-* [ ] Baixa automática do estoque
-* [ ] Validação de estoque disponível
-* [ ] Histórico das vendas
+* [x] Registro de vendas e itens
+* [x] Baixa automática e cancelamento com devolução
+* [x] Histórico das vendas
+* [x] Cadastro e vínculo opcional de clientes
 
 ### Estoque
 
-* [ ] Registrar movimentações de estoque
-* [ ] Histórico de entradas e saídas
+* [x] Registrar movimentações de estoque
+* [x] Histórico de entradas e saídas
 * [ ] Controle de estoque mínimo
 * [ ] Relatório de estoque baixo
-* [ ] Controle de ajustes de estoque
+* [x] Controle de ajustes de estoque
 
 ### Relatórios
 

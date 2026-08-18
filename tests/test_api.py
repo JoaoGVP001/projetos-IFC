@@ -155,3 +155,86 @@ def test_erros_de_venda_e_cors_para_o_frontend(db):
         assert resposta.headers["access-control-allow-origin"] == "http://localhost:5173"
     finally:
         app.dependency_overrides.clear()
+
+
+def test_cliente_cancelamento_movimentacoes_e_perfis(db):
+    client = criar_cliente(db)
+    try:
+        admin_headers = criar_usuario_e_token(client)
+
+        resposta = client.post(
+            "/produtos",
+            headers=admin_headers,
+            json={"nome": "Livro", "preco": "40.00", "quantidade_estoque": 3},
+        )
+        produto_id = resposta.json()["id"]
+
+        resposta = client.post(
+            "/clientes",
+            headers=admin_headers,
+            json={"nome": "Maria", "cpf_cnpj": "123.456.789-01"},
+        )
+        assert resposta.status_code == 201
+        cliente_id = resposta.json()["id"]
+        assert resposta.json()["cpf_cnpj"] == "12345678901"
+
+        resposta = client.post(
+            "/vendas",
+            headers=admin_headers,
+            json={
+                "cliente_id": cliente_id,
+                "itens": [{"produto_id": produto_id, "quantidade": 2}],
+            },
+        )
+        assert resposta.status_code == 201
+        venda_id = resposta.json()["id"]
+        assert resposta.json()["cliente_id"] == cliente_id
+        assert resposta.json()["status"] == "CONCLUIDA"
+
+        resposta = client.get(
+            f"/estoque/movimentacoes?produto_id={produto_id}", headers=admin_headers
+        )
+        assert resposta.status_code == 200
+        assert {item["tipo"] for item in resposta.json()} == {"ENTRADA", "RESERVA", "SAIDA"}
+
+        resposta = client.post(
+            f"/vendas/{venda_id}/cancelamento",
+            headers=admin_headers,
+            json={"motivo": "Cliente desistiu da compra"},
+        )
+        assert resposta.status_code == 200
+        assert resposta.json()["status"] == "CANCELADA"
+
+        resposta = client.get(f"/produtos/{produto_id}", headers=admin_headers)
+        assert resposta.json()["quantidade_estoque"] == 3
+        resposta = client.get("/dashboard/resumo", headers=admin_headers)
+        assert resposta.json()["total_vendas"] == 0
+        assert resposta.json()["faturamento_total"] == "0.00"
+        assert client.post(
+            f"/vendas/{venda_id}/cancelamento",
+            headers=admin_headers,
+            json={"motivo": "Tentativa repetida"},
+        ).status_code == 409
+
+        resposta = client.post(
+            "/auth/registrar",
+            json={"username": "operador", "email": "operador@example.com", "senha": "senha-segura"},
+        )
+        assert resposta.status_code == 201
+        assert resposta.json()["perfil"] == "OPERADOR"
+        resposta = client.post(
+            "/auth/login", data={"username": "operador", "password": "senha-segura"}
+        )
+        operador_headers = {"Authorization": f"Bearer {resposta.json()['access_token']}"}
+        assert client.post(
+            "/produtos",
+            headers=operador_headers,
+            json={"nome": "Nao pode", "preco": "1.00", "quantidade_estoque": 1},
+        ).status_code == 403
+        assert client.post(
+            "/vendas",
+            headers=operador_headers,
+            json={"itens": [{"produto_id": produto_id, "quantidade": 1}]},
+        ).status_code == 201
+    finally:
+        app.dependency_overrides.clear()

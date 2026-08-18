@@ -13,8 +13,14 @@ def obter_resumo(db: Session, limite_estoque: int) -> dict[str, int | Decimal]:
 
     return {
         "total_produtos": db.query(func.count(Produto.id)).scalar() or 0,
-        "total_vendas": db.query(func.count(Venda.id)).scalar() or 0,
-        "faturamento_total": db.query(func.coalesce(func.sum(Venda.valor_total), 0)).scalar(),
+        "total_vendas": (
+            db.query(func.count(Venda.id)).filter(Venda.status == "CONCLUIDA").scalar() or 0
+        ),
+        "faturamento_total": (
+            db.query(func.coalesce(func.sum(Venda.valor_total), 0))
+            .filter(Venda.status == "CONCLUIDA")
+            .scalar()
+        ),
         "produtos_estoque_baixo": (
             db.query(func.count(Produto.id))
             .filter(Produto.quantidade_estoque <= limite_estoque)
@@ -22,11 +28,14 @@ def obter_resumo(db: Session, limite_estoque: int) -> dict[str, int | Decimal]:
             or 0
         ),
         "vendas_hoje": (
-            db.query(func.count(Venda.id)).filter(Venda.data >= inicio_hoje).scalar() or 0
+            db.query(func.count(Venda.id))
+            .filter(Venda.data >= inicio_hoje, Venda.status == "CONCLUIDA")
+            .scalar()
+            or 0
         ),
         "faturamento_hoje": (
             db.query(func.coalesce(func.sum(Venda.valor_total), 0))
-            .filter(Venda.data >= inicio_hoje)
+            .filter(Venda.data >= inicio_hoje, Venda.status == "CONCLUIDA")
             .scalar()
         ),
     }

@@ -3,9 +3,15 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.deps import get_current_user
-from app.schemas.venda import VendaCreate, VendaOut
+from app.schemas.venda import VendaCancelamento, VendaCreate, VendaOut
 from app.crud import venda as crud_venda
 from app.models.usuario import Usuario
+from app.modules.vendas.service import (
+    ClienteNaoEncontradoError,
+    VendaNaoCancelavelError,
+    VendaNaoEncontradaError,
+    VendaService,
+)
 
 router = APIRouter(
     prefix="/vendas",
@@ -26,6 +32,8 @@ def registrar_venda(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except crud_venda.ProdutoNaoEncontradoError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except ClienteNaoEncontradoError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
 
 
 @router.get("", response_model=list[VendaOut])
@@ -35,6 +43,21 @@ def listar(
     db: Session = Depends(get_db),
 ):
     return crud_venda.listar_vendas(db, skip, limit)
+
+
+@router.post("/{venda_id}/cancelamento", response_model=VendaOut)
+def cancelar_venda(
+    venda_id: int,
+    dados: VendaCancelamento,
+    db: Session = Depends(get_db),
+    usuario_atual: Usuario = Depends(get_current_user),
+):
+    try:
+        return VendaService(db).cancelar(venda_id, usuario_atual.id, dados.motivo)
+    except VendaNaoEncontradaError as erro:
+        raise HTTPException(status_code=404, detail=str(erro))
+    except VendaNaoCancelavelError as erro:
+        raise HTTPException(status_code=409, detail=str(erro))
 
 
 @router.get("/{venda_id}", response_model=VendaOut)
