@@ -14,7 +14,7 @@ class ProdutoCreate(ProdutoBase):
 
 
 class ProdutoUpdate(BaseModel):
-    nome: str | None = None
+    nome: str | None = Field(default=None, min_length=1, max_length=150)
     codigo_barras: str | None = None
     preco: Decimal | None = Field(default=None, gt=0)
     quantidade_estoque: int | None = Field(default=None, ge=0)

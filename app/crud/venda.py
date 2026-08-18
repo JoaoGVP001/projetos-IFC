@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from app.models.produto import Produto
 from app.models.venda import Venda, ItemVenda
@@ -27,11 +27,23 @@ class ProdutoNaoEncontradoError(Exception):
 
 
 def listar_vendas(db: Session, skip: int = 0, limit: int = 100) -> list[Venda]:
-    return db.query(Venda).offset(skip).limit(limit).all()
+    return (
+        db.query(Venda)
+        .options(selectinload(Venda.itens).selectinload(ItemVenda.produto))
+        .order_by(Venda.data.desc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
 
 
 def obter_venda(db: Session, venda_id: int) -> Venda | None:
-    return db.query(Venda).filter(Venda.id == venda_id).first()
+    return (
+        db.query(Venda)
+        .options(selectinload(Venda.itens).selectinload(ItemVenda.produto))
+        .filter(Venda.id == venda_id)
+        .first()
+    )
 
 
 def criar_venda(db: Session, usuario_id: int, venda: VendaCreate) -> Venda:
@@ -51,7 +63,12 @@ def criar_venda(db: Session, usuario_id: int, venda: VendaCreate) -> Venda:
 
     # 1. Validar todos os itens antes de mexer em qualquer coisa
     for produto_id, quantidade in quantidades_por_produto.items():
-        produto = db.query(Produto).filter(Produto.id == produto_id).first()
+        produto = (
+            db.query(Produto)
+            .filter(Produto.id == produto_id)
+            .with_for_update()
+            .first()
+        )
         if not produto:
             raise ProdutoNaoEncontradoError(produto_id)
         if produto.quantidade_estoque < quantidade:

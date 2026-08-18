@@ -250,11 +250,54 @@ POST /auth/login
 ## Produtos
 
 ```text
-GET    /produtos/
-POST   /produtos/
+GET    /produtos?busca=termo
+GET    /produtos/estoque-baixo?limite=5
+POST   /produtos
 GET    /produtos/{produto_id}
 PUT    /produtos/{produto_id}
 DELETE /produtos/{produto_id}
+```
+
+## Vendas
+
+```text
+POST /vendas
+GET  /vendas
+GET  /vendas/{venda_id}
+```
+
+## Dashboard
+
+```text
+GET /dashboard/resumo?limite_estoque=5
+```
+
+## Usuário autenticado
+
+```text
+GET /auth/me
+```
+
+## Integração com frontend
+
+O backend permite requisições do frontend React em `http://localhost:5173`.
+Configure `CORS_ORIGINS` no arquivo `.env` para adicionar outras origens, separadas por vírgula.
+
+Após `POST /auth/login`, envie o token em todas as rotas protegidas:
+
+```text
+Authorization: Bearer SEU_TOKEN
+```
+
+Exemplo de criação de venda:
+
+```json
+{
+  "itens": [
+    {"produto_id": 1, "quantidade": 2},
+    {"produto_id": 5, "quantidade": 1}
+  ]
+}
 ```
 
 ## Status

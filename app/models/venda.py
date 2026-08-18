@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import Column, Integer, Numeric, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
@@ -11,7 +11,11 @@ class Venda(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     usuario_id = Column(Integer, ForeignKey("usuarios.id"), nullable=False)
-    data = Column(DateTime, default=datetime.utcnow, nullable=False)
+    data = Column(
+        DateTime,
+        default=lambda: datetime.now(timezone.utc).replace(tzinfo=None),
+        nullable=False,
+    )
     valor_total = Column(Numeric(10, 2), nullable=False, default=0)
 
     itens = relationship(
@@ -30,3 +34,11 @@ class ItemVenda(Base):
 
     venda = relationship("Venda", back_populates="itens")
     produto = relationship("Produto")
+
+    @property
+    def produto_nome(self) -> str:
+        return self.produto.nome
+
+    @property
+    def subtotal(self):
+        return self.preco_unitario * self.quantidade

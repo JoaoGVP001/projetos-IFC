@@ -9,6 +9,10 @@ def get_usuario_by_username(db: Session, username: str) -> Usuario | None:
     return db.query(Usuario).filter(Usuario.username == username).first()
 
 
+def get_usuario_by_email(db: Session, email: str) -> Usuario | None:
+    return db.query(Usuario).filter(Usuario.email == email).first()
+
+
 def criar_usuario(db: Session, usuario: UsuarioCreate) -> Usuario:
     novo_usuario = Usuario(
         username=usuario.username,

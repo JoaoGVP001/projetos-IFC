@@ -34,5 +34,10 @@ def get_current_user(
     usuario = db.query(Usuario).filter(Usuario.username == username).first()
     if usuario is None:
         raise credentials_exception
+    if not usuario.ativo:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Usuário inativo",
+        )
 
     return usuario

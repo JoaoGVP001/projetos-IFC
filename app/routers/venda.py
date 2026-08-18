@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -14,7 +14,7 @@ router = APIRouter(
 )
 
 
-@router.post("/", response_model=VendaOut, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=VendaOut, status_code=status.HTTP_201_CREATED)
 def registrar_venda(
     venda: VendaCreate,
     db: Session = Depends(get_db),
@@ -28,8 +28,12 @@ def registrar_venda(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
 
 
-@router.get("/", response_model=list[VendaOut])
-def listar(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+@router.get("", response_model=list[VendaOut])
+def listar(
+    skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=100, ge=1, le=100),
+    db: Session = Depends(get_db),
+):
     return crud_venda.listar_vendas(db, skip, limit)
 
 

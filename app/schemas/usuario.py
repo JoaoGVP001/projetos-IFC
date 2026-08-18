@@ -1,13 +1,13 @@
-from pydantic import BaseModel, EmailStr, ConfigDict
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 class UsuarioBase(BaseModel):
-    username: str
+    username: str = Field(min_length=1, max_length=50)
     email: EmailStr
 
 
 class UsuarioCreate(UsuarioBase):
-    senha: str  # senha em texto puro, só chega até aqui — vira hash antes de salvar
+    senha: str = Field(min_length=6)  # senha em texto puro, só chega até aqui — vira hash antes de salvar
 
 
 class UsuarioOut(UsuarioBase):

@@ -16,8 +16,10 @@ class VendaCreate(BaseModel):
 class ItemVendaOut(BaseModel):
     id: int
     produto_id: int
+    produto_nome: str
     quantidade: int
     preco_unitario: Decimal
+    subtotal: Decimal
 
     model_config = ConfigDict(from_attributes=True)
 
