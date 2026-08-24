@@ -21,7 +21,9 @@ body {
 }
 
 button,
-input {
+input,
+select,
+textarea {
   font: inherit;
 }
 
@@ -31,11 +33,24 @@ a {
 }
 
 .nav-item {
-  display: block;
   border-radius: 12px;
   padding: 11px 12px;
   color: #60716e;
   transition: background-color 160ms ease, color 160ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 .nav-item:hover {
