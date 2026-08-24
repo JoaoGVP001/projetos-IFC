@@ -1,0 +1,13 @@
+{
+  "name": "resolvehub",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix apps/web run dev",
+    "build": "npm --prefix apps/web run build",
+    "lint": "npm --prefix apps/web run lint",
+    "test": "npm --prefix apps/web run test",
+    "typecheck": "npm --prefix apps/web run typecheck",
+    "db:generate": "npm --prefix apps/web run db:generate"
+  }
+}
