@@ -11,6 +11,8 @@ O produto está sendo construído de forma incremental. A primeira entrega cont�
 - [x] Modelo PostgreSQL/pgvector com Drizzle.
 - [x] Inventário seguro de ZIP sem extração automática.
 - [x] Catálogo pesquisável das 1.037 fontes do Help e links oficiais das BDCs.
+- [x] Cadastro persistente de soluções com anexos, acessos e histórico de resultados.
+- [x] Visualização local de TXT, PDF, imagens e vídeos permitidos diretamente no site.
 - [x] Docker Compose para banco, aplicação e ferramenta de inventário.
 - [x] Testes iniciais do ranking híbrido e da política de ingestão.
 - [ ] Autenticação e autorização por papéis.
@@ -41,6 +43,16 @@ npm run dev
 ```
 
 A aplicação ficará disponível em `http://localhost:3000`.
+
+Para abrir os arquivos permitidos diretamente do pacote original, configure em `apps/web/.env.local`:
+
+```dotenv
+STORAGE_ROOT=../../storage
+HELP_ARCHIVE_PATH=C:/caminho/Help.zip
+RESOLVEHUB_ALLOW_REMOTE_UPLOADS=false
+```
+
+Soluções cadastradas, anexos, contadores de acesso e históricos são persistidos em `STORAGE_ROOT`, que permanece fora do Git. Até a autenticação ser implementada, upload e leitura de arquivos privados ficam restritos a `localhost` por padrão.
 
 ## Banco local
 

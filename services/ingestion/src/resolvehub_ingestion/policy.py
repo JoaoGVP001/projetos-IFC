@@ -10,7 +10,7 @@ DEFERRED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tif", ".tiff",
 BLOCKED_EXTENSIONS = {
     ".pfx", ".p12", ".pem", ".key", ".kdb", ".fdb", ".db", ".sqlite", ".sqlite3",
     ".exe", ".dll", ".sys", ".inf", ".cat", ".msi", ".bat", ".cmd", ".ps1", ".vbs",
-    ".reg", ".rar", ".7z", ".zip", ".tar", ".gz",
+    ".reg", ".apk", ".rar", ".7z", ".zip", ".tar", ".gz",
 }
 SECRET_NAME_PATTERN = re.compile(r"(^|[\s._-])(senhas?|passwords?|credentials?|secrets?|tokens?|api[_-]?keys?)([\s._-]|$)", re.IGNORECASE)
 PII_NAME_PATTERN = re.compile(r"(^|[\s._-])(cpf|cnpj|cliente|clientes)([\s._-]|$)", re.IGNORECASE)

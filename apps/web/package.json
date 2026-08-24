@@ -24,6 +24,7 @@
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "tailwind-merge": "^3.6.0",
+    "unzipper": "^0.12.5",
     "zod": "^4.4.3"
   },
   "devDependencies": {
@@ -32,6 +33,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/unzipper": "^0.10.11",
     "@vitest/coverage-v8": "^4.1.11",
     "drizzle-kit": "^0.31.10",
     "eslint": "^9",

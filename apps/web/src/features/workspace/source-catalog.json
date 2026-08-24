@@ -1,16 +1,16 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-08-24T17:44:05.349686+00:00",
+  "generated_at": "2026-08-24T18:22:41.810952+00:00",
   "archive_name": "Help.zip",
   "archive_files": 1037,
   "external_sources": 2,
   "total_sources": 1039,
   "by_decision": {
-    "block": 59,
+    "block": 60,
     "defer": 58,
     "include": 819,
     "review": 84,
-    "skip": 17
+    "skip": 16
   },
   "privacy": "Only reviewed metadata is included; protected filenames and file contents are omitted.",
   "items": [
@@ -11891,9 +11891,9 @@
       "category": "Help Geral",
       "extension": ".apk",
       "size_bytes": 4389563,
-      "status": "skip",
-      "status_label": "Formato não suportado",
-      "reason_label": "Formato ainda não atendido",
+      "status": "block",
+      "status_label": "Bloqueado por segurança",
+      "reason_label": "Formato protegido pela política de segurança",
       "masked_title": true
     },
     {

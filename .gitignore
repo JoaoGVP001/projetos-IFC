@@ -14,6 +14,7 @@ Help.zip
 data/imports/
 data/raw/
 storage/
+data/runtime/
 *.fdb
 *.sqlite
 *.sqlite3
@@ -42,4 +43,3 @@ Thumbs.db
 
 # Generated image staging (the selected public asset is copied into apps/web/public)
 output/
-

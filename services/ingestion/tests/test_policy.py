@@ -11,6 +11,7 @@ class PolicyTests(unittest.TestCase):
     def test_blocks_certificate_and_database_files(self) -> None:
         self.assertEqual(classify_entry("Help/certificado.pfx", 5_000).status, "block")
         self.assertEqual(classify_entry("Help/cliente.fdb", 5_000).status, "block")
+        self.assertEqual(classify_entry("Help/aplicativo.apk", 5_000).status, "block")
 
     def test_blocks_secret_filename_even_when_text(self) -> None:
         decision = classify_entry("Help/Senha - sistema.txt", 200)

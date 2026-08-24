@@ -1,25 +1,25 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-08-24T17:44:05.722669+00:00",
+  "generated_at": "2026-08-24T18:22:42.211404+00:00",
   "archive_name": "Help.zip",
   "archive_bytes": 220102807,
   "total_files": 1037,
   "total_uncompressed_bytes": 482624970,
   "by_decision": {
-    "block": 59,
+    "block": 60,
     "defer": 58,
     "include": 819,
     "review": 84,
-    "skip": 17
+    "skip": 16
   },
   "by_reason": {
-    "blocked_extension": 45,
+    "blocked_extension": 46,
     "future_ocr_or_media": 58,
     "manual_review": 84,
     "secret_filename": 13,
     "size_limit": 1,
     "supported_document": 819,
-    "unsupported_extension": 17
+    "unsupported_extension": 16
   },
   "by_extension": {
     ".apk": 1,

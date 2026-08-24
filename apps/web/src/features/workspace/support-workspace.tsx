@@ -4,25 +4,38 @@ import {
   BarChart3,
   BookOpen,
   Check,
+  CheckCircle2,
   ChevronRight,
   Clock3,
   Copy,
   Database,
   ExternalLink,
+  FileText,
+  History,
   Home,
   LogOut,
   Plus,
+  Paperclip,
   Search,
   Settings,
   Sparkles,
   Star,
   UserRound,
+  Upload,
   X,
+  XCircle,
 } from "lucide-react";
 import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import type {
+  AttachmentPreview,
+  SolutionActivity,
+  SolutionAttachment,
+  SolutionSnapshot,
+  UploadedSolution,
+} from "@/features/solutions/types";
 
 import {
   initialKnowledge,
@@ -96,6 +109,36 @@ function sourceStatusClass(status: SourceStatus) {
   return "bg-[#e9edeb] text-[#5f6d69]";
 }
 
+function uploadedSolutionToKnowledge(solution: UploadedSolution): KnowledgeItem {
+  return {
+    id: solution.id,
+    system: solution.system,
+    tone: toneForSystem(solution.system),
+    title: solution.title,
+    category: "Solução cadastrada · Persistente",
+    module: "Atendimento",
+    tags: [solution.system, "cadastro", "anexos"],
+    views: 0,
+    excerpt: solution.procedure || `Solução com ${solution.attachments.length} arquivo(s) anexado(s).`,
+    procedure: solution.procedure || "Consulte os arquivos anexados a esta solução.",
+    sourceLabel: "Cadastro local privado",
+  };
+}
+
+function sourcePreview(extension: string): AttachmentPreview {
+  if ([".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".jfif"].includes(extension)) return "image";
+  if (extension === ".pdf") return "pdf";
+  if (extension === ".mp4") return "video";
+  if ([".txt", ".md", ".csv", ".sql", ".yml", ".yaml", ".ini", ".htm", ".html"].includes(extension)) return "text";
+  return "download";
+}
+
+type ActiveFile = {
+  name: string;
+  url: string;
+  preview: AttachmentPreview;
+};
+
 type KnowledgeCardProps = {
   item: KnowledgeItem;
   favorite: boolean;
@@ -154,6 +197,12 @@ export function SupportWorkspace() {
   const [selected, setSelected] = useState<KnowledgeItem | null>(null);
   const [openCounts, setOpenCounts] = useState<Record<string, number>>({});
   const [aiPreview, setAiPreview] = useState<AiPreview | null>(null);
+  const [uploadedSolutions, setUploadedSolutions] = useState<UploadedSolution[]>([]);
+  const [activities, setActivities] = useState<Record<string, SolutionActivity>>({});
+  const [storageNotice, setStorageNotice] = useState<string | null>(null);
+  const [solutionSaving, setSolutionSaving] = useState(false);
+  const [uploadFiles, setUploadFiles] = useState<File[]>([]);
+  const [activeFile, setActiveFile] = useState<ActiveFile | null>(null);
   const [sourceQuery, setSourceQuery] = useState("");
   const [sourceStatus, setSourceStatus] = useState<SourceStatusFilter>("Todos");
   const [sourceLimit, setSourceLimit] = useState(24);
@@ -175,6 +224,33 @@ export function SupportWorkspace() {
     [sourceQuery, sourceStatus],
   );
   const visibleSources = filteredSources.slice(0, sourceLimit);
+  const selectedUploadedSolution = selected
+    ? uploadedSolutions.find((solution) => solution.id === selected.id)
+    : undefined;
+  const selectedActivity = selected
+    ? activities[selected.id] ?? { accessCount: openCounts[selected.id] ?? 0, history: [] }
+    : undefined;
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch("/api/solutions", { cache: "no-store", signal: controller.signal })
+      .then(async (response) => {
+        const payload = await response.json() as SolutionSnapshot & { error?: string };
+        if (!response.ok) throw new Error(payload.error || "Armazenamento indisponível.");
+        setUploadedSolutions(payload.solutions);
+        setActivities(payload.activities);
+        setOpenCounts(Object.fromEntries(
+          Object.entries(payload.activities).map(([id, activity]) => [id, activity.accessCount]),
+        ));
+        setItems([...payload.solutions.map(uploadedSolutionToKnowledge), ...initialKnowledge]);
+      })
+      .catch((error: unknown) => {
+        if ((error as Error).name !== "AbortError") {
+          setStorageNotice(error instanceof Error ? error.message : "Armazenamento local indisponível.");
+        }
+      });
+    return () => controller.abort();
+  }, []);
 
   useEffect(() => {
     if (!toast) return;
@@ -187,6 +263,7 @@ export function SupportWorkspace() {
       if (event.key !== "Escape") return;
       setSelected(null);
       setSelectedSource(null);
+      setActiveFile(null);
       setSolutionOpen(false);
       setUserMenuOpen(false);
     };
@@ -195,11 +272,11 @@ export function SupportWorkspace() {
   }, []);
 
   useEffect(() => {
-    document.body.style.overflow = selected || selectedSource || solutionOpen ? "hidden" : "";
+    document.body.style.overflow = selected || selectedSource || solutionOpen || activeFile ? "hidden" : "";
     return () => {
       document.body.style.overflow = "";
     };
-  }, [selected, selectedSource, solutionOpen]);
+  }, [activeFile, selected, selectedSource, solutionOpen]);
 
   function notify(message: string) {
     setToast(message);
@@ -243,6 +320,16 @@ export function SupportWorkspace() {
       ...current,
       [item.id]: (current[item.id] ?? 0) + 1,
     }));
+    void fetch(`/api/solutions/${item.id}/access`, { method: "POST" })
+      .then(async (response) => {
+        const payload = await response.json() as { activity?: SolutionActivity; error?: string };
+        if (!response.ok || !payload.activity) throw new Error(payload.error || "Falha ao registrar acesso.");
+        setActivities((current) => ({ ...current, [item.id]: payload.activity as SolutionActivity }));
+        setOpenCounts((current) => ({ ...current, [item.id]: payload.activity?.accessCount ?? current[item.id] }));
+      })
+      .catch((error: unknown) => {
+        setStorageNotice(error instanceof Error ? error.message : "Não foi possível registrar o acesso.");
+      });
   }
 
   function toggleFavorite(item: KnowledgeItem) {
@@ -276,36 +363,75 @@ export function SupportWorkspace() {
     }
   }
 
-  function createSolution(event: FormEvent<HTMLFormElement>) {
+  async function createSolution(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     const title = String(form.get("title") ?? "").trim();
-    const system = String(form.get("system") ?? "Interno") as KnowledgeSystem;
     const procedure = String(form.get("procedure") ?? "").trim();
-    if (!title || !procedure) {
-      notify("Preencha o título e o procedimento.");
+    if (!title || (!procedure && uploadFiles.length === 0)) {
+      notify("Informe um título e um procedimento ou anexe ao menos um arquivo.");
       return;
     }
+    setSolutionSaving(true);
+    try {
+      const response = await fetch("/api/solutions", { method: "POST", body: form });
+      const payload = await response.json() as { solution?: UploadedSolution; error?: string };
+      if (!response.ok || !payload.solution) throw new Error(payload.error || "Não foi possível salvar a solução.");
+      const solution = payload.solution;
+      const item = uploadedSolutionToKnowledge(solution);
+      setUploadedSolutions((current) => [solution, ...current]);
+      setItems((current) => [item, ...current]);
+      setActivities((current) => ({ ...current, [solution.id]: { accessCount: 0, history: [] } }));
+      setSolutionOpen(false);
+      setUploadFiles([]);
+      openItem(item);
+      formElement.reset();
+      notify("Solução e anexos salvos no armazenamento privado.");
+    } catch (error) {
+      notify(error instanceof Error ? error.message : "Não foi possível salvar a solução.");
+    } finally {
+      setSolutionSaving(false);
+    }
+  }
 
-    const newItem: KnowledgeItem = {
-      id: `session-${Date.now()}`,
-      system,
-      tone: toneForSystem(system),
-      title,
-      category: "Solução cadastrada · Sessão",
-      module: "Atendimento",
-      tags: [system, "cadastro", "sessão"],
-      views: 0,
-      excerpt: procedure,
-      procedure,
-      sourceLabel: "Cadastro desta sessão",
-    };
+  async function addHistoryEntry(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!selected) return;
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
+    const outcome = String(form.get("outcome")) as "success" | "failure";
+    const note = String(form.get("note") ?? "").trim();
+    try {
+      const response = await fetch(`/api/solutions/${selected.id}/history`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ outcome, note }),
+      });
+      const payload = await response.json() as { activity?: SolutionActivity; error?: string };
+      if (!response.ok || !payload.activity) throw new Error(payload.error || "Não foi possível registrar o resultado.");
+      setActivities((current) => ({ ...current, [selected.id]: payload.activity as SolutionActivity }));
+      formElement.reset();
+      notify("Novo registro adicionado ao histórico.");
+    } catch (error) {
+      notify(error instanceof Error ? error.message : "Não foi possível registrar o resultado.");
+    }
+  }
 
-    setItems((current) => [newItem, ...current]);
-    setSolutionOpen(false);
-    setSelected(newItem);
-    notify("Solução adicionada nesta sessão.");
-    event.currentTarget.reset();
+  function openUploadedFile(solutionId: string, attachment: SolutionAttachment) {
+    setActiveFile({
+      name: attachment.name,
+      preview: attachment.preview,
+      url: `/api/solutions/${solutionId}/files/${attachment.id}`,
+    });
+  }
+
+  function openSourceFile(source: SourceCatalogItem) {
+    setActiveFile({
+      name: source.title,
+      preview: sourcePreview(source.extension),
+      url: `/api/sources/${source.id}/file`,
+    });
   }
 
   return (
@@ -551,6 +677,11 @@ export function SupportWorkspace() {
                         <Button type="button" variant="outline" size="sm" onClick={() => setSelectedSource(source)}>
                           Ver detalhes
                         </Button>
+                        {source.status !== "block" && source.status !== "external" ? (
+                          <Button type="button" variant="ghost" size="sm" onClick={() => openSourceFile(source)}>
+                            <FileText size={14} aria-hidden="true" /> Abrir arquivo
+                          </Button>
+                        ) : null}
                         {source.url ? (
                           <Button asChild variant="ghost" size="sm">
                             <a href={source.url} target="_blank" rel="noreferrer">
@@ -689,6 +820,52 @@ export function SupportWorkspace() {
         </div>
       </div>
 
+      {activeFile ? (
+        <div className="fixed inset-0 z-[70] grid place-items-center bg-[#071a1a]/70 p-3 backdrop-blur-sm" role="presentation" onMouseDown={(event) => {
+          if (event.currentTarget === event.target) setActiveFile(null);
+        }}>
+          <section className="flex h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-[24px] bg-[#fbfcf9] shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="file-viewer-title">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#d7ddd6] px-5 py-4">
+              <div className="min-w-0">
+                <p className="eyebrow">Visualizador privado</p>
+                <h2 id="file-viewer-title" className="mt-1 truncate font-black">{activeFile.name}</h2>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button asChild variant="outline" size="sm">
+                  <a href={activeFile.url} target="_blank" rel="noreferrer">
+                    Abrir em nova guia <ExternalLink size={14} aria-hidden="true" />
+                  </a>
+                </Button>
+                <button type="button" aria-label="Fechar visualizador" className="rounded-full p-2 text-[#667572] hover:bg-[#e9eee7]" onClick={() => setActiveFile(null)}>
+                  <X size={20} aria-hidden="true" />
+                </button>
+              </div>
+            </div>
+            <div className="min-h-0 flex-1 bg-[#e9eeea] p-3 sm:p-5">
+              {activeFile.preview === "video" ? (
+                <video className="h-full w-full rounded-xl bg-black" controls preload="metadata">
+                  <source src={activeFile.url} />
+                  Seu navegador não conseguiu reproduzir este vídeo.
+                </video>
+              ) : activeFile.preview === "download" ? (
+                <div className="grid h-full place-items-center rounded-xl border border-dashed border-[#b7c5bc] bg-white p-8 text-center">
+                  <div>
+                    <FileText className="mx-auto text-[#54706c]" size={34} aria-hidden="true" />
+                    <h3 className="mt-4 text-lg font-black">Este formato usa o aplicativo do computador</h3>
+                    <p className="mt-2 text-sm text-[#71807d]">Baixe o arquivo para abrir no Word, Excel ou programa compatível.</p>
+                    <Button asChild className="mt-5">
+                      <a href={activeFile.url}>Baixar arquivo</a>
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <iframe src={activeFile.url} title={`Visualização de ${activeFile.name}`} className="h-full w-full rounded-xl border border-[#cbd5ce] bg-white" />
+              )}
+            </div>
+          </section>
+        </div>
+      ) : null}
+
       {selectedSource ? (
         <div className="fixed inset-0 z-50 grid place-items-center bg-[#0c2525]/55 p-4 backdrop-blur-sm" role="presentation" onMouseDown={(event) => {
           if (event.currentTarget === event.target) setSelectedSource(null);
@@ -729,6 +906,14 @@ export function SupportWorkspace() {
                 </a>
               </Button>
             ) : null}
+            {selectedSource.status !== "block" && selectedSource.status !== "external" ? (
+              <Button type="button" className="mt-6" onClick={() => {
+                openSourceFile(selectedSource);
+                setSelectedSource(null);
+              }}>
+                <FileText size={16} aria-hidden="true" /> Abrir arquivo no site
+              </Button>
+            ) : null}
           </section>
         </div>
       ) : null}
@@ -737,20 +922,49 @@ export function SupportWorkspace() {
         <div className="fixed inset-0 z-50 grid place-items-center bg-[#0c2525]/55 p-4 backdrop-blur-sm" role="presentation" onMouseDown={(event) => {
           if (event.currentTarget === event.target) setSelected(null);
         }}>
-          <section className="max-h-[88vh] w-full max-w-2xl overflow-y-auto rounded-[28px] bg-[#fbfcf9] p-6 shadow-2xl sm:p-8" role="dialog" aria-modal="true" aria-labelledby="content-dialog-title">
+          <section className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-[28px] bg-[#fbfcf9] p-6 shadow-2xl sm:p-8" role="dialog" aria-modal="true" aria-labelledby="content-dialog-title">
             <div className="flex items-start justify-between gap-4">
               <span className={`system-badge ${selected.tone}`}>{selected.system}</span>
               <button type="button" aria-label="Fechar conteúdo" className="rounded-full p-2 text-[#667572] hover:bg-[#e9eee7]" onClick={() => setSelected(null)}>
                 <X size={20} aria-hidden="true" />
               </button>
             </div>
-            <p className="mt-7 text-xs font-extrabold uppercase tracking-[0.1em] text-[#71807d]">{selected.category}</p>
+            <div className="mt-7 flex flex-wrap items-center justify-between gap-3">
+              <p className="text-xs font-extrabold uppercase tracking-[0.1em] text-[#71807d]">{selected.category}</p>
+              <span className="flex items-center gap-1.5 rounded-full bg-[#e8eee8] px-3 py-1.5 text-xs font-black text-[#365651]">
+                <Clock3 size={14} aria-hidden="true" /> {(selected.views + (openCounts[selected.id] ?? 0)).toLocaleString("pt-BR")} acessos
+              </span>
+            </div>
             <h2 id="content-dialog-title" className="mt-2 text-2xl font-black tracking-[-0.035em] sm:text-3xl">{selected.title}</h2>
             <p className="mt-4 text-sm leading-7 text-[#65736f]">{selected.excerpt}</p>
             <div className="mt-7 rounded-2xl border border-[#d9dfd8] bg-white p-5">
               <p className="eyebrow">Procedimento</p>
               <p className="mt-3 text-sm font-semibold leading-7 text-[#294c48]">{selected.procedure}</p>
             </div>
+            {selectedUploadedSolution?.attachments.length ? (
+              <section className="mt-6 rounded-2xl border border-[#d9dfd8] bg-white p-5" aria-labelledby="attachments-title">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="eyebrow">Arquivos da solução</p>
+                    <h3 id="attachments-title" className="mt-1 font-black">{selectedUploadedSolution.attachments.length} anexo(s)</h3>
+                  </div>
+                  <Paperclip size={20} className="text-[#54706c]" aria-hidden="true" />
+                </div>
+                <div className="mt-4 space-y-2">
+                  {selectedUploadedSolution.attachments.map((attachment) => (
+                    <div key={attachment.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-[#f3f6f1] px-4 py-3">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-extrabold">{attachment.name}</p>
+                        <p className="mt-0.5 text-[11px] text-[#71807d]">{attachment.extension} · {formatBytes(attachment.sizeBytes)}</p>
+                      </div>
+                      <Button type="button" variant="outline" size="sm" onClick={() => openUploadedFile(selectedUploadedSolution.id, attachment)}>
+                        <FileText size={14} aria-hidden="true" /> {attachment.preview === "download" ? "Baixar arquivo" : "Visualizar"}
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ) : null}
             <div className="mt-6 flex flex-wrap gap-2">
               <Button type="button" onClick={() => copyProcedure(selected)}>
                 <Copy size={16} aria-hidden="true" /> Copiar procedimento
@@ -770,6 +984,66 @@ export function SupportWorkspace() {
             <p className="mt-6 flex items-center gap-2 text-xs font-bold text-[#71807d]">
               <Database size={14} aria-hidden="true" /> Fonte: {selected.sourceLabel}
             </p>
+
+            <section className="mt-8 border-t border-[#d7ddd6] pt-7" aria-labelledby="history-title">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="eyebrow">Acompanhamento</p>
+                  <h3 id="history-title" className="mt-1 text-xl font-black">Histórico da solução</h3>
+                </div>
+                <span className="flex items-center gap-2 text-xs font-extrabold text-[#71807d]">
+                  <History size={16} aria-hidden="true" /> {selectedActivity?.history.length ?? 0} registro(s)
+                </span>
+              </div>
+
+              <form className="mt-5 rounded-2xl border border-[#d9dfd8] bg-white p-5" onSubmit={addHistoryEntry}>
+                <fieldset>
+                  <legend className="text-sm font-black">Esta solução resolveu o atendimento?</legend>
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                    <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-[#cbd8cf] p-3 font-extrabold transition has-[:checked]:border-[#4b9a77] has-[:checked]:bg-[#e2f1eb]">
+                      <input type="radio" name="outcome" value="success" defaultChecked className="size-4 accent-[#24715b]" />
+                      <CheckCircle2 size={19} className="text-[#24715b]" aria-hidden="true" /> Deu certo
+                    </label>
+                    <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-[#dfcfc9] p-3 font-extrabold transition has-[:checked]:border-[#bd6a53] has-[:checked]:bg-[#ffe8e2]">
+                      <input type="radio" name="outcome" value="failure" className="size-4 accent-[#a94e39]" />
+                      <XCircle size={19} className="text-[#a94e39]" aria-hidden="true" /> Não deu certo
+                    </label>
+                  </div>
+                </fieldset>
+                <label className="mt-4 block text-sm font-extrabold" htmlFor="history-note">
+                  Observação <span className="font-medium text-[#71807d]">(opcional)</span>
+                  <textarea id="history-note" name="note" rows={3} maxLength={4000} className="mt-2 w-full resize-y rounded-xl border border-[#d9dfd8] bg-[#fbfcf9] px-4 py-3 text-sm font-medium outline-none focus:border-[#82b9aa] focus:ring-2 focus:ring-[#82b9aa]/35" placeholder="Ex.: funcionou após atualizar o certificado no terminal 2." />
+                </label>
+                <Button type="submit" className="mt-4">
+                  <Plus size={16} aria-hidden="true" /> Adicionar ao histórico
+                </Button>
+              </form>
+
+              {selectedActivity?.history.length ? (
+                <ol className="mt-5 space-y-3">
+                  {selectedActivity.history.map((entry) => (
+                    <li key={entry.id} className="flex gap-3 rounded-2xl border border-[#d9dfd8] bg-[#f8faf6] p-4">
+                      {entry.outcome === "success" ? (
+                        <CheckCircle2 className="mt-0.5 shrink-0 text-[#24715b]" size={19} aria-hidden="true" />
+                      ) : (
+                        <XCircle className="mt-0.5 shrink-0 text-[#a94e39]" size={19} aria-hidden="true" />
+                      )}
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                          <strong className="text-sm">{entry.outcome === "success" ? "Deu certo" : "Não deu certo"}</strong>
+                          <time className="text-[11px] font-bold text-[#71807d]" dateTime={entry.createdAt}>
+                            {new Date(entry.createdAt).toLocaleString("pt-BR")}
+                          </time>
+                        </div>
+                        {entry.note ? <p className="mt-2 text-sm leading-6 text-[#5f706d]">{entry.note}</p> : <p className="mt-1 text-xs text-[#84908d]">Sem observação.</p>}
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <p className="mt-5 rounded-xl bg-[#eef2ed] px-4 py-3 text-sm text-[#71807d]">Nenhum resultado registrado ainda. Cada novo registro ficará preservado aqui.</p>
+              )}
+            </section>
           </section>
         </div>
       ) : null}
@@ -778,7 +1052,7 @@ export function SupportWorkspace() {
         <div className="fixed inset-0 z-50 grid place-items-center bg-[#0c2525]/55 p-4 backdrop-blur-sm" role="presentation" onMouseDown={(event) => {
           if (event.currentTarget === event.target) setSolutionOpen(false);
         }}>
-          <section className="w-full max-w-xl rounded-[28px] bg-[#fbfcf9] p-6 shadow-2xl sm:p-8" role="dialog" aria-modal="true" aria-labelledby="solution-dialog-title">
+          <section className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[28px] bg-[#fbfcf9] p-6 shadow-2xl sm:p-8" role="dialog" aria-modal="true" aria-labelledby="solution-dialog-title">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="eyebrow">Cadastro rápido</p>
@@ -788,7 +1062,10 @@ export function SupportWorkspace() {
                 <X size={20} aria-hidden="true" />
               </button>
             </div>
-            <p className="mt-3 text-sm leading-6 text-[#71807d]">Este protótipo mantém o novo conteúdo somente durante a sessão atual.</p>
+            <p className="mt-3 text-sm leading-6 text-[#71807d]">A solução, seus anexos e o histórico ficam salvos no armazenamento privado deste servidor local.</p>
+            {storageNotice ? (
+              <p className="mt-3 rounded-xl bg-[#fff5cf] px-4 py-3 text-sm font-bold text-[#7f5d00]">{storageNotice}</p>
+            ) : null}
             <form className="mt-7 space-y-5" onSubmit={createSolution}>
               <label className="block text-sm font-extrabold" htmlFor="solution-title">
                 Título
@@ -803,12 +1080,43 @@ export function SupportWorkspace() {
                 </select>
               </label>
               <label className="block text-sm font-extrabold" htmlFor="solution-procedure">
-                Procedimento
-                <textarea id="solution-procedure" name="procedure" required rows={5} className="mt-2 w-full resize-y rounded-xl border border-[#d9dfd8] bg-white px-4 py-3 text-sm font-medium outline-none focus:border-[#82b9aa] focus:ring-2 focus:ring-[#82b9aa]/35" placeholder="Descreva os passos seguros para o atendimento." />
+                Procedimento <span className="font-medium text-[#71807d]">(opcional quando houver anexo)</span>
+                <textarea id="solution-procedure" name="procedure" rows={5} maxLength={20000} className="mt-2 w-full resize-y rounded-xl border border-[#d9dfd8] bg-white px-4 py-3 text-sm font-medium outline-none focus:border-[#82b9aa] focus:ring-2 focus:ring-[#82b9aa]/35" placeholder="Descreva os passos seguros para o atendimento." />
               </label>
+              <div>
+                <label className="flex cursor-pointer flex-col items-center rounded-2xl border-2 border-dashed border-[#b9c9bf] bg-[#f4f7f2] px-5 py-7 text-center transition hover:border-[#77a394] hover:bg-[#edf3ed]" htmlFor="solution-files">
+                  <span className="grid size-11 place-items-center rounded-xl bg-[#153e3e] text-[#d7ff75]">
+                    <Upload size={21} aria-hidden="true" />
+                  </span>
+                  <strong className="mt-3 text-sm">Selecionar arquivos da solução</strong>
+                  <span className="mt-1 max-w-md text-xs leading-5 text-[#71807d]">TXT, PDF, imagens, vídeo MP4, DOCX, XLSX, CSV, Markdown ou ODT. Até 10 arquivos, 25 MB cada.</span>
+                </label>
+                <input
+                  id="solution-files"
+                  name="files"
+                  type="file"
+                  multiple
+                  accept=".txt,.md,.csv,.pdf,.png,.jpg,.jpeg,.gif,.webp,.bmp,.mp4,.docx,.xlsx,.odt,text/plain,application/pdf,image/*,video/mp4"
+                  className="sr-only"
+                  onChange={(event) => setUploadFiles(Array.from(event.target.files ?? []))}
+                />
+                {uploadFiles.length ? (
+                  <ul className="mt-3 space-y-2" aria-label="Arquivos selecionados">
+                    {uploadFiles.map((file) => (
+                      <li key={`${file.name}-${file.lastModified}`} className="flex items-center justify-between gap-3 rounded-xl border border-[#d9dfd8] bg-white px-4 py-3 text-sm">
+                        <span className="min-w-0 truncate font-extrabold">{file.name}</span>
+                        <span className="shrink-0 text-xs text-[#71807d]">{formatBytes(file.size)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+              </div>
               <div className="flex justify-end gap-2 pt-2">
-                <Button type="button" variant="outline" onClick={() => setSolutionOpen(false)}>Cancelar</Button>
-                <Button type="submit"><Check size={16} aria-hidden="true" /> Salvar solução</Button>
+                <Button type="button" variant="outline" disabled={solutionSaving} onClick={() => {
+                  setSolutionOpen(false);
+                  setUploadFiles([]);
+                }}>Cancelar</Button>
+                <Button type="submit" disabled={solutionSaving}><Check size={16} aria-hidden="true" /> {solutionSaving ? "Salvando..." : "Salvar solução"}</Button>
               </div>
             </form>
           </section>

@@ -30,3 +30,12 @@ Arquivos recebidos são dados não confiáveis. Inventariar não significa autor
 
 Uma importação bem-sucedida cria um rascunho. A publicação exige sistema, fonte, categoria, confidencialidade, título e revisão da extração. Itens com alertas de segredo ou dados pessoais não podem ser publicados até o alerta ser resolvido e auditado.
 
+## Visualização e uploads no piloto local
+
+- A visualização do `Help.zip` lê somente o item solicitado e não extrai o pacote inteiro.
+- Itens classificados como `block` nunca são entregues pela rota de arquivos.
+- SQL, YAML e mídia podem ser consultados apenas no ambiente local para revisão; isso não os publica nem os torna contexto da IA.
+- Uploads aceitam somente a lista segura de documentos, imagens e vídeo definida pela aplicação, com limites de quantidade e tamanho.
+- Certificados, bancos, executáveis, scripts e arquivos compactados permanecem bloqueados no upload.
+- Arquivos enviados ficam em storage privado fora do Git.
+- Upload, histórico e leitura privada ficam limitados a `localhost` enquanto autenticação e autorização por documento não estiverem ativas.
