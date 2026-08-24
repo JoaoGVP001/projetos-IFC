@@ -17,6 +17,11 @@ class PolicyTests(unittest.TestCase):
         self.assertEqual(decision.status, "block")
         self.assertEqual(decision.reason, "secret_filename")
 
+    def test_blocks_secret_directory_even_when_filename_is_generic(self) -> None:
+        decision = classify_entry("Help/Senhas/anotacao.txt", 200)
+        self.assertEqual(decision.status, "block")
+        self.assertEqual(decision.reason, "secret_filename")
+
     def test_requires_manual_review_for_sql_and_pii_filename(self) -> None:
         self.assertEqual(classify_entry("Help/correcao.sql", 200).status, "review")
         self.assertEqual(classify_entry("Help/CNPJ.txt", 200).status, "review")

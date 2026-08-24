@@ -1,6 +1,8 @@
 import type { KnowledgeItem, KnowledgeSystem } from "./knowledge-data";
+import type { SourceCatalogItem, SourceStatus } from "./source-catalog";
 
 export type SystemFilter = "Todos" | KnowledgeSystem;
+export type SourceStatusFilter = "Todos" | SourceStatus;
 
 export type AiPreview = {
   status: "answerable" | "insufficient";
@@ -74,3 +76,29 @@ export function buildAiPreview(
   };
 }
 
+export function filterSources(
+  items: readonly SourceCatalogItem[],
+  query: string,
+  status: SourceStatusFilter,
+) {
+  const normalizedQuery = normalizeSearchText(query);
+
+  return items.filter((item) => {
+    if (status !== "Todos" && item.status !== status) return false;
+    if (!normalizedQuery) return true;
+
+    const searchable = normalizeSearchText([
+      item.title,
+      item.source,
+      item.system,
+      item.category,
+      item.extension,
+      item.status_label,
+    ].join(" "));
+
+    return normalizedQuery
+      .split(/\s+/)
+      .filter(Boolean)
+      .every((term) => searchable.includes(term));
+  });
+}

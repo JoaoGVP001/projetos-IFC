@@ -12,7 +12,7 @@ BLOCKED_EXTENSIONS = {
     ".exe", ".dll", ".sys", ".inf", ".cat", ".msi", ".bat", ".cmd", ".ps1", ".vbs",
     ".reg", ".rar", ".7z", ".zip", ".tar", ".gz",
 }
-SECRET_NAME_PATTERN = re.compile(r"(^|[\s._-])(senha|password|credential|secret|token|api[_-]?key)([\s._-]|$)", re.IGNORECASE)
+SECRET_NAME_PATTERN = re.compile(r"(^|[\s._-])(senhas?|passwords?|credentials?|secrets?|tokens?|api[_-]?keys?)([\s._-]|$)", re.IGNORECASE)
 PII_NAME_PATTERN = re.compile(r"(^|[\s._-])(cpf|cnpj|cliente|clientes)([\s._-]|$)", re.IGNORECASE)
 MAX_ENTRY_BYTES = 50 * 1024 * 1024
 
@@ -45,6 +45,7 @@ def classify_entry(name: str, size: int, *, is_directory: bool = False, is_symli
 
     extension = path.suffix.lower()
     basename = path.name
+    full_path = " ".join(path.parts)
 
     if is_symlink:
         return Decision("block", "symlink", extension)
@@ -52,9 +53,9 @@ def classify_entry(name: str, size: int, *, is_directory: bool = False, is_symli
         return Decision("block", "size_limit", extension)
     if extension in BLOCKED_EXTENSIONS:
         return Decision("block", "blocked_extension", extension)
-    if SECRET_NAME_PATTERN.search(basename):
+    if SECRET_NAME_PATTERN.search(full_path):
         return Decision("block", "secret_filename", extension)
-    if extension in REVIEW_EXTENSIONS or PII_NAME_PATTERN.search(basename):
+    if extension in REVIEW_EXTENSIONS or PII_NAME_PATTERN.search(full_path):
         return Decision("review", "manual_review", extension)
     if extension in SUPPORTED_EXTENSIONS:
         return Decision("include", "supported_document", extension)

@@ -1,14 +1,14 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-08-24T15:15:00.666448+00:00",
+  "generated_at": "2026-08-24T17:44:05.722669+00:00",
   "archive_name": "Help.zip",
   "archive_bytes": 220102807,
   "total_files": 1037,
   "total_uncompressed_bytes": 482624970,
   "by_decision": {
-    "block": 55,
+    "block": 59,
     "defer": 58,
-    "include": 823,
+    "include": 819,
     "review": 84,
     "skip": 17
   },
@@ -16,9 +16,9 @@
     "blocked_extension": 45,
     "future_ocr_or_media": 58,
     "manual_review": 84,
-    "secret_filename": 9,
+    "secret_filename": 13,
     "size_limit": 1,
-    "supported_document": 823,
+    "supported_document": 819,
     "unsupported_extension": 17
   },
   "by_extension": {

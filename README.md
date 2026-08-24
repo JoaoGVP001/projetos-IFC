@@ -10,6 +10,7 @@ O produto está sendo construído de forma incremental. A primeira entrega cont�
 - [x] Interface inicial responsiva com separação Small Commerce, ZWeb e Interno.
 - [x] Modelo PostgreSQL/pgvector com Drizzle.
 - [x] Inventário seguro de ZIP sem extração automática.
+- [x] Catálogo pesquisável das 1.037 fontes do Help e links oficiais das BDCs.
 - [x] Docker Compose para banco, aplicação e ferramenta de inventário.
 - [x] Testes iniciais do ranking híbrido e da política de ingestão.
 - [ ] Autenticação e autorização por papéis.
@@ -69,6 +70,13 @@ O comando abaixo gera somente totais agregados e não salva nomes nem conteúdo 
 ```bash
 cd services/ingestion
 python -m resolvehub_ingestion.cli inventory --archive "CAMINHO/Help.zip" --output "../../data/reports/help-summary.json"
+```
+
+O catálogo exibido pela interface é gerado apenas com metadados revisados. Nomes de arquivos bloqueados, pendentes, não suportados ou com sinais de dados sensíveis são substituídos por identificadores neutros:
+
+```bash
+cd services/ingestion
+python -m resolvehub_ingestion.cli catalog --archive "CAMINHO/Help.zip" --output "../../apps/web/src/features/workspace/source-catalog.json"
 ```
 
 Para executar os testes da política:

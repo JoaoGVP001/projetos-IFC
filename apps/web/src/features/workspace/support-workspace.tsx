@@ -31,17 +31,35 @@ import {
   type KnowledgeTone,
 } from "./knowledge-data";
 import {
+  sourceCatalog,
+  type SourceCatalogItem,
+  type SourceStatus,
+} from "./source-catalog";
+import {
   buildAiPreview,
   filterKnowledge,
+  filterSources,
   type AiPreview,
+  type SourceStatusFilter,
   type SystemFilter,
 } from "./workspace-logic";
 
 const quickFilters: SystemFilter[] = ["Todos", "Small Commerce", "ZWeb", "Interno"];
 
+const sourceStatusFilters: Array<{ value: SourceStatusFilter; label: string }> = [
+  { value: "Todos", label: "Todas" },
+  { value: "include", label: "Prontas" },
+  { value: "review", label: "Em revisão" },
+  { value: "defer", label: "OCR e mídia" },
+  { value: "block", label: "Protegidas" },
+  { value: "external", label: "BDCs" },
+  { value: "skip", label: "Outros formatos" },
+];
+
 const navItems = [
   { id: "inicio", label: "Início", icon: Home },
   { id: "resultados", label: "Conteúdos", icon: BookOpen },
+  { id: "fontes", label: "Fontes", icon: Database },
   { id: "favoritos", label: "Favoritos", icon: Star },
   { id: "metricas", label: "Métricas", icon: BarChart3 },
 ];
@@ -60,6 +78,22 @@ function toneForSystem(system: KnowledgeSystem): KnowledgeTone {
 
 function scrollToSection(id: string) {
   document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function formatBytes(bytes: number) {
+  if (bytes === 0) return "Fonte web";
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} KB`;
+  return `${(bytes / (1024 * 1024)).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} MB`;
+}
+
+function sourceStatusClass(status: SourceStatus) {
+  if (status === "include") return "bg-[#e2f1eb] text-[#17634f]";
+  if (status === "external") return "bg-[#e9eeff] text-[#3658ae]";
+  if (status === "review") return "bg-[#fff5cf] text-[#7f5d00]";
+  if (status === "defer") return "bg-[#eee9ff] text-[#6547a5]";
+  if (status === "block") return "bg-[#ffe8e2] text-[#98422f]";
+  return "bg-[#e9edeb] text-[#5f6d69]";
 }
 
 type KnowledgeCardProps = {
@@ -120,6 +154,10 @@ export function SupportWorkspace() {
   const [selected, setSelected] = useState<KnowledgeItem | null>(null);
   const [openCounts, setOpenCounts] = useState<Record<string, number>>({});
   const [aiPreview, setAiPreview] = useState<AiPreview | null>(null);
+  const [sourceQuery, setSourceQuery] = useState("");
+  const [sourceStatus, setSourceStatus] = useState<SourceStatusFilter>("Todos");
+  const [sourceLimit, setSourceLimit] = useState(24);
+  const [selectedSource, setSelectedSource] = useState<SourceCatalogItem | null>(null);
   const [solutionOpen, setSolutionOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
@@ -132,6 +170,11 @@ export function SupportWorkspace() {
   const recentItems = showAll ? items : items.slice(0, 3);
   const visibleItems = showResults ? filteredItems : recentItems;
   const favoriteItems = items.filter((item) => favorites.has(item.id));
+  const filteredSources = useMemo(
+    () => filterSources(sourceCatalog.items, sourceQuery, sourceStatus),
+    [sourceQuery, sourceStatus],
+  );
+  const visibleSources = filteredSources.slice(0, sourceLimit);
 
   useEffect(() => {
     if (!toast) return;
@@ -143,6 +186,7 @@ export function SupportWorkspace() {
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
       setSelected(null);
+      setSelectedSource(null);
       setSolutionOpen(false);
       setUserMenuOpen(false);
     };
@@ -151,11 +195,11 @@ export function SupportWorkspace() {
   }, []);
 
   useEffect(() => {
-    document.body.style.overflow = selected || solutionOpen ? "hidden" : "";
+    document.body.style.overflow = selected || selectedSource || solutionOpen ? "hidden" : "";
     return () => {
       document.body.style.overflow = "";
     };
-  }, [selected, solutionOpen]);
+  }, [selected, selectedSource, solutionOpen]);
 
   function notify(message: string) {
     setToast(message);
@@ -171,6 +215,18 @@ export function SupportWorkspace() {
     setFilter(nextFilter);
     setShowResults(true);
     requestAnimationFrame(() => scrollToSection("resultados"));
+  }
+
+  function selectSourceStatus(nextStatus: SourceStatusFilter) {
+    setSourceStatus(nextStatus);
+    setSourceLimit(24);
+  }
+
+  function showSystemSources(system: KnowledgeSystem) {
+    setSourceQuery(system);
+    setSourceStatus("Todos");
+    setSourceLimit(24);
+    requestAnimationFrame(() => scrollToSection("fontes"));
   }
 
   function showEveryItem() {
@@ -351,7 +407,7 @@ export function SupportWorkspace() {
                   key={source.system}
                   type="button"
                   className="flex w-full items-center gap-3 rounded-xl px-2 py-3 text-left transition hover:bg-[#e9eee7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#82b9aa]"
-                  onClick={() => selectFilter(source.system)}
+                  onClick={() => showSystemSources(source.system)}
                 >
                   <span className="status-dot" style={{ backgroundColor: source.color }} aria-hidden="true" />
                   <span>
@@ -372,7 +428,7 @@ export function SupportWorkspace() {
                 O que você precisa resolver hoje?
               </h1>
               <p className="mt-4 max-w-2xl text-sm leading-6 text-[#c7d8d1] sm:text-base">
-                Pesquise procedimentos, filtre por sistema ou peça uma síntese baseada somente nas fontes cadastradas.
+                Pesquise procedimentos, consulte os {sourceCatalog.total_sources.toLocaleString("pt-BR")} registros de fontes ou peça uma síntese fundamentada.
               </p>
 
               <form className="mt-8 rounded-2xl bg-white p-2 shadow-xl" onSubmit={runSearch} role="search">
@@ -420,11 +476,116 @@ export function SupportWorkspace() {
 
           <section id="metricas" className="scroll-mt-32 py-8">
             <div className="grid grid-cols-2 gap-5 rounded-2xl border border-[#d9dfd8] bg-[#f8faf6] px-5 py-5 sm:grid-cols-4">
-              <div className="metric-card"><strong>{items.length}</strong><span>conteúdos demonstrativos</span></div>
-              <div className="metric-card"><strong>3</strong><span>fontes organizadas</span></div>
+              <div className="metric-card"><strong>{sourceCatalog.total_sources.toLocaleString("pt-BR")}</strong><span>fontes catalogadas</span></div>
+              <div className="metric-card"><strong>{sourceCatalog.by_decision.include.toLocaleString("pt-BR")}</strong><span>documentos prontos</span></div>
               <div className="metric-card"><strong>{favoriteItems.length}</strong><span>favoritos nesta sessão</span></div>
               <div className="metric-card"><strong>{Object.values(openCounts).reduce((total, value) => total + value, 0)}</strong><span>aberturas nesta sessão</span></div>
             </div>
+          </section>
+
+          <section id="fontes" className="scroll-mt-32 border-t border-[#d7ddd6] py-10">
+            <div className="flex flex-wrap items-end justify-between gap-5">
+              <div>
+                <p className="eyebrow">Inventário seguro</p>
+                <h2 className="mt-2 text-2xl font-black tracking-[-0.035em] sm:text-3xl">
+                  Fontes do Help e BDCs
+                </h2>
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-[#71807d]">
+                  Todos os {sourceCatalog.archive_files.toLocaleString("pt-BR")} arquivos recebidos estão registrados. Nomes e formatos protegidos permanecem ocultos.
+                </p>
+              </div>
+              <span className="rounded-full bg-[#e2f1eb] px-4 py-2 text-xs font-black text-[#17634f]">
+                {filteredSources.length.toLocaleString("pt-BR")} fonte(s)
+              </span>
+            </div>
+
+            <div className="mt-7 rounded-3xl border border-[#d7ddd6] bg-[#f8faf6] p-4 sm:p-5">
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#68817a]" size={18} aria-hidden="true" />
+                <Input
+                  value={sourceQuery}
+                  onChange={(event) => {
+                    setSourceQuery(event.target.value);
+                    setSourceLimit(24);
+                  }}
+                  className="h-12 border-[#d9dfd8] bg-white pl-11"
+                  placeholder="Pesquisar pelo nome, formato, sistema ou categoria..."
+                  aria-label="Pesquisar fontes catalogadas"
+                />
+              </div>
+              <div className="mt-4 flex flex-wrap gap-2" aria-label="Filtrar fontes por estado">
+                {sourceStatusFilters.map((statusFilter) => (
+                  <button
+                    key={statusFilter.value}
+                    type="button"
+                    aria-pressed={sourceStatus === statusFilter.value}
+                    className={`filter-pill ${sourceStatus === statusFilter.value ? "filter-pill-active" : ""}`}
+                    onClick={() => selectSourceStatus(statusFilter.value)}
+                  >
+                    {statusFilter.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {visibleSources.length ? (
+              <div className="mt-6 grid gap-3 lg:grid-cols-2">
+                {visibleSources.map((source) => (
+                  <article key={source.id} className="flex min-w-0 items-start gap-4 rounded-2xl border border-[#d7ddd6] bg-[#fbfcf9] p-4 transition hover:border-[#b8c8bd] hover:shadow-md" data-source-id={source.id}>
+                    <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[#e8eee8] text-[#2f625b]">
+                      <Database size={18} aria-hidden="true" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className={`rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.05em] ${sourceStatusClass(source.status)}`}>
+                          {source.status_label}
+                        </span>
+                        <span className="text-[11px] font-bold uppercase text-[#7a8784]">{source.extension}</span>
+                      </div>
+                      <h3 className="mt-3 line-clamp-2 text-sm font-black leading-5 text-[#173c3c]">{source.title}</h3>
+                      <p className="mt-1 text-xs text-[#71807d]">{source.system} · {source.category} · {formatBytes(source.size_bytes)}</p>
+                      {source.masked_title ? (
+                        <p className="mt-2 text-[11px] font-semibold text-[#98422f]">Nome ocultado pela política de segurança.</p>
+                      ) : null}
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        <Button type="button" variant="outline" size="sm" onClick={() => setSelectedSource(source)}>
+                          Ver detalhes
+                        </Button>
+                        {source.url ? (
+                          <Button asChild variant="ghost" size="sm">
+                            <a href={source.url} target="_blank" rel="noreferrer">
+                              Abrir base <ExternalLink size={14} aria-hidden="true" />
+                            </a>
+                          </Button>
+                        ) : null}
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <div className="mt-6 rounded-3xl border border-dashed border-[#bdc9c1] bg-[#f8faf6] px-6 py-12 text-center">
+                <Search className="mx-auto text-[#7b9189]" size={26} aria-hidden="true" />
+                <h3 className="mt-3 font-black">Nenhuma fonte encontrada</h3>
+                <Button type="button" variant="outline" size="sm" className="mt-4" onClick={() => {
+                  setSourceQuery("");
+                  selectSourceStatus("Todos");
+                }}>
+                  Limpar filtros
+                </Button>
+              </div>
+            )}
+
+            {visibleSources.length < filteredSources.length ? (
+              <div className="mt-6 text-center">
+                <Button type="button" variant="outline" onClick={() => setSourceLimit((current) => current + 24)}>
+                  Carregar mais fontes
+                </Button>
+                <p className="mt-2 text-xs text-[#71807d]">
+                  Exibindo {visibleSources.length.toLocaleString("pt-BR")} de {filteredSources.length.toLocaleString("pt-BR")}
+                </p>
+              </div>
+            ) : null}
           </section>
 
           {aiPreview ? (
@@ -527,6 +688,50 @@ export function SupportWorkspace() {
           </Button>
         </div>
       </div>
+
+      {selectedSource ? (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-[#0c2525]/55 p-4 backdrop-blur-sm" role="presentation" onMouseDown={(event) => {
+          if (event.currentTarget === event.target) setSelectedSource(null);
+        }}>
+          <section className="max-h-[88vh] w-full max-w-xl overflow-y-auto rounded-[28px] bg-[#fbfcf9] p-6 shadow-2xl sm:p-8" role="dialog" aria-modal="true" aria-labelledby="source-dialog-title">
+            <div className="flex items-start justify-between gap-4">
+              <span className={`rounded-full px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.05em] ${sourceStatusClass(selectedSource.status)}`}>
+                {selectedSource.status_label}
+              </span>
+              <button type="button" aria-label="Fechar detalhes da fonte" className="rounded-full p-2 text-[#667572] hover:bg-[#e9eee7]" onClick={() => setSelectedSource(null)}>
+                <X size={20} aria-hidden="true" />
+              </button>
+            </div>
+            <p className="mt-7 text-xs font-extrabold uppercase tracking-[0.1em] text-[#71807d]">{selectedSource.source}</p>
+            <h2 id="source-dialog-title" className="mt-2 text-2xl font-black tracking-[-0.035em] sm:text-3xl">{selectedSource.title}</h2>
+            {selectedSource.masked_title ? (
+              <p className="mt-3 rounded-xl bg-[#ffe8e2] px-4 py-3 text-sm font-bold text-[#854231]">
+                O nome original não é exibido porque este registro exige proteção ou revisão.
+              </p>
+            ) : null}
+            <dl className="mt-7 grid gap-4 rounded-2xl border border-[#d9dfd8] bg-white p-5 sm:grid-cols-2">
+              <div><dt className="text-[10px] font-black uppercase tracking-[0.1em] text-[#71807d]">Sistema</dt><dd className="mt-1 text-sm font-extrabold">{selectedSource.system}</dd></div>
+              <div><dt className="text-[10px] font-black uppercase tracking-[0.1em] text-[#71807d]">Categoria</dt><dd className="mt-1 text-sm font-extrabold">{selectedSource.category}</dd></div>
+              <div><dt className="text-[10px] font-black uppercase tracking-[0.1em] text-[#71807d]">Formato</dt><dd className="mt-1 text-sm font-extrabold">{selectedSource.extension}</dd></div>
+              <div><dt className="text-[10px] font-black uppercase tracking-[0.1em] text-[#71807d]">Tamanho</dt><dd className="mt-1 text-sm font-extrabold">{formatBytes(selectedSource.size_bytes)}</dd></div>
+            </dl>
+            <div className="mt-5 rounded-2xl bg-[#e8eee8] p-5">
+              <p className="eyebrow">Situação da fonte</p>
+              <p className="mt-2 text-sm font-semibold leading-6 text-[#365651]">{selectedSource.reason_label}</p>
+              {selectedSource.status === "include" ? (
+                <p className="mt-2 text-xs leading-5 text-[#64736f]">O arquivo está catalogado e pronto para a etapa segura de extração de texto. O original não foi publicado no GitHub.</p>
+              ) : null}
+            </div>
+            {selectedSource.url ? (
+              <Button asChild className="mt-6">
+                <a href={selectedSource.url} target="_blank" rel="noreferrer">
+                  Abrir base oficial <ExternalLink size={16} aria-hidden="true" />
+                </a>
+              </Button>
+            ) : null}
+          </section>
+        </div>
+      ) : null}
 
       {selected ? (
         <div className="fixed inset-0 z-50 grid place-items-center bg-[#0c2525]/55 p-4 backdrop-blur-sm" role="presentation" onMouseDown={(event) => {
