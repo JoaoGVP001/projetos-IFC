@@ -2,7 +2,7 @@
 
 <h1>BookReadNet</h1>
 
-[![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&size=24&duration=3500&pause=1200&color=E7643B&center=true&vCenter=true&width=700&lines=Sua+biblioteca+digital+pessoal;Leia+HQs%2C+mang%C3%A1s+e+livros;PDF+%7C+CBZ+%7C+CBR+%7C+CB7)](https://github.com/JoaoGVP001/BookReadNet)
+[![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&size=24&duration=3500&pause=1200&color=E7643B&center=true&vCenter=true&width=700&lines=Sua+biblioteca+digital+pessoal;Leia+HQs%2C+mang%C3%A1s+e+livros;PDF+%7C+CBZ+%7C+CBR+%7C+CB7+%7C+EPUB)](https://github.com/JoaoGVP001/BookReadNet)
 
 ### Organize sua coleção. Continue de onde parou. Leia no seu ritmo.
 
@@ -12,7 +12,7 @@ quadrinhos e livros digitais sem sair do próprio sistema.
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
 [![Tkinter](https://img.shields.io/badge/Interface-Tkinter-E7643B?style=flat-square)](https://docs.python.org/3/library/tkinter.html)
 [![POO](https://img.shields.io/badge/Arquitetura-POO-17232D?style=flat-square)](#conceitos-de-poo)
-[![Testes](https://img.shields.io/badge/Testes-12%20aprovados-2E8B57?style=flat-square&logo=pytest&logoColor=white)](#testes)
+[![Testes](https://img.shields.io/badge/Testes-20%20aprovados-2E8B57?style=flat-square&logo=pytest&logoColor=white)](#testes)
 [![Status](https://img.shields.io/badge/Status-Conclu%C3%ADdo-D9A441?style=flat-square)](https://github.com/JoaoGVP001/BookReadNet)
 
 [Funcionalidades](#funcionalidades) · [Tecnologias](#tecnologias) · [Instalação](#instalação) · [Arquitetura](#arquitetura) · [Roadmap](ROADMAP.md)
@@ -26,7 +26,7 @@ quadrinhos e livros digitais sem sair do próprio sistema.
 O BookReadNet nasceu como um sistema acadêmico de biblioteca e evoluiu para um
 **gerenciador e leitor pessoal de mídia digital**. A aplicação importa os arquivos
 para um acervo local, registra metadados e permite retomar cada leitura exatamente
-na página em que ela foi interrompida.
+na página ou no trecho do capítulo em que ela foi interrompida.
 
 O projeto foi desenvolvido para a disciplina de **Programação Orientada a Objetos 1**,
 demonstrando conceitos de POO em funcionalidades reais e fáceis de apresentar.
@@ -36,9 +36,11 @@ demonstrando conceitos de POO em funcionalidades reais e fáceis de apresentar.
 | Recurso | O que o sistema oferece |
 | --- | --- |
 | **Biblioteca digital** | Cadastro, edição, exclusão, pesquisa e filtros de obras |
-| **Leitor integrado** | Navegação entre páginas, zoom e redimensionamento automático |
-| **Quatro formatos** | Leitura de arquivos PDF, CBZ, CBR e CB7 |
-| **Progresso** | Página atual, porcentagem e status atualizados automaticamente |
+| **Acervo visual** | Grade responsiva de cards com capa, favorito e progresso |
+| **Capas** | Seleção manual, extração automática, substituição e imagem padrão |
+| **Leitor integrado** | Navegação paginada e leitor EPUB com sumário, temas, fonte e espaçamento |
+| **Cinco formatos** | Leitura de arquivos PDF, CBZ, CBR, CB7 e EPUB |
+| **Progresso** | Página ou capítulo, posição interna, porcentagem e status automáticos |
 | **Continuar lendo** | Retoma a obra na última página registrada |
 | **Organização** | Categorias, séries, favoritos, autor, editora, idioma e volume |
 | **Histórico** | Registro das páginas e obras acessadas recentemente |
@@ -57,6 +59,7 @@ demonstrando conceitos de POO em funcionalidades reais e fáceis de apresentar.
 ![Pillow](https://img.shields.io/badge/Pillow-D9A441?style=for-the-badge&logo=python&logoColor=white)
 ![py7zr](https://img.shields.io/badge/py7zr-4F6D7A?style=for-the-badge&logo=7zip&logoColor=white)
 ![rarfile](https://img.shields.io/badge/rarfile-7B4B94?style=for-the-badge)
+![EPUB](https://img.shields.io/badge/EPUB-ZIP%20%2B%20XHTML-E7643B?style=for-the-badge)
 ![Pytest](https://img.shields.io/badge/Pytest-0A9EDC?style=for-the-badge&logo=pytest&logoColor=white)
 
 </div>
@@ -69,10 +72,12 @@ demonstrando conceitos de POO em funcionalidades reais e fáceis de apresentar.
 | **CBZ** | Imagens compactadas em ZIP | `LeitorCBZ` + `zipfile` |
 | **CBR** | Imagens compactadas em RAR | `LeitorCBR` + `rarfile` |
 | **CB7** | Imagens compactadas em 7-Zip | `LeitorCB7` + `py7zr` |
+| **EPUB** | ZIP, OPF, XHTML, imagens e sumário | `LeitorEPUB` + biblioteca padrão |
 
 > [!IMPORTANT]
 > A leitura de CBR pode exigir 7-Zip, UnRAR ou bsdtar instalado no Windows.
-> PDF, CBZ e CB7 funcionam com as dependências Python do projeto.
+> PDF, CBZ, CB7 e EPUB funcionam com as dependências Python do projeto.
+> EPUBs com capítulos protegidos por DRM são recusados com uma mensagem clara.
 
 ## Conceitos de POO
 
@@ -107,23 +112,22 @@ demonstrando conceitos de POO em funcionalidades reais e fáceis de apresentar.
                        servicos.py
                     BibliotecaDigital
                             │
-             ┌──────────────┼──────────────┐
-             ▼              ▼              ▼
-        modelos.py      leitor.py     persistencia.py
-             │              │              │
-     ObraDigital        LeitorArquivo      JSON
-       /   |   \        /   |   |   \
-      HQ Manga Livro   PDF CBZ CBR CB7
-                            │
-                            ▼
-                       validacoes.py
+        ┌────────────┬──────┴──────┬──────────────┐
+        ▼            ▼             ▼              ▼
+   modelos.py    leitor.py      capas.py     persistencia.py
+        │            │             │               │
+  ObraDigital   LeitorArquivo  ServicoCapas       JSON
+   /   |   \    /  |  |  |  \       │
+  HQ Manga Livro PDF CBZ CBR CB7 EPUB ▼
+                               validacoes.py
 ```
 
 | Arquivo | Responsabilidade |
 | --- | --- |
 | `modelos.py` | Entidades, encapsulamento e regras dos objetos |
 | `servicos.py` | Regras do acervo, favoritos, filtros e progresso |
-| `leitor.py` | Leitura polimórfica de PDF, CBZ, CBR e CB7 |
+| `leitor.py` | Leitura polimórfica de PDF, CBZ, CBR, CB7 e EPUB |
+| `capas.py` | Extração, validação, capa padrão e cache de miniaturas |
 | `persistencia.py` | Salvamento e carregamento do repositório JSON |
 | `validacoes.py` | Validação de arquivos, capas e formatos |
 | `interface.py` | Telas e interação do usuário com Tkinter |
@@ -165,6 +169,7 @@ Na primeira execução, o BookReadNet cria automaticamente:
 dados/bookreadnet.json
 biblioteca/arquivos/
 biblioteca/capas/
+biblioteca/miniaturas/
 ```
 
 ## Testes
@@ -174,12 +179,14 @@ python -m pytest -v
 ```
 
 ```text
-12 passed
+20 passed
 ```
 
 Os testes validam cadastro, duplicidade, importação, pesquisa, filtros,
-favoritos, progresso, histórico, persistência, exclusão e os leitores de
-PDF, CBZ e CB7. O direcionamento de arquivos CBR também é verificado.
+favoritos, progresso, histórico, persistência, exclusão, capas automáticas,
+capas manuais, miniaturas e os leitores de PDF, CBZ, CB7 e EPUB. Para EPUB,
+também são verificados metadados, capa, sumário, XHTML seguro, progresso por
+capítulo e bloqueio de conteúdo protegido por DRM.
 
 ## Fluxo de uso
 
@@ -192,7 +199,7 @@ Importar para o acervo
         ↓
 Abrir no leitor interno
         ↓
-Avançar pelas páginas
+Avançar pelas páginas ou capítulos
         ↓
 Salvar progresso automaticamente
         ↓
@@ -204,7 +211,7 @@ Continuar a leitura depois
 
 1. Apresentar o problema e a proposta do BookReadNet.
 2. Importar uma HQ ou um mangá.
-3. Mostrar os metadados, a pesquisa e os filtros.
+3. Importar um EPUB e mostrar metadados, capa, sumário, temas e fonte.
 4. Favoritar a obra e abrir o leitor integrado.
 5. Avançar algumas páginas e fechar a leitura.
 6. Mostrar a obra na seção `Continuar lendo`.

@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 
-FORMATOS_ACEITOS = (".pdf", ".cbz", ".cbr", ".cb7")
+FORMATOS_ACEITOS = (".pdf", ".cbz", ".cbr", ".cb7", ".epub")
 FORMATOS_IMAGEM = (".jpg", ".jpeg", ".png", ".webp", ".bmp", ".gif")
 
 

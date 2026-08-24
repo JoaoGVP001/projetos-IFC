@@ -6,5 +6,7 @@ venv/
 dados/*.json
 biblioteca/arquivos/*
 biblioteca/capas/*
+biblioteca/miniaturas/*
 !biblioteca/arquivos/.gitkeep
 !biblioteca/capas/.gitkeep
+!biblioteca/miniaturas/.gitkeep

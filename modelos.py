@@ -281,10 +281,18 @@ class ProgressoLeitura:
         pagina_atual: int = 0,
         total_paginas: int = 0,
         ultima_leitura: str | None = None,
+        capitulo_atual: int = 0,
+        total_capitulos: int = 0,
+        posicao_capitulo: float = 0.0,
+        tipo_posicao: str = "pagina",
     ) -> None:
         self.obra_id = obra_id
         self.total_paginas = total_paginas
         self.pagina_atual = pagina_atual
+        self.capitulo_atual = int(capitulo_atual)
+        self.total_capitulos = int(total_capitulos)
+        self.posicao_capitulo = float(posicao_capitulo)
+        self.tipo_posicao = tipo_posicao
         self.ultima_leitura = ultima_leitura
 
     @property
@@ -313,15 +321,20 @@ class ProgressoLeitura:
 
     @property
     def porcentagem(self) -> float:
+        if self.tipo_posicao == "capitulo":
+            if not self.total_capitulos:
+                return 0.0
+            concluido = max(0, self.capitulo_atual - 1) + self.posicao_capitulo
+            return round(min(100.0, (concluido / self.total_capitulos) * 100), 1)
         if not self.total_paginas:
             return 0.0
         return round((self.pagina_atual / self.total_paginas) * 100, 1)
 
     @property
     def status(self) -> StatusLeitura:
-        if self.total_paginas and self.pagina_atual >= self.total_paginas:
+        if self.porcentagem >= 100:
             return StatusLeitura.LIDO
-        if self.pagina_atual > 0:
+        if self.porcentagem > 0 or self.capitulo_atual > 0:
             return StatusLeitura.EM_LEITURA
         return StatusLeitura.NAO_INICIADO
 
@@ -329,6 +342,25 @@ class ProgressoLeitura:
         if total_paginas is not None:
             self.total_paginas = total_paginas
         self.pagina_atual = pagina
+        self.tipo_posicao = "pagina"
+        self.ultima_leitura = datetime.now().isoformat(timespec="seconds")
+
+    def atualizar_capitulo(self, capitulo: int, total_capitulos: int, posicao: float = 0.0) -> None:
+        capitulo = int(capitulo)
+        total_capitulos = int(total_capitulos)
+        posicao = float(posicao)
+        if total_capitulos <= 0:
+            raise ValueError("O EPUB deve possuir pelo menos um capítulo.")
+        if capitulo < 1 or capitulo > total_capitulos:
+            raise ValueError("O capítulo atual está fora dos limites da obra.")
+        if posicao < 0 or posicao > 1:
+            raise ValueError("A posição dentro do capítulo deve estar entre 0 e 1.")
+        self.capitulo_atual = capitulo
+        self.total_capitulos = total_capitulos
+        self.posicao_capitulo = posicao
+        self.pagina_atual = capitulo
+        self.total_paginas = total_capitulos
+        self.tipo_posicao = "capitulo"
         self.ultima_leitura = datetime.now().isoformat(timespec="seconds")
 
     def to_dict(self) -> dict[str, Any]:
@@ -337,6 +369,10 @@ class ProgressoLeitura:
             "pagina_atual": self.pagina_atual,
             "total_paginas": self.total_paginas,
             "ultima_leitura": self.ultima_leitura,
+            "capitulo_atual": self.capitulo_atual,
+            "total_capitulos": self.total_capitulos,
+            "posicao_capitulo": self.posicao_capitulo,
+            "tipo_posicao": self.tipo_posicao,
         }
 
 
@@ -345,9 +381,15 @@ class HistoricoLeitura:
     obra_id: str
     pagina: int
     data: str
+    capitulo: int | None = None
 
     def to_dict(self) -> dict[str, Any]:
-        return {"obra_id": self.obra_id, "pagina": self.pagina, "data": self.data}
+        return {
+            "obra_id": self.obra_id,
+            "pagina": self.pagina,
+            "data": self.data,
+            "capitulo": self.capitulo,
+        }
 
 
 class Usuario:
@@ -390,6 +432,26 @@ class Usuario:
         progresso.atualizar_pagina(pagina, total_paginas)
         self.__historico.append(
             HistoricoLeitura(obra_id, pagina, datetime.now().isoformat(timespec="seconds"))
+        )
+        self.__historico = self.__historico[-100:]
+        return progresso
+
+    def salvar_progresso_epub(
+        self,
+        obra_id: str,
+        capitulo: int,
+        total_capitulos: int,
+        posicao: float,
+    ) -> ProgressoLeitura:
+        progresso = self.obter_progresso(obra_id)
+        progresso.atualizar_capitulo(capitulo, total_capitulos, posicao)
+        self.__historico.append(
+            HistoricoLeitura(
+                obra_id,
+                capitulo,
+                datetime.now().isoformat(timespec="seconds"),
+                capitulo=capitulo,
+            )
         )
         self.__historico = self.__historico[-100:]
         return progresso
