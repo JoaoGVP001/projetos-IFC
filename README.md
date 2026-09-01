@@ -1,6 +1,6 @@
 # Caderno de Notas
 
-Projeto em Python orientado a objetos baseado no estudo de caso do PDF. O
+Projeto em Python orientado a objetos. O
 programa cria, pesquisa e modifica anotações mantidas em memória durante a
 execução.
 
