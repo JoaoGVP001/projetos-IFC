@@ -3,7 +3,7 @@ $pacotes = Join-Path $raiz '.venv\Lib\site-packages'
 $registro = 'HKCU:\Software\Python\PythonCore\3.12\InstallPath'
 
 if (-not (Test-Path -LiteralPath $pacotes)) {
-    throw 'Dependencias ausentes. Instale com .\.venv\Scripts\python.exe -m pip install -r tutor_calculo\requirements.txt'
+    throw 'Dependencias ausentes. Instale com .\.venv\Scripts\python.exe -m pip install -r requirements.txt'
 }
 
 $python = (Get-ItemProperty -LiteralPath $registro -ErrorAction Stop).ExecutablePath
