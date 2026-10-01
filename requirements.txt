@@ -1,0 +1,3 @@
+openai>=1.0
+sympy>=1.13
+customtkinter>=5.2
