@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+dados/*.json
+biblioteca/arquivos/*
+biblioteca/capas/*
+biblioteca/miniaturas/*
+!biblioteca/arquivos/.gitkeep
+!biblioteca/capas/.gitkeep
+!biblioteca/miniaturas/.gitkeep
