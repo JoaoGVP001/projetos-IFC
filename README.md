@@ -221,5 +221,15 @@ Nos modos de IA do desktop, ate dez pares completos recentes sao usados como
 contexto, limitados a 16 mil caracteres. Mensagens de erro ficam fora; o historico
 completo permanece no banco. O modo Resolver local e o menu de terminal seguem
 sem memoria de conversa. Fechar durante uma consulta preserva a pergunta, mas
-nao salva a resposta ainda em andamento. Busca, exclusao, cancelamento e
-streaming serao entregues depois.
+nao salva a resposta ainda em andamento. Cancelamento de consultas e streaming serao entregues depois.
+
+
+### Busca, arquivamento e exclusao
+
+A busca da barra lateral procura termos literais no titulo e nas mensagens.
+Ver arquivados alterna a lista entre chats ativos e arquivados. Arquivar preserva
+mensagens e rascunho; Restaurar permite continuar a conversa. Chats arquivados
+ficam sem envio ate serem restaurados. Excluir pede confirmacao e remove o chat
+e suas mensagens definitivamente; use Arquivar para preservar o historico.
+A atualizacao do banco da versao 1 para 2 cria `historico.sqlite3.v1.backup`
+antes da alteracao. Backup e banco ficam no diretorio local de dados do usuario.

@@ -68,7 +68,7 @@ anterior; configuracao dos provedores existentes continua funcionando.
 - [x] Salvar mensagens, titulo, datas, resultado da consulta, rascunho e provedor.
 - [ ] Adicionar materia e estados persistentes de consulta em andamento.
 - [x] Renomear conversas.
-- [ ] Buscar e excluir conversas com confirmacao e alternativa de arquivo.
+- [x] Buscar por titulo/conteudo, arquivar/restaurar e excluir com confirmacao.
 - [x] Enviar historico relevante ao Gemini e a OpenAI, com limite de contexto.
 - [ ] Respostas progressivas quando suportadas, indicador de envio e cancelar.
 - [ ] Copiar mensagem, tentar novamente apos erro e preservar rascunho.
@@ -298,3 +298,15 @@ rascunho e reinicio. Nenhuma consulta real foi necessaria para esta entrega.
 Limites: sem busca/exclusao, streaming ou cancelamento. Ao fechar durante uma
 consulta, a pergunta salva permanece, mas a resposta em andamento nao e salva.
 Cadernos e atividades permanecem nas etapas seguintes; IA local fica por ultimo.
+
+
+## Entrega parcial — organizacao de chats (10/10/2026)
+
+Busca literal por titulo e mensagens, sem diferenciar maiusculas/minusculas.
+Arquivar preserva mensagens e rascunho; Ver arquivados permite restaurar. Chats
+arquivados precisam ser restaurados para receber novas mensagens. Exclusao pede
+confirmacao e remove as mensagens associadas, preservando outras conversas.
+Banco migrado para versao 2 com backup da versao 1 antes da alteracao.
+Validacao: 39 testes automatizados e fluxo de janela com cancelamento e
+confirmacao da exclusao. Streaming, cancelamento da consulta e repeticao de
+envio ainda permanecem pendentes nesta etapa.

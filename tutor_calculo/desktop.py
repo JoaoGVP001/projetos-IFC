@@ -3,6 +3,7 @@
 from queue import Empty, Queue
 from threading import Thread
 import webbrowser
+from tkinter import messagebox
 
 import customtkinter as ctk
 
@@ -29,6 +30,7 @@ class TutorDesktop(ctk.CTk):
         self.minsize(1000, 650)
         self._fila: Queue[tuple[str, str]] = Queue()
         self._ocupado = False
+        self._arquivados = False
         self.historico = Historico(caminho_historico)
         conversas = self.historico.listar()
         self.conversa_id = conversas[0]["id"] if conversas else self.historico.criar()
@@ -119,13 +121,23 @@ class TutorDesktop(ctk.CTk):
                       hover_color="#E7EEEC", command=self.configurar_ia).grid(row=1, column=1, pady=(8, 0))
         lateral = ctk.CTkFrame(self, width=220, fg_color="#E7EEEC", corner_radius=0)
         lateral.grid(row=0, column=0, rowspan=4, sticky="nsew")
-        lateral.grid_rowconfigure(2, weight=1)
+        lateral.grid_rowconfigure(3, weight=1)
         lateral.grid_columnconfigure(0, weight=1)
         ctk.CTkButton(lateral, text="+ Novo chat", command=self.novo_chat, fg_color=ACCENT).grid(row=0, column=0, padx=15, pady=20, sticky="ew")
         ctk.CTkButton(lateral, text="Renomear chat", command=self.renomear_chat, fg_color=ACCENT).grid(row=1, column=0, padx=15, pady=(0, 10), sticky="ew")
         self.lista_chats = ctk.CTkScrollableFrame(lateral, width=190, fg_color="transparent")
-        self.lista_chats.grid(row=2, column=0, sticky="nsew", padx=8)
-        ctk.CTkLabel(lateral, text="Historico salvo neste PC", text_color=MUTED).grid(row=3, column=0, padx=10, pady=15)
+        self.lista_chats.grid(row=3, column=0, sticky="nsew", padx=8)
+        ctk.CTkLabel(lateral, text="Historico salvo neste PC", text_color=MUTED).grid(row=6, column=0, padx=10, pady=15)
+        self.busca = ctk.CTkEntry(lateral, placeholder_text="Buscar titulo ou mensagem")
+        self.busca.grid(row=2, column=0, padx=15, pady=(0, 10), sticky="ew")
+        self.busca.bind("<KeyRelease>", lambda _evento: self._atualizar_lista())
+        self.botao_arquivo = ctk.CTkButton(lateral, text="Ver arquivados", command=self.alternar_arquivados, fg_color=ACCENT)
+        self.botao_arquivo.grid(row=4, column=0, padx=15, pady=8, sticky="ew")
+        acoes = ctk.CTkFrame(lateral, fg_color="transparent")
+        acoes.grid(row=5, column=0, padx=15, sticky="ew")
+        self.botao_arquivar = ctk.CTkButton(acoes, text="Arquivar", width=95, command=self.arquivar_chat, fg_color=ACCENT)
+        self.botao_arquivar.pack(side="left", padx=(0, 5))
+        ctk.CTkButton(acoes, text="Excluir", width=85, command=self.excluir_chat, fg_color="#9A493D").pack(side="left")
         self._atualizar_lista()
         self._abrir_chat(self.conversa_id)
         self._atualizar_status_ia()
@@ -233,7 +245,7 @@ class TutorDesktop(ctk.CTk):
     def _atualizar_lista(self):
         for filho in self.lista_chats.winfo_children():
             filho.destroy()
-        for conversa in self.historico.listar():
+        for conversa in self.historico.listar(self.busca.get(), self._arquivados):
             ident = conversa["id"]
             ctk.CTkButton(self.lista_chats, text=conversa["titulo"][:26], anchor="w",
                 fg_color=ACCENT if ident == self.conversa_id else "transparent",
@@ -243,7 +255,9 @@ class TutorDesktop(ctk.CTk):
     def _abrir_chat(self, ident):
         self.conversa_id = ident
         self.entrada.delete("1.0", "end")
-        conversa = next(x for x in self.historico.listar() if x["id"] == ident)
+        conversa = self.historico.obter(ident)
+        self.botao_arquivar.configure(text="Restaurar" if conversa["arquivada"] else "Arquivar")
+        self.botao_enviar.configure(state="disabled" if conversa["arquivada"] else "normal")
         self.entrada.insert("1.0", conversa["rascunho"])
         self._mostrar_conversa()
         self._atualizar_lista()
@@ -266,6 +280,9 @@ class TutorDesktop(ctk.CTk):
         if self._ocupado:
             return
         self.historico.rascunho(self.conversa_id, self.entrada.get("1.0", "end").rstrip())
+        self._arquivados = False
+        self.botao_arquivo.configure(text="Ver arquivados")
+        self.busca.delete(0, "end")
         self._abrir_chat(self.historico.criar())
         self.estado.configure(text="Novo chat", text_color=MUTED)
 
@@ -277,6 +294,40 @@ class TutorDesktop(ctk.CTk):
             self.historico.renomear(self.conversa_id, titulo)
             self._atualizar_lista()
 
+    def alternar_arquivados(self):
+        if self._ocupado:
+            return
+        self._arquivados = not self._arquivados
+        self.botao_arquivo.configure(text="Ver ativos" if self._arquivados else "Ver arquivados")
+        self._atualizar_lista()
+
+    def _selecionar_apos_remocao(self):
+        conversas = self.historico.listar(arquivadas=self._arquivados)
+        if not conversas:
+            self._arquivados = False
+            self.botao_arquivo.configure(text="Ver arquivados")
+            conversas = self.historico.listar()
+        self._abrir_chat(conversas[0]["id"] if conversas else self.historico.criar())
+
+    def arquivar_chat(self):
+        if self._ocupado:
+            return
+        conversa = self.historico.obter(self.conversa_id)
+        self.historico.rascunho(self.conversa_id, self.entrada.get("1.0", "end").rstrip())
+        self.historico.arquivar(self.conversa_id, not conversa["arquivada"])
+        self._selecionar_apos_remocao()
+        self.estado.configure(text="Chat restaurado" if conversa["arquivada"] else "Chat arquivado", text_color=MUTED)
+
+    def excluir_chat(self):
+        if self._ocupado:
+            return
+        titulo = self.historico.obter(self.conversa_id)["titulo"]
+        if not messagebox.askyesno("Excluir conversa", f'Excluir "{titulo}" e todas as suas mensagens? Esta acao nao pode ser desfeita. Voce pode arquivar para preservar o chat.', parent=self):
+            return
+        self.historico.excluir(self.conversa_id)
+        self._selecionar_apos_remocao()
+        self.estado.configure(text="Chat excluido", text_color=MUTED)
+
     def fechar(self):
         self.historico.rascunho(self.conversa_id, self.entrada.get("1.0", "end").rstrip())
         self.historico.fechar()
@@ -285,6 +336,9 @@ class TutorDesktop(ctk.CTk):
         self.destroy()
 
     def enviar(self) -> None:
+        if self.historico.obter(self.conversa_id)["arquivada"]:
+            self.estado.configure(text="Restaure o chat para continuar", text_color=MUTED)
+            return
         if self._ocupado:
             return
         texto = self.entrada.get("1.0", "end").strip()

@@ -1,5 +1,6 @@
 """Historico SQLite local, separado do repositorio e das chaves."""
 
+from contextlib import closing
 import os
 import sqlite3
 import sys
@@ -25,17 +26,27 @@ class Historico:
         self.db.row_factory = sqlite3.Row
         self.db.execute('PRAGMA foreign_keys=ON')
         versao = self.db.execute('PRAGMA user_version').fetchone()[0]
-        if versao > 1:
+        if versao > 2:
             self.db.close()
             raise RuntimeError('Este historico exige uma versao mais recente do CadernoMat.')
         if versao == 0:
             if self.caminho.stat().st_size:
-                with sqlite3.connect(str(self.caminho)+'.backup') as destino:
+                with closing(sqlite3.connect(str(self.caminho)+'.backup')) as destino:
                     self.db.backup(destino)
             with self.db:
                 self.db.execute('CREATE TABLE IF NOT EXISTS conversas (id TEXT PRIMARY KEY, titulo TEXT NOT NULL, rascunho TEXT NOT NULL DEFAULT "", atualizado TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)')
                 self.db.execute('CREATE TABLE IF NOT EXISTS mensagens (id INTEGER PRIMARY KEY AUTOINCREMENT, conversa_id TEXT NOT NULL REFERENCES conversas(id) ON DELETE CASCADE, papel TEXT NOT NULL, texto TEXT NOT NULL, estado TEXT NOT NULL, provedor TEXT NOT NULL DEFAULT "", modelo TEXT NOT NULL DEFAULT "", criado TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)')
                 self.db.execute('PRAGMA user_version=1')
+        if versao < 2:
+            if versao == 1:
+                with closing(sqlite3.connect(str(self.caminho)+'.v1.backup')) as destino:
+                    self.db.backup(destino)
+                if os.name != 'nt':
+                    Path(str(self.caminho)+'.v1.backup').chmod(0o600)
+            with self.db:
+                self.db.execute('ALTER TABLE conversas ADD COLUMN arquivada INTEGER NOT NULL DEFAULT 0')
+                self.db.execute('PRAGMA user_version=2')
+        self.db.create_function('CASEFOLD', 1, lambda texto: texto.casefold())
         if os.name != 'nt':
             self.caminho.chmod(0o600)
 
@@ -45,8 +56,28 @@ class Historico:
             self.db.execute('INSERT INTO conversas(id,titulo) VALUES (?,?)',(identificador,'Novo chat'))
         return identificador
 
-    def listar(self):
-        return [dict(x) for x in self.db.execute('SELECT * FROM conversas ORDER BY atualizado DESC, rowid DESC')]
+    def listar(self, busca='', arquivadas=False):
+        # instr faz busca literal, inclusive % e _, sem curingas SQL.
+        return [dict(x) for x in self.db.execute(
+            'SELECT c.* FROM conversas c WHERE c.arquivada=? AND '
+            '(?="" OR instr(CASEFOLD(c.titulo),?)>0 OR EXISTS '
+            '(SELECT 1 FROM mensagens m WHERE m.conversa_id=c.id AND instr(CASEFOLD(m.texto),?)>0)) '
+            'ORDER BY c.atualizado DESC, c.rowid DESC',
+            (int(arquivadas), busca.strip(), busca.strip().casefold(), busca.strip().casefold()))]
+
+    def obter(self, conversa):
+        registro = self.db.execute('SELECT * FROM conversas WHERE id=?',(conversa,)).fetchone()
+        if registro is None:
+            raise ValueError('Conversa nao encontrada.')
+        return dict(registro)
+
+    def arquivar(self, conversa, arquivada=True):
+        with self.db:
+            self.db.execute('UPDATE conversas SET arquivada=?, atualizado=CURRENT_TIMESTAMP WHERE id=?',(int(arquivada),conversa))
+
+    def excluir(self, conversa):
+        with self.db:
+            self.db.execute('DELETE FROM conversas WHERE id=?',(conversa,))
 
     def mensagens(self, conversa):
         return [dict(x) for x in self.db.execute('SELECT * FROM mensagens WHERE conversa_id=? ORDER BY id',(conversa,))]
