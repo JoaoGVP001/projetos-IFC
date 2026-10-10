@@ -53,7 +53,7 @@ def salvar_configuracao(chave: str, modelo: str = MODELO_PADRAO, provedor: str =
     set_key(str(ARQUIVO_ENV), "AI_PROVIDER", provedor)
 
 
-def perguntar(pergunta: str, modo: str = "Resolver") -> str:
+def perguntar(pergunta: str, modo: str = "Resolver", historico: list[dict] | None = None) -> str:
     if not pergunta.strip():
         raise ValueError("Digite um enunciado ou uma duvida.")
     tarefas = {
@@ -68,10 +68,12 @@ def perguntar(pergunta: str, modo: str = "Resolver") -> str:
     if not chave:
         raise RuntimeError(f"A IA {provedor} ainda nao esta configurada. Use Configurar IA ou defina {PROVEDORES[provedor][0]}_API_KEY no arquivo .env.")
 
+    contexto = limitar_contexto(historico or [])
+    entrada = contexto + [{"role": "user", "content": pergunta}] if contexto else pergunta
     instrucoes = INSTRUCOES + "\nTarefa desta consulta: " + tarefas[modo]
     if provedor == "gemini":
         from .gemini import consultar
-        return consultar(chave, modelo, pergunta, instrucoes)
+        return consultar(chave, modelo, pergunta, instrucoes, historico=contexto) if contexto else consultar(chave, modelo, pergunta, instrucoes)
 
     try:
         import openai
@@ -83,7 +85,7 @@ def perguntar(pergunta: str, modo: str = "Resolver") -> str:
             resposta = cliente.responses.create(
                 model=modelo,
                 instructions=instrucoes,
-                input=pergunta,
+                input=entrada,
                 max_output_tokens=4096,
                 store=False,
             )
@@ -112,3 +114,29 @@ def perguntar(pergunta: str, modo: str = "Resolver") -> str:
     if getattr(resposta, "status", None) == "incomplete":
         texto += "\n\n[Resposta interrompida pelo limite da consulta. Divida o exercicio em etapas e tente novamente.]"
     return texto
+
+
+def limitar_contexto(mensagens: list[dict], limite: int = 16000) -> list[dict]:
+    """Preserva pares recentes completos; erros e pares incompletos ficam fora."""
+    pares = []
+    usuario = None
+    for m in mensagens:
+        if m.get("estado", "ok") != "ok":
+            usuario = None
+            continue
+        papel = m.get("papel", m.get("role"))
+        texto = m.get("texto", m.get("content", ""))
+        if papel == "user":
+            usuario = {"role": "user", "content": texto}
+        elif papel == "assistant" and usuario:
+            pares.append([usuario, {"role": "assistant", "content": texto}])
+            usuario = None
+    contexto = []
+    tamanho = 0
+    for par in reversed(pares[-10:]):
+        custo = sum(len(m["content"]) for m in par)
+        if tamanho + custo > limite:
+            break
+        contexto = par + contexto
+        tamanho += custo
+    return contexto

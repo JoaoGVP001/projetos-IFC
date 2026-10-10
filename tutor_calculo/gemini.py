@@ -6,11 +6,12 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 
-def consultar(chave: str, modelo: str, pergunta: str, instrucoes: str) -> str:
+def consultar(chave: str, modelo: str, pergunta: str, instrucoes: str, historico: list[dict] | None = None) -> str:
     if not re.fullmatch(r"[a-zA-Z0-9_.-]+", modelo):
         raise ValueError("Identificador de modelo Gemini invalido.")
+    contexto = [{"role": "model" if m["role"] == "assistant" else "user", "parts": [{"text": m["content"]}]} for m in (historico or [])]
     dados = {
-        "contents": [{"role": "user", "parts": [{"text": pergunta}]}],
+        "contents": contexto + [{"role": "user", "parts": [{"text": pergunta}]}],
         "systemInstruction": {"parts": [{"text": instrucoes}]},
         "generationConfig": {"maxOutputTokens": 4096},
     }

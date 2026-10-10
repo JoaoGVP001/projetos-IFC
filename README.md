@@ -9,8 +9,8 @@ tentativas usam a API do Gemini ou da OpenAI, conforme o servico escolhido.
 ## Evolucao planejada
 
 O projeto esta evoluindo para um chat com historico, cadernos por materia,
-listas, provas de pratica e simulados. Esses recursos ainda estao planejados;
-a versao atual oferece consultas independentes com IA e o resolvedor local.
+listas, provas de pratica e simulados. A versao atual ja tem chats com historico
+local e contexto recente; cadernos e atividades ainda estao planejados.
 Veja [o planejamento completo](PLANEJAMENTO.md) e o
 [registro da fase inicial](HISTORICO_DESENVOLVIMENTO.md).
 
@@ -108,8 +108,8 @@ python3 -m venv .venv
    Esse modo pede ao instrutor que interprete o exercicio, verifique as hipoteses
    e explique a resolucao. Se faltarem dados, ele deve pedir esclarecimento.
 3. Use **Explicar** para duvidas conceituais ou **Corrigir** para enviar o
-   enunciado junto com sua tentativa. Cada envio e uma consulta independente;
-   inclua o contexto necessario, pois ainda nao ha historico de conversa.
+   enunciado junto com sua tentativa. No desktop, mensagens recentes da mesma conversa sao enviadas como contexto;
+   use Novo chat para iniciar um assunto independente.
 
 **Resolver** continua usando o analisador local para funcoes por partes no
 formato suportado; perguntas abertas nesse modo usam a API. Para garantir que
@@ -199,3 +199,27 @@ Markdown/LaTeX, para reutilizacao em editores que suportem essa formatacao.
 As instrucoes de Gemini e OpenAI pedem um Resumo e uma pergunta de pratica em
 Sua vez ao concluir explicacoes. As respostas anteriores nao sao regeneradas;
 a estrutura exata continua dependendo da resposta do modelo.
+
+
+## Chats e armazenamento local
+
+A barra lateral permite criar, alternar e renomear chats. O primeiro enunciado
+vira o titulo automaticamente. Mensagens e rascunhos sao preservados ao trocar
+conversas e fechar o aplicativo. Limpar entrada apaga apenas o rascunho; Copiar
+conversa copia a transcricao completa em Markdown/LaTeX.
+
+O banco `historico.sqlite3` fica no diretorio de dados do usuario:
+
+- Linux: `~/.local/share/CadernoMat/` (ou `$XDG_DATA_HOME/CadernoMat`).
+- Windows: `%LOCALAPPDATA%/CadernoMat/`.
+- macOS: `~/Library/Application Support/CadernoMat/`.
+
+O banco fica fora do repositorio e nao contem as chaves de API. Ha versao de
+esquema e backup antes da criacao de esquema em um arquivo ja existente.
+
+Nos modos de IA do desktop, ate dez pares completos recentes sao usados como
+contexto, limitados a 16 mil caracteres. Mensagens de erro ficam fora; o historico
+completo permanece no banco. O modo Resolver local e o menu de terminal seguem
+sem memoria de conversa. Fechar durante uma consulta preserva a pergunta, mas
+nao salva a resposta ainda em andamento. Busca, exclusao, cancelamento e
+streaming serao entregues depois.

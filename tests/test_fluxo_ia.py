@@ -95,7 +95,8 @@ class FluxoIaTest(unittest.TestCase):
         TutorDesktop._verificar_fila(janela)
         self.assertFalse(janela._ocupado)
         janela.botao_enviar.configure.assert_called_with(state='normal')
-        self.assertIn('falha inesperada', janela._mostrar_saida.call_args.args[0])
+        self.assertIn('falha inesperada', janela.historico.adicionar.call_args.args[2])
+        janela._mostrar_conversa.assert_called_once()
 
 
 if __name__ == '__main__':

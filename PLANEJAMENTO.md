@@ -17,8 +17,9 @@ Nome do aplicativo: **CadernoMat**. Repositorio: **caderno-mat**.
 Ja existem interface desktop, Gemini e OpenAI com chaves individuais, resolucao
 local de continuidade por partes e apresentacao de Markdown/formulas. O usuario
 confirmou uma resposta real do Gemini. Os 31 testes atuais passaram na ultima
-validacao. Ainda nao existem chats persistentes, cadernos, memoria de conversa,
-provas, simulados ou acompanhamento de desempenho.
+validacao. Agora existem chats persistentes, barra lateral, renomeacao, rascunhos e
+contexto recente enviado a Gemini/OpenAI. Cadernos, provas, simulados e
+acompanhamento de desempenho ainda estao planejados.
 
 Este planejamento inclui a evolucao principal e uma etapa final de IA local e
 interface com multiplos modelos, inspirada nos artigos analisados. As funcionalidades abaixo
@@ -53,9 +54,9 @@ contexto independente. Selecionar uma conversa recupera suas mensagens.
 - [x] Definir nome, escopo e planejamento.
 - [x] Atualizar identidade visivel e repositorio.
 - [ ] Separar interface, servicos de estudo, provedores de IA e armazenamento.
-- [ ] Criar SQLite local com migracoes e backup antes de mudancas de esquema.
+- [x] Criar SQLite local com migracoes e backup antes de mudancas de esquema.
 - [ ] Padronizar componentes, cores, espacamento, fontes e mensagens em portugues.
-- [ ] Definir pasta de dados do usuario separada do checkout Git, usando o diretorio
+- [x] Definir pasta de dados do usuario separada do checkout Git, usando o diretorio
   de dados da plataforma. Manter chaves fora do banco e do Git.
 
 Conclusao: dados persistem apos reiniciar; falha de migracao preserva o banco
@@ -63,10 +64,12 @@ anterior; configuracao dos provedores existentes continua funcionando.
 
 ## Etapa 2 — Chat com historico (primeira entrega utilizavel)
 
-- [ ] Barra lateral, Novo chat, lista de conversas e conversa central.
-- [ ] Salvar mensagens, titulo, datas, estado de envio, materia e provedor.
-- [ ] Renomear, buscar e excluir conversas com confirmacao e alternativa de arquivo.
-- [ ] Enviar historico relevante ao Gemini e a OpenAI, com limite de contexto.
+- [x] Barra lateral, Novo chat, lista de conversas e conversa central.
+- [x] Salvar mensagens, titulo, datas, resultado da consulta, rascunho e provedor.
+- [ ] Adicionar materia e estados persistentes de consulta em andamento.
+- [x] Renomear conversas.
+- [ ] Buscar e excluir conversas com confirmacao e alternativa de arquivo.
+- [x] Enviar historico relevante ao Gemini e a OpenAI, com limite de contexto.
 - [ ] Respostas progressivas quando suportadas, indicador de envio e cancelar.
 - [ ] Copiar mensagem, tentar novamente apos erro e preservar rascunho.
 - [ ] Manter renderizacao de formulas e rolagem; exibir falhas de modo recuperavel.
@@ -280,3 +283,18 @@ memoria limitada e ausencia de envio automatico para nuvem.
 
 Nao sincronizar com nuvem, adicionar multiplos usuarios ou construir plugins
 nesta primeira versao. A prioridade e um aplicativo pessoal consistente.
+
+
+## Entrega parcial — chat persistente (10/10/2026)
+
+Implementados: banco SQLite versionado fora do Git, barra lateral, Novo chat,
+titulo automatico, renomeacao, transcricao com formulas, rascunho por conversa e
+recuperacao apos reiniciar. A IA recebe ate dez pares completos recentes, com
+limite de 16 mil caracteres; pares com erros ficam fora. O historico completo
+continua salvo localmente. Resolver local permanece sem contexto de chat.
+
+Validacao: 35 testes automatizados e fluxo de janela com envio simulado, troca,
+rascunho e reinicio. Nenhuma consulta real foi necessaria para esta entrega.
+Limites: sem busca/exclusao, streaming ou cancelamento. Ao fechar durante uma
+consulta, a pergunta salva permanece, mas a resposta em andamento nao e salva.
+Cadernos e atividades permanecem nas etapas seguintes; IA local fica por ultimo.

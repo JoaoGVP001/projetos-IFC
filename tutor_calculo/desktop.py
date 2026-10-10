@@ -6,6 +6,7 @@ import webbrowser
 
 import customtkinter as ctk
 
+from .armazenamento import Historico
 from .app import EXEMPLO, resolver
 from .renderizacao import Renderizador
 from .ia import PROVEDORES, configuracao, perguntar, provedor_ativo, salvar_configuracao
@@ -21,20 +22,24 @@ BORDER = "#DCE5E2"
 
 
 class TutorDesktop(ctk.CTk):
-    def __init__(self) -> None:
+    def __init__(self, caminho_historico=None) -> None:
         super().__init__(fg_color=BG)
         self.title("CadernoMat — estudos de matematica")
-        self.geometry("1080x700")
-        self.minsize(780, 560)
+        self.geometry("1180x780")
+        self.minsize(1000, 650)
         self._fila: Queue[tuple[str, str]] = Queue()
         self._ocupado = False
+        self.historico = Historico(caminho_historico)
+        conversas = self.historico.listar()
+        self.conversa_id = conversas[0]["id"] if conversas else self.historico.criar()
+        self.protocol("WM_DELETE_WINDOW", self.fechar)
 
-        self.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(2, weight=1)
         self._janela_config = None
 
         cabecalho = ctk.CTkFrame(self, fg_color="transparent")
-        cabecalho.grid(row=0, column=0, sticky="ew", padx=30, pady=(24, 16))
+        cabecalho.grid(row=0, column=1, sticky="ew", padx=30, pady=(24, 16))
         cabecalho.grid_columnconfigure(0, weight=1)
         ctk.CTkLabel(
             cabecalho, text="CadernoMat", font=("Segoe UI", 27, "bold"),
@@ -47,7 +52,7 @@ class TutorDesktop(ctk.CTk):
         self.estado.grid(row=0, column=1, sticky="e")
 
         barra = ctk.CTkFrame(self, fg_color="transparent")
-        barra.grid(row=1, column=0, sticky="ew", padx=30, pady=(0, 18))
+        barra.grid(row=1, column=1, sticky="ew", padx=30, pady=(0, 18))
         barra.grid_columnconfigure(0, weight=1)
         self.modo = ctk.CTkSegmentedButton(
             barra, values=["Resolver", "Resolver com IA", "Explicar", "Corrigir"],
@@ -57,55 +62,47 @@ class TutorDesktop(ctk.CTk):
             text_color=(INK, SURFACE), font=("Segoe UI", 13),
         )
         self.modo.grid(row=0, column=0, sticky="w")
-        self.modo.set("Resolver")
+        self.modo.set("Resolver com IA")
         ctk.CTkButton(
             barra, text="Carregar exemplo", width=135, height=34,
             fg_color="transparent", hover_color="#E7EEEC", text_color=ACCENT,
             font=("Segoe UI", 13), command=self.carregar_exemplo,
         ).grid(row=0, column=1, padx=(8, 0))
         ctk.CTkButton(
-            barra, text="Limpar", width=72, height=34,
+            barra, text="Limpar entrada", width=110, height=34,
             fg_color="transparent", hover_color="#E7EEEC", text_color=MUTED,
             font=("Segoe UI", 13), command=self.limpar,
         ).grid(row=0, column=2, padx=(4, 0))
 
         corpo = ctk.CTkFrame(self, fg_color="transparent")
-        corpo.grid(row=2, column=0, sticky="nsew", padx=30)
-        corpo.grid_columnconfigure((0, 1), weight=1, uniform="painel")
-        corpo.grid_rowconfigure(1, weight=1)
-        ctk.CTkLabel(
-            corpo, text="ENUNCIADO", font=("Segoe UI", 12, "bold"),
-            text_color=MUTED, anchor="w",
-        ).grid(row=0, column=0, sticky="ew", pady=(0, 8))
-        ctk.CTkLabel(
-            corpo, text="RESOLUÇÃO", font=("Segoe UI", 12, "bold"),
-            text_color=MUTED, anchor="w",
-        ).grid(row=0, column=1, sticky="ew", padx=(16, 0), pady=(0, 8))
+        corpo.grid(row=2, column=1, sticky="nsew", padx=30)
+        corpo.grid_columnconfigure(0, weight=1)
+        corpo.grid_rowconfigure(0, weight=1)
         self.entrada = ctk.CTkTextbox(
             corpo, wrap="word", fg_color=SURFACE, text_color=INK,
             border_color=BORDER, border_width=1, corner_radius=6,
-            font=("Consolas", 15), padx=17, pady=17,
+            font=("Consolas", 15), padx=17, pady=17, height=110,
         )
-        self.entrada.grid(row=1, column=0, sticky="nsew")
+        self.entrada.grid(row=1, column=0, sticky="ew", pady=(12, 0))
         self.saida = ctk.CTkTextbox(
             corpo, wrap="word", fg_color=SURFACE, text_color=INK,
             border_color=BORDER, border_width=1, corner_radius=6,
             font=("Segoe UI", 15), padx=19, pady=17, state="disabled",
         )
-        self.saida.grid(row=1, column=1, sticky="nsew", padx=(16, 0))
+        self.saida.grid(row=0, column=0, sticky="nsew")
         self.renderizador = Renderizador(self.saida._textbox)
 
         rodape = ctk.CTkFrame(self, fg_color="transparent")
-        rodape.grid(row=3, column=0, sticky="ew", padx=30, pady=(17, 24))
+        rodape.grid(row=3, column=1, sticky="ew", padx=30, pady=(17, 24))
         rodape.grid_columnconfigure(0, weight=1)
         ctk.CTkButton(
-            rodape, text="Copiar resolução", width=142, height=38,
+            rodape, text="Copiar conversa", width=142, height=38,
             fg_color="transparent", border_width=1, border_color=BORDER,
             hover_color="#E7EEEC", text_color=INK, font=("Segoe UI", 13),
             command=self.copiar,
         ).grid(row=0, column=0, sticky="w")
         self.botao_enviar = ctk.CTkButton(
-            rodape, text="Resolver", width=130, height=40,
+            rodape, text="Resolver com IA", width=130, height=40,
             fg_color=ACCENT, hover_color=ACCENT_HOVER,
             corner_radius=6, font=("Segoe UI", 14, "bold"),
             command=self.enviar,
@@ -120,6 +117,17 @@ class TutorDesktop(ctk.CTk):
         ctk.CTkButton(rodape, text="Configurar IA", width=130, height=28,
                       fg_color="transparent", text_color=ACCENT,
                       hover_color="#E7EEEC", command=self.configurar_ia).grid(row=1, column=1, pady=(8, 0))
+        lateral = ctk.CTkFrame(self, width=220, fg_color="#E7EEEC", corner_radius=0)
+        lateral.grid(row=0, column=0, rowspan=4, sticky="nsew")
+        lateral.grid_rowconfigure(2, weight=1)
+        lateral.grid_columnconfigure(0, weight=1)
+        ctk.CTkButton(lateral, text="+ Novo chat", command=self.novo_chat, fg_color=ACCENT).grid(row=0, column=0, padx=15, pady=20, sticky="ew")
+        ctk.CTkButton(lateral, text="Renomear chat", command=self.renomear_chat, fg_color=ACCENT).grid(row=1, column=0, padx=15, pady=(0, 10), sticky="ew")
+        self.lista_chats = ctk.CTkScrollableFrame(lateral, width=190, fg_color="transparent")
+        self.lista_chats.grid(row=2, column=0, sticky="nsew", padx=8)
+        ctk.CTkLabel(lateral, text="Historico salvo neste PC", text_color=MUTED).grid(row=3, column=0, padx=10, pady=15)
+        self._atualizar_lista()
+        self._abrir_chat(self.conversa_id)
         self._atualizar_status_ia()
         self.after(100, self._verificar_fila)
 
@@ -208,7 +216,7 @@ class TutorDesktop(ctk.CTk):
         if self._ocupado:
             return
         self.entrada.delete("1.0", "end")
-        self._mostrar_saida("")
+        self.historico.rascunho(self.conversa_id, "")
         self.estado.configure(text="Pronto", text_color=MUTED)
         self.entrada.focus_set()
 
@@ -222,24 +230,86 @@ class TutorDesktop(ctk.CTk):
     def _mostrar_saida(self, texto: str) -> None:
         self.renderizador.mostrar(texto)
 
+    def _atualizar_lista(self):
+        for filho in self.lista_chats.winfo_children():
+            filho.destroy()
+        for conversa in self.historico.listar():
+            ident = conversa["id"]
+            ctk.CTkButton(self.lista_chats, text=conversa["titulo"][:26], anchor="w",
+                fg_color=ACCENT if ident == self.conversa_id else "transparent",
+                text_color=SURFACE if ident == self.conversa_id else INK,
+                hover_color="#C8DCD6", command=lambda cid=ident: self.trocar_chat(cid)).pack(fill="x", pady=3)
+
+    def _abrir_chat(self, ident):
+        self.conversa_id = ident
+        self.entrada.delete("1.0", "end")
+        conversa = next(x for x in self.historico.listar() if x["id"] == ident)
+        self.entrada.insert("1.0", conversa["rascunho"])
+        self._mostrar_conversa()
+        self._atualizar_lista()
+
+    def _mostrar_conversa(self):
+        mensagens = self.historico.mensagens(self.conversa_id)
+        texto = "\n\n---\n\n".join(
+            ("## Voce\n" if m["papel"] == "user" else "## CadernoMat" + (" — erro" if m["estado"] == "erro" else "") + "\n") + m["texto"]
+            for m in mensagens)
+        self._mostrar_saida(texto or "## Comece uma conversa\nDigite sua duvida de matematica abaixo. Use Novo chat para estudar outro assunto.")
+        self.saida._textbox.yview_moveto(1)
+
+    def trocar_chat(self, ident):
+        if self._ocupado:
+            return
+        self.historico.rascunho(self.conversa_id, self.entrada.get("1.0", "end").rstrip())
+        self._abrir_chat(ident)
+
+    def novo_chat(self):
+        if self._ocupado:
+            return
+        self.historico.rascunho(self.conversa_id, self.entrada.get("1.0", "end").rstrip())
+        self._abrir_chat(self.historico.criar())
+        self.estado.configure(text="Novo chat", text_color=MUTED)
+
+    def renomear_chat(self):
+        if self._ocupado:
+            return
+        titulo = ctk.CTkInputDialog(text="Titulo da conversa:", title="Renomear chat").get_input()
+        if titulo and titulo.strip():
+            self.historico.renomear(self.conversa_id, titulo)
+            self._atualizar_lista()
+
+    def fechar(self):
+        self.historico.rascunho(self.conversa_id, self.entrada.get("1.0", "end").rstrip())
+        self.historico.fechar()
+        for tarefa in self.tk.call("after", "info"):
+            self.after_cancel(tarefa)
+        self.destroy()
+
     def enviar(self) -> None:
         if self._ocupado:
             return
         texto = self.entrada.get("1.0", "end").strip()
         if not texto:
-            self.estado.configure(text="Digite um enunciado", text_color="#AD4D36")
-            self.entrada.focus_set()
+            self.estado.configure(text="Digite uma mensagem", text_color="#AD4D36")
             return
         modo = self.modo.get()
+        contexto = self.historico.mensagens(self.conversa_id)
+        self.historico.adicionar(self.conversa_id, "user", texto)
+        if len(self.historico.mensagens(self.conversa_id)) == 1:
+            self.historico.renomear(self.conversa_id, texto.splitlines()[0][:80])
+        self.historico.rascunho(self.conversa_id, "")
+        self.entrada.delete("1.0", "end")
+        self._mostrar_conversa()
+        self._atualizar_lista()
         self._ocupado = True
         self.botao_enviar.configure(state="disabled")
-        self.estado.configure(text="Calculando..." if modo == "Resolver" else "Consultando tutor...", text_color=ACCENT)
-        self._mostrar_saida("")
-        Thread(target=self._executar, args=(modo, texto), daemon=True).start()
+        self.estado.configure(text="Consultando...", text_color=ACCENT)
+        Thread(target=self._executar, args=(modo, texto, contexto), daemon=True).start()
 
-    def _executar(self, modo: str, texto: str) -> None:
+    def _executar(self, modo: str, texto: str, historico=None) -> None:
         try:
-            if modo in {"Resolver", "Resolver com IA"}:
+            if historico and modo != "Resolver":
+                resposta = perguntar(texto, modo="Resolver" if modo == "Resolver com IA" else modo, historico=historico)
+            elif modo in {"Resolver", "Resolver com IA"}:
                 resposta = resolver(texto, usar_ia=modo == "Resolver com IA")
             elif modo == "Explicar":
                 resposta = perguntar(texto, modo="Explicar")
@@ -259,7 +329,10 @@ class TutorDesktop(ctk.CTk):
         else:
             self._ocupado = False
             self.botao_enviar.configure(state="normal")
-            self._mostrar_saida(mensagem)
+            provedor = provedor_ativo()
+            _, modelo = configuracao()
+            self.historico.adicionar(self.conversa_id, "assistant", mensagem, estado=tipo if tipo == "erro" else "ok", provedor=provedor, modelo=modelo)
+            self._mostrar_conversa()
             self.estado.configure(
                 text="Concluído" if tipo == "ok" else "Não foi possível concluir",
                 text_color=ACCENT if tipo == "ok" else "#AD4D36",
