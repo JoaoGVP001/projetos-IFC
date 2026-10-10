@@ -141,7 +141,7 @@ class TutorDesktop(ctk.CTk):
         self._atualizar_lista()
         self._abrir_chat(self.conversa_id)
         self._atualizar_status_ia()
-        self.after(100, self._verificar_fila)
+        self._timer_fila = self.after(100, self._verificar_fila)
 
     def _mudar_modo(self, modo: str) -> None:
         self.botao_enviar.configure(text=modo)
@@ -331,8 +331,7 @@ class TutorDesktop(ctk.CTk):
     def fechar(self):
         self.historico.rascunho(self.conversa_id, self.entrada.get("1.0", "end").rstrip())
         self.historico.fechar()
-        for tarefa in self.tk.call("after", "info"):
-            self.after_cancel(tarefa)
+        self.after_cancel(self._timer_fila)
         self.destroy()
 
     def enviar(self) -> None:
@@ -391,7 +390,7 @@ class TutorDesktop(ctk.CTk):
                 text="Concluído" if tipo == "ok" else "Não foi possível concluir",
                 text_color=ACCENT if tipo == "ok" else "#AD4D36",
             )
-        self.after(100, self._verificar_fila)
+        self._timer_fila = self.after(100, self._verificar_fila)
 
 
 def main() -> None:
