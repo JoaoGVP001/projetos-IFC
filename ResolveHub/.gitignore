@@ -1,0 +1,45 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.pfx
+*.p12
+*.kdb
+
+# Imported/private customer material must never enter Git
+Help/
+Help.zip
+data/imports/
+data/raw/
+storage/
+data/runtime/
+*.fdb
+*.sqlite
+*.sqlite3
+
+# JavaScript
+node_modules/
+.next/
+coverage/
+playwright-report/
+test-results/
+*.tsbuildinfo
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+dist/
+*.egg-info/
+
+# OS and editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Generated image staging (the selected public asset is copied into apps/web/public)
+output/

@@ -1,0 +1,50 @@
+name: resolvehub
+
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-resolvehub}
+      POSTGRES_USER: ${POSTGRES_USER:-resolvehub}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-resolvehub_dev_only}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
+      - ./apps/web/drizzle:/migrations:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  web:
+    build:
+      context: ./apps/web
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-resolvehub}:${POSTGRES_PASSWORD:-resolvehub_dev_only}@db:5432/${POSTGRES_DB:-resolvehub}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+      STORAGE_ROOT: /app/storage
+    ports:
+      - "3000:3000"
+    volumes:
+      - storage_data:/app/storage
+    depends_on:
+      db:
+        condition: service_healthy
+
+  inventory:
+    profiles: ["tools"]
+    build:
+      context: ./services/ingestion
+    command: ["inventory", "--archive", "/imports/Help.zip", "--output", "/reports/help-summary.json"]
+    volumes:
+      - ${HELP_IMPORT_DIR:-./data/imports}:/imports:ro
+      - ./data/reports:/reports
+
+volumes:
+  postgres_data:
+  storage_data:
