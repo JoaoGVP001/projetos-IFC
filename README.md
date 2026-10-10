@@ -1,9 +1,21 @@
-# Tutor de Calculo I
+# CadernoMat
 
-Aplicativo em Python para estudar limites, continuidade e derivadas. A janela
+Assistente pessoal de estudos de matematica em Python, com foco inicial em
+Calculo Diferencial e Integral I e Matematica Discreta. A janela
 desktop recebe exercicios e mostra a resolucao. Funcoes por partes no formato
 abaixo sao analisadas localmente com SymPy; duvidas abertas e correcao de
 tentativas usam a API do Gemini ou da OpenAI, conforme o servico escolhido.
+
+## Evolucao planejada
+
+O projeto esta evoluindo para um chat com historico, cadernos por materia,
+listas, provas de pratica e simulados. Esses recursos ainda estao planejados;
+a versao atual oferece consultas independentes com IA e o resolvedor local.
+Veja [o planejamento completo](PLANEJAMENTO.md) e o
+[registro da fase inicial](HISTORICO_DESENVOLVIMENTO.md).
+
+O pacote interno continua chamado `tutor_calculo` para preservar os comandos
+de inicializacao. O nome visivel do produto e CadernoMat.
 
 ## Instalacao
 

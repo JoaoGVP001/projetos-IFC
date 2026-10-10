@@ -38,7 +38,7 @@ def resolver(texto: str, usar_ia: bool = False) -> str:
 
 
 def main() -> None:
-    print("Tutor de Calculo 1")
+    print("CadernoMat — estudos de matematica")
     while True:
         print("\n1 - Resolver exercicio\n2 - Explicar conteudo ou corrigir tentativa\n3 - Testar exemplo de continuidade\n4 - Resolver com IA\n0 - Sair")
         try:

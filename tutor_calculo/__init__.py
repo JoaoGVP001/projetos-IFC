@@ -1,1 +1,1 @@
-"""Tutor de Calculo 1."""
+"""CadernoMat: assistente de estudos de matematica."""

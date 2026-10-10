@@ -23,7 +23,7 @@ BORDER = "#DCE5E2"
 class TutorDesktop(ctk.CTk):
     def __init__(self) -> None:
         super().__init__(fg_color=BG)
-        self.title("Tutor de Calculo I")
+        self.title("CadernoMat — estudos de matematica")
         self.geometry("1080x700")
         self.minsize(780, 560)
         self._fila: Queue[tuple[str, str]] = Queue()
@@ -37,7 +37,7 @@ class TutorDesktop(ctk.CTk):
         cabecalho.grid(row=0, column=0, sticky="ew", padx=30, pady=(24, 16))
         cabecalho.grid_columnconfigure(0, weight=1)
         ctk.CTkLabel(
-            cabecalho, text="Cálculo I", font=("Segoe UI", 27, "bold"),
+            cabecalho, text="CadernoMat", font=("Segoe UI", 27, "bold"),
             text_color=INK, anchor="w",
         ).grid(row=0, column=0, sticky="w")
         self.estado = ctk.CTkLabel(

@@ -1,3 +1,5 @@
+> O produto agora se chama CadernoMat. Consulte PLANEJAMENTO.md para a evolucao para chat e cadernos. O registro abaixo descreve etapas anteriores.
+
 > Atualizacao em 10/10/2026: consulte PLANEJAMENTO.md e a secao Linux e instrutor
 > com IA do README. Agora ha Resolver com IA, configuracao pela interface,
 > tratamento de erros e 17 testes. A chamada real continua pendente de chave
@@ -7,7 +9,7 @@
 
 Este documento registra o estado do projeto em 02/10/2026 para continuar o
 desenvolvimento em outro computador. O repositorio e privado:
-https://github.com/JoaoGVP001/tutor-calculo-1
+https://github.com/JoaoGVP001/caderno-mat
 
 ## O que ja foi feito
 
@@ -43,8 +45,8 @@ e continua em `x = 0`.
 Instale Python 3.12 com Tkinter e Git. No PowerShell:
 
 ```powershell
-git clone https://github.com/JoaoGVP001/tutor-calculo-1.git
-cd tutor-calculo-1
+git clone https://github.com/JoaoGVP001/caderno-mat.git
+cd caderno-mat
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
