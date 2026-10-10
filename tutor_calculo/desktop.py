@@ -6,7 +6,7 @@ from threading import Thread
 import customtkinter as ctk
 
 from .app import EXEMPLO, resolver
-from .ia import perguntar
+from .ia import MODELO_PADRAO, configuracao, perguntar, salvar_configuracao
 
 
 BG = "#F4F7F6"
@@ -29,6 +29,7 @@ class TutorDesktop(ctk.CTk):
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(2, weight=1)
+        self._janela_config = None
 
         cabecalho = ctk.CTkFrame(self, fg_color="transparent")
         cabecalho.grid(row=0, column=0, sticky="ew", padx=30, pady=(24, 16))
@@ -47,7 +48,7 @@ class TutorDesktop(ctk.CTk):
         barra.grid(row=1, column=0, sticky="ew", padx=30, pady=(0, 18))
         barra.grid_columnconfigure(0, weight=1)
         self.modo = ctk.CTkSegmentedButton(
-            barra, values=["Resolver", "Explicar", "Corrigir"],
+            barra, values=["Resolver", "Resolver com IA", "Explicar", "Corrigir"],
             height=34, corner_radius=6, fg_color="#E7EEEC",
             selected_color=ACCENT, selected_hover_color=ACCENT_HOVER,
             unselected_color="#E7EEEC", unselected_hover_color="#DAE6E2",
@@ -111,12 +112,57 @@ class TutorDesktop(ctk.CTk):
         self.modo.configure(command=self._mudar_modo)
         self.bind("<Control-Return>", lambda _event: self.enviar())
         self.entrada.focus_set()
+        self.rotulo_ia = ctk.CTkLabel(rodape, text="", text_color=MUTED, font=("Segoe UI", 12))
+        self.rotulo_ia.grid(row=1, column=0, sticky="w", pady=(8, 0))
+        ctk.CTkButton(rodape, text="Configurar IA", width=130, height=28,
+                      fg_color="transparent", text_color=ACCENT,
+                      hover_color="#E7EEEC", command=self.configurar_ia).grid(row=1, column=1, pady=(8, 0))
+        self._atualizar_status_ia()
         self.after(100, self._verificar_fila)
 
     def _mudar_modo(self, modo: str) -> None:
-        self.botao_enviar.configure(text={"Resolver": "Resolver", "Explicar": "Explicar", "Corrigir": "Corrigir"}[modo])
+        self.botao_enviar.configure(text=modo)
+
+    def _atualizar_status_ia(self) -> None:
+        chave, modelo = configuracao()
+        self.rotulo_ia.configure(text=f"IA: chave configurada · {modelo} (acesso ainda precisa ser testado)" if chave else "IA: chave nao configurada · exemplo local funciona sem API")
+
+    def configurar_ia(self) -> None:
+        if self._ocupado:
+            return
+        if self._janela_config is not None and self._janela_config.winfo_exists():
+            self._janela_config.focus()
+            return
+        janela = ctk.CTkToplevel(self)
+        self._janela_config = janela
+        janela.title("Configurar instrutor com IA")
+        janela.geometry("620x340")
+        janela.transient(self)
+        janela.grid_columnconfigure(0, weight=1)
+        ctk.CTkLabel(janela, text="Chave da API da OpenAI", anchor="w").grid(row=0, column=0, sticky="ew", padx=24, pady=(20, 6))
+        campo_chave = ctk.CTkEntry(janela, show="*", placeholder_text="Cole sua chave aqui")
+        campo_chave.grid(row=1, column=0, sticky="ew", padx=24)
+        ctk.CTkLabel(janela, text="Modelo", anchor="w").grid(row=2, column=0, sticky="ew", padx=24, pady=(12, 6))
+        campo_modelo = ctk.CTkEntry(janela)
+        campo_modelo.insert(0, configuracao()[1])
+        campo_modelo.grid(row=3, column=0, sticky="ew", padx=24)
+        aviso = ctk.CTkLabel(janela, text="A chave fica no .env local. Salvar nao faz consultas.\nVariaveis de ambiente tem prioridade. Consultas usam creditos da API.", wraplength=560, justify="left")
+        aviso.grid(row=4, column=0, sticky="w", padx=24, pady=12)
+        def salvar():
+            try:
+                salvar_configuracao(campo_chave.get(), campo_modelo.get())
+            except (ValueError, OSError) as exc:
+                aviso.configure(text=str(exc), text_color="#AD4D36")
+                return
+            self._atualizar_status_ia()
+            self.estado.configure(text="Configuracao salva. Use Resolver com IA para testar.", text_color=MUTED)
+            janela.destroy()
+        ctk.CTkButton(janela, text="Salvar", command=salvar).grid(row=5, column=0, sticky="e", padx=24)
+        campo_chave.focus_set()
 
     def carregar_exemplo(self) -> None:
+        if self._ocupado:
+            return
         self.modo.set("Resolver")
         self._mudar_modo("Resolver")
         self.entrada.delete("1.0", "end")
@@ -162,15 +208,17 @@ class TutorDesktop(ctk.CTk):
 
     def _executar(self, modo: str, texto: str) -> None:
         try:
-            if modo == "Resolver":
-                resposta = resolver(texto)
+            if modo in {"Resolver", "Resolver com IA"}:
+                resposta = resolver(texto, usar_ia=modo == "Resolver com IA")
             elif modo == "Explicar":
-                resposta = perguntar(f"Explique este conteudo de Calculo I passo a passo:\n{texto}")
+                resposta = perguntar(texto, modo="Explicar")
             else:
-                resposta = perguntar(f"Corrija a tentativa do aluno, mostrando o primeiro erro e como continuar:\n{texto}")
+                resposta = perguntar(texto, modo="Corrigir")
             self._fila.put(("ok", resposta))
         except (ValueError, RuntimeError, ImportError) as exc:
             self._fila.put(("erro", str(exc)))
+        except Exception:
+            self._fila.put(("erro", "Ocorreu uma falha inesperada. Revise o enunciado e tente novamente."))
 
     def _verificar_fila(self) -> None:
         try:

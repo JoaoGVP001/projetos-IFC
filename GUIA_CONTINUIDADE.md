@@ -1,3 +1,8 @@
+> Atualizacao em 10/10/2026: consulte PLANEJAMENTO.md e a secao Linux e instrutor
+> com IA do README. Agora ha Resolver com IA, configuracao pela interface,
+> tratamento de erros e 17 testes. A chamada real continua pendente de chave
+> valida com creditos. O registro abaixo descreve a versao inicial.
+
 # Guia de continuidade do Tutor de Calculo I
 
 Este documento registra o estado do projeto em 02/10/2026 para continuar o

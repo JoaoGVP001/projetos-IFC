@@ -1,5 +1,7 @@
 """Interface de terminal do tutor."""
 
+import re
+
 from .ia import perguntar
 
 
@@ -24,25 +26,28 @@ def ler_multilinha() -> str:
     return "\n".join(linhas).strip()
 
 
-def resolver(texto: str) -> str:
-    if "f(x)" in texto.lower() and ("se x" in texto.lower() or ", x" in texto.lower()):
+def resolver(texto: str, usar_ia: bool = False) -> str:
+    if usar_ia:
+        return perguntar(texto, modo="Resolver")
+    normalizado = re.sub(r"\s+", "", texto.lower())
+    if "f(x)" in normalizado and ("sex" in normalizado or ",x" in normalizado):
         from .matematica import analisar_continuidade, ler_problema
 
-        return analisar_continuidade(ler_problema(texto))
+        return analisar_continuidade(ler_problema(re.sub(r"f\s*\(\s*x\s*\)", "f(x)", texto, flags=re.IGNORECASE)))
     return perguntar(texto)
 
 
 def main() -> None:
     print("Tutor de Calculo 1")
     while True:
-        print("\n1 - Resolver exercicio\n2 - Explicar conteudo ou corrigir tentativa\n3 - Testar exemplo de continuidade\n0 - Sair")
+        print("\n1 - Resolver exercicio\n2 - Explicar conteudo ou corrigir tentativa\n3 - Testar exemplo de continuidade\n4 - Resolver com IA\n0 - Sair")
         try:
             opcao = input("Escolha: ").strip()
         except EOFError:
             break
         if opcao == "0":
             break
-        if opcao not in {"1", "2", "3"}:
+        if opcao not in {"1", "2", "3", "4"}:
             print("Opcao invalida.")
             continue
         texto = EXEMPLO if opcao == "3" else ler_multilinha()
@@ -50,7 +55,7 @@ def main() -> None:
             print("Digite uma questao para continuar.")
             continue
         try:
-            print("\n" + (perguntar(texto) if opcao == "2" else resolver(texto)))
+            print("\n" + (perguntar(texto, modo="Explicar") if opcao == "2" else resolver(texto, usar_ia=opcao == "4")))
         except (ValueError, RuntimeError, ImportError) as exc:
             print(f"\nNao foi possivel resolver: {exc}")
 

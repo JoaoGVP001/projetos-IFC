@@ -1,4 +1,4 @@
-openai>=1.0
+openai>=3.28,<4
 sympy>=1.13
 customtkinter>=5.2
 python-dotenv>=1.0
