@@ -1,0 +1,38 @@
+CREATE TABLE produto (
+    codigo_prod INTEGER NOT NULL,
+    descricao_prod VARCHAR(100) NOT NULL,
+    preco NUMERIC(10, 2) NOT NULL,
+    quantidade_estoque SMALLINT NOT NULL DEFAULT 0,
+    codigo_barras CHAR(13),
+    ativo BOOLEAN NOT NULL DEFAULT TRUE,
+    data_cadastro DATE,
+    CONSTRAINT pk_produto PRIMARY KEY (codigo_prod),
+    CONSTRAINT unique_codigo_barras UNIQUE (codigo_barras)
+);
+CREATE TABLE
+\dt
+           List of tables
++--------+---------+-------+-------+
+| Schema |  Name   | Type  | Owner |
++--------+---------+-------+-------+
+| public | produto | table | gvp   |
++--------+---------+-------+-------+
+(1 row)
+
+\d produto
+                             Table "public.produto"
++--------------------+------------------------+-----------+----------+---------+
+|       Column       |          Type          | Collation | Nullable | Default |
++--------------------+------------------------+-----------+----------+---------+
+| codigo_prod        | integer                |           | not null |         |
+| descricao_prod     | character varying(100) |           | not null |         |
+| preco              | numeric(10,2)          |           | not null |         |
+| quantidade_estoque | smallint               |           | not null | 0       |
+| codigo_barras      | character(13)          |           |          |         |
+| ativo              | boolean                |           | not null | true    |
+| data_cadastro      | date                   |           |          |         |
++--------------------+------------------------+-----------+----------+---------+
+Indexes:
+    "pk_produto" PRIMARY KEY, btree (codigo_prod)
+    "unique_codigo_barras" UNIQUE CONSTRAINT, btree (codigo_barras)
+

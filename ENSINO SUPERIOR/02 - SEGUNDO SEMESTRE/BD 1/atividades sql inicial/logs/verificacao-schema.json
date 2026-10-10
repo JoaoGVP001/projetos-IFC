@@ -1,0 +1,438 @@
+[
+  {
+    "porta_instancia": 55432,
+    "banco": "loja_vendas",
+    "colunas": [
+      {
+        "tabela": "produto",
+        "coluna": "codigo_prod",
+        "tipo": "integer",
+        "obrigatorio": true,
+        "padrao": ""
+      },
+      {
+        "tabela": "produto",
+        "coluna": "descricao_prod",
+        "tipo": "character varying(100)",
+        "obrigatorio": true,
+        "padrao": ""
+      },
+      {
+        "tabela": "produto",
+        "coluna": "preco",
+        "tipo": "numeric(10,2)",
+        "obrigatorio": true,
+        "padrao": ""
+      },
+      {
+        "tabela": "produto",
+        "coluna": "quantidade_estoque",
+        "tipo": "smallint",
+        "obrigatorio": true,
+        "padrao": "0"
+      },
+      {
+        "tabela": "produto",
+        "coluna": "codigo_barras",
+        "tipo": "character(13)",
+        "obrigatorio": false,
+        "padrao": ""
+      },
+      {
+        "tabela": "produto",
+        "coluna": "ativo",
+        "tipo": "boolean",
+        "obrigatorio": true,
+        "padrao": "true"
+      },
+      {
+        "tabela": "produto",
+        "coluna": "data_cadastro",
+        "tipo": "date",
+        "obrigatorio": false,
+        "padrao": ""
+      },
+      {
+        "tabela": "vendedor",
+        "coluna": "matricula_vend",
+        "tipo": "integer",
+        "obrigatorio": true,
+        "padrao": ""
+      },
+      {
+        "tabela": "vendedor",
+        "coluna": "nome_vend",
+        "tipo": "character varying(80)",
+        "obrigatorio": true,
+        "padrao": ""
+      },
+      {
+        "tabela": "vendedor",
+        "coluna": "cpf",
+        "tipo": "character(11)",
+        "obrigatorio": true,
+        "padrao": ""
+      },
+      {
+        "tabela": "vendedor",
+        "coluna": "email_vend",
+        "tipo": "character varying(80)",
+        "obrigatorio": false,
+        "padrao": ""
+      },
+      {
+        "tabela": "vendedor",
+        "coluna": "data_admissao",
+        "tipo": "date",
+        "obrigatorio": true,
+        "padrao": ""
+      },
+      {
+        "tabela": "vendedor",
+        "coluna": "comissao_percentual",
+        "tipo": "numeric(4,2)",
+        "obrigatorio": true,
+        "padrao": "5.00"
+      }
+    ],
+    "chaves": [
+      {
+        "nome": "pk_produto",
+        "definicao": "PRIMARY KEY (codigo_prod)"
+      },
+      {
+        "nome": "pk_vendedor",
+        "definicao": "PRIMARY KEY (matricula_vend)"
+      },
+      {
+        "nome": "unique_codigo_barras",
+        "definicao": "UNIQUE (codigo_barras)"
+      },
+      {
+        "nome": "unique_cpf_vendedor",
+        "definicao": "UNIQUE (cpf)"
+      },
+      {
+        "nome": "unique_email_vendedor",
+        "definicao": "UNIQUE (email_vend)"
+      }
+    ],
+    "resultado": "OK"
+  },
+  {
+    "porta_instancia": 55432,
+    "banco": "loja_estoque",
+    "colunas": [
+      {
+        "tabela": "fornecedor",
+        "coluna": "cnpj",
+        "tipo": "character(14)",
+        "obrigatorio": true,
+        "padrao": ""
+      },
+      {
+        "tabela": "fornecedor",
+        "coluna": "razao_social",
+        "tipo": "character varying(100)",
+        "obrigatorio": true,
+        "padrao": ""
+      },
+      {
+        "tabela": "fornecedor",
+        "coluna": "nome_fantasia",
+        "tipo": "character varying(80)",
+        "obrigatorio": false,
+        "padrao": ""
+      },
+      {
+        "tabela": "fornecedor",
+        "coluna": "telefone",
+        "tipo": "character varying(15)",
+        "obrigatorio": false,
+        "padrao": ""
+      },
+      {
+        "tabela": "fornecedor",
+        "coluna": "cidade",
+        "tipo": "character varying(60)",
+        "obrigatorio": true,
+        "padrao": ""
+      },
+      {
+        "tabela": "fornecedor",
+        "coluna": "estado",
+        "tipo": "character(2)",
+        "obrigatorio": true,
+        "padrao": ""
+      },
+      {
+        "tabela": "fornecedor",
+        "coluna": "data_parceria",
+        "tipo": "date",
+        "obrigatorio": false,
+        "padrao": ""
+      },
+      {
+        "tabela": "item_estoque",
+        "coluna": "codigo_prod",
+        "tipo": "integer",
+        "obrigatorio": true,
+        "padrao": ""
+      },
+      {
+        "tabela": "item_estoque",
+        "coluna": "codigo_deposito",
+        "tipo": "smallint",
+        "obrigatorio": true,
+        "padrao": ""
+      },
+      {
+        "tabela": "item_estoque",
+        "coluna": "quantidade",
+        "tipo": "integer",
+        "obrigatorio": true,
+        "padrao": "0"
+      },
+      {
+        "tabela": "item_estoque",
+        "coluna": "data_ultima_conferencia",
+        "tipo": "date",
+        "obrigatorio": false,
+        "padrao": ""
+      }
+    ],
+    "chaves": [
+      {
+        "nome": "pk_fornecedor",
+        "definicao": "PRIMARY KEY (cnpj)"
+      },
+      {
+        "nome": "pk_item_estoque",
+        "definicao": "PRIMARY KEY (codigo_prod, codigo_deposito)"
+      },
+      {
+        "nome": "unique_razao_social",
+        "definicao": "UNIQUE (razao_social)"
+      }
+    ],
+    "resultado": "OK"
+  },
+  {
+    "porta_instancia": 55433,
+    "banco": "loja_vendas",
+    "colunas": [
+      {
+        "tabela": "produto",
+        "coluna": "codigo_prod",
+        "tipo": "integer",
+        "obrigatorio": true,
+        "padrao": ""
+      },
+      {
+        "tabela": "produto",
+        "coluna": "descricao_prod",
+        "tipo": "character varying(100)",
+        "obrigatorio": true,
+        "padrao": ""
+      },
+      {
+        "tabela": "produto",
+        "coluna": "preco",
+        "tipo": "numeric(10,2)",
+        "obrigatorio": true,
+        "padrao": ""
+      },
+      {
+        "tabela": "produto",
+        "coluna": "quantidade_estoque",
+        "tipo": "smallint",
+        "obrigatorio": true,
+        "padrao": "0"
+      },
+      {
+        "tabela": "produto",
+        "coluna": "codigo_barras",
+        "tipo": "character(13)",
+        "obrigatorio": false,
+        "padrao": ""
+      },
+      {
+        "tabela": "produto",
+        "coluna": "ativo",
+        "tipo": "boolean",
+        "obrigatorio": true,
+        "padrao": "true"
+      },
+      {
+        "tabela": "produto",
+        "coluna": "data_cadastro",
+        "tipo": "date",
+        "obrigatorio": false,
+        "padrao": ""
+      },
+      {
+        "tabela": "vendedor",
+        "coluna": "matricula_vend",
+        "tipo": "integer",
+        "obrigatorio": true,
+        "padrao": ""
+      },
+      {
+        "tabela": "vendedor",
+        "coluna": "nome_vend",
+        "tipo": "character varying(80)",
+        "obrigatorio": true,
+        "padrao": ""
+      },
+      {
+        "tabela": "vendedor",
+        "coluna": "cpf",
+        "tipo": "character(11)",
+        "obrigatorio": true,
+        "padrao": ""
+      },
+      {
+        "tabela": "vendedor",
+        "coluna": "email_vend",
+        "tipo": "character varying(80)",
+        "obrigatorio": false,
+        "padrao": ""
+      },
+      {
+        "tabela": "vendedor",
+        "coluna": "data_admissao",
+        "tipo": "date",
+        "obrigatorio": true,
+        "padrao": ""
+      },
+      {
+        "tabela": "vendedor",
+        "coluna": "comissao_percentual",
+        "tipo": "numeric(4,2)",
+        "obrigatorio": true,
+        "padrao": "5.00"
+      }
+    ],
+    "chaves": [
+      {
+        "nome": "pk_produto",
+        "definicao": "PRIMARY KEY (codigo_prod)"
+      },
+      {
+        "nome": "pk_vendedor",
+        "definicao": "PRIMARY KEY (matricula_vend)"
+      },
+      {
+        "nome": "unique_codigo_barras",
+        "definicao": "UNIQUE (codigo_barras)"
+      },
+      {
+        "nome": "unique_cpf_vendedor",
+        "definicao": "UNIQUE (cpf)"
+      },
+      {
+        "nome": "unique_email_vendedor",
+        "definicao": "UNIQUE (email_vend)"
+      }
+    ],
+    "resultado": "OK"
+  },
+  {
+    "porta_instancia": 55433,
+    "banco": "loja_estoque",
+    "colunas": [
+      {
+        "tabela": "fornecedor",
+        "coluna": "cnpj",
+        "tipo": "character(14)",
+        "obrigatorio": true,
+        "padrao": ""
+      },
+      {
+        "tabela": "fornecedor",
+        "coluna": "razao_social",
+        "tipo": "character varying(100)",
+        "obrigatorio": true,
+        "padrao": ""
+      },
+      {
+        "tabela": "fornecedor",
+        "coluna": "nome_fantasia",
+        "tipo": "character varying(80)",
+        "obrigatorio": false,
+        "padrao": ""
+      },
+      {
+        "tabela": "fornecedor",
+        "coluna": "telefone",
+        "tipo": "character varying(15)",
+        "obrigatorio": false,
+        "padrao": ""
+      },
+      {
+        "tabela": "fornecedor",
+        "coluna": "cidade",
+        "tipo": "character varying(60)",
+        "obrigatorio": true,
+        "padrao": ""
+      },
+      {
+        "tabela": "fornecedor",
+        "coluna": "estado",
+        "tipo": "character(2)",
+        "obrigatorio": true,
+        "padrao": ""
+      },
+      {
+        "tabela": "fornecedor",
+        "coluna": "data_parceria",
+        "tipo": "date",
+        "obrigatorio": false,
+        "padrao": ""
+      },
+      {
+        "tabela": "item_estoque",
+        "coluna": "codigo_prod",
+        "tipo": "integer",
+        "obrigatorio": true,
+        "padrao": ""
+      },
+      {
+        "tabela": "item_estoque",
+        "coluna": "codigo_deposito",
+        "tipo": "smallint",
+        "obrigatorio": true,
+        "padrao": ""
+      },
+      {
+        "tabela": "item_estoque",
+        "coluna": "quantidade",
+        "tipo": "integer",
+        "obrigatorio": true,
+        "padrao": "0"
+      },
+      {
+        "tabela": "item_estoque",
+        "coluna": "data_ultima_conferencia",
+        "tipo": "date",
+        "obrigatorio": false,
+        "padrao": ""
+      }
+    ],
+    "chaves": [
+      {
+        "nome": "pk_fornecedor",
+        "definicao": "PRIMARY KEY (cnpj)"
+      },
+      {
+        "nome": "pk_item_estoque",
+        "definicao": "PRIMARY KEY (codigo_prod, codigo_deposito)"
+      },
+      {
+        "nome": "unique_razao_social",
+        "definicao": "UNIQUE (razao_social)"
+      }
+    ],
+    "resultado": "OK"
+  }
+]

@@ -1,0 +1,176 @@
+-- Banco de Dados I | Atividades - SQL - Inicial
+-- Execução: psql -X -v ON_ERROR_STOP=1 -d postgres -f atividade.sql
+-- Execute em uma instância em que loja_vendas e loja_estoque não existam.
+-- Meta-comandos do psql não recebem ponto e vírgula.
+\set ON_ERROR_STOP on
+\pset pager off
+Pager usage is off.
+-- ETAPA 01: Exercício 1 - criar e verificar o banco loja_vendas
+CREATE DATABASE loja_vendas;
+CREATE DATABASE
+\l
+                                               List of databases
+    Name     | Owner | Encoding | Locale Provider | Collate |  Ctype  | Locale | ICU Rules | Access privileges 
+-------------+-------+----------+-----------------+---------+---------+--------+-----------+-------------------
+ loja_vendas | gvp   | UTF8     | libc            | C.UTF-8 | C.UTF-8 |        |           | 
+ postgres    | gvp   | UTF8     | libc            | C.UTF-8 | C.UTF-8 |        |           | 
+ template0   | gvp   | UTF8     | libc            | C.UTF-8 | C.UTF-8 |        |           | =c/gvp           +
+             |       |          |                 |         |         |        |           | gvp=CTc/gvp
+ template1   | gvp   | UTF8     | libc            | C.UTF-8 | C.UTF-8 |        |           | =c/gvp           +
+             |       |          |                 |         |         |        |           | gvp=CTc/gvp
+(4 rows)
+
+\c loja_vendas
+You are now connected to database "loja_vendas" as user "gvp".
+-- ETAPA 02: Exercício 1 - criar e verificar produto
+CREATE TABLE produto (
+    codigo_prod INTEGER NOT NULL,
+    descricao_prod VARCHAR(100) NOT NULL,
+    preco NUMERIC(10, 2) NOT NULL,
+    quantidade_estoque SMALLINT NOT NULL DEFAULT 0,
+    codigo_barras CHAR(13),
+    ativo BOOLEAN NOT NULL DEFAULT TRUE,
+    data_cadastro DATE,
+    CONSTRAINT pk_produto PRIMARY KEY (codigo_prod),
+    CONSTRAINT unique_codigo_barras UNIQUE (codigo_barras)
+);
+CREATE TABLE
+\dt
+          List of tables
+ Schema |  Name   | Type  | Owner 
+--------+---------+-------+-------
+ public | produto | table | gvp
+(1 row)
+
+\d produto
+                            Table "public.produto"
+       Column       |          Type          | Collation | Nullable | Default 
+--------------------+------------------------+-----------+----------+---------
+ codigo_prod        | integer                |           | not null | 
+ descricao_prod     | character varying(100) |           | not null | 
+ preco              | numeric(10,2)          |           | not null | 
+ quantidade_estoque | smallint               |           | not null | 0
+ codigo_barras      | character(13)          |           |          | 
+ ativo              | boolean                |           | not null | true
+ data_cadastro      | date                   |           |          | 
+Indexes:
+    "pk_produto" PRIMARY KEY, btree (codigo_prod)
+    "unique_codigo_barras" UNIQUE CONSTRAINT, btree (codigo_barras)
+
+-- ETAPA 03: Exercício 2 - criar e verificar vendedor
+CREATE TABLE vendedor (
+    matricula_vend INTEGER NOT NULL,
+    nome_vend VARCHAR(80) NOT NULL,
+    cpf CHAR(11) NOT NULL,
+    email_vend VARCHAR(80),
+    data_admissao DATE NOT NULL,
+    comissao_percentual NUMERIC(4, 2) NOT NULL DEFAULT 5.00,
+    CONSTRAINT pk_vendedor PRIMARY KEY (matricula_vend),
+    CONSTRAINT unique_cpf_vendedor UNIQUE (cpf),
+    CONSTRAINT unique_email_vendedor UNIQUE (email_vend)
+);
+CREATE TABLE
+\dt
+          List of tables
+ Schema |   Name   | Type  | Owner 
+--------+----------+-------+-------
+ public | produto  | table | gvp
+ public | vendedor | table | gvp
+(2 rows)
+
+\d vendedor
+                           Table "public.vendedor"
+       Column        |         Type          | Collation | Nullable | Default 
+---------------------+-----------------------+-----------+----------+---------
+ matricula_vend      | integer               |           | not null | 
+ nome_vend           | character varying(80) |           | not null | 
+ cpf                 | character(11)         |           | not null | 
+ email_vend          | character varying(80) |           |          | 
+ data_admissao       | date                  |           | not null | 
+ comissao_percentual | numeric(4,2)          |           | not null | 5.00
+Indexes:
+    "pk_vendedor" PRIMARY KEY, btree (matricula_vend)
+    "unique_cpf_vendedor" UNIQUE CONSTRAINT, btree (cpf)
+    "unique_email_vendedor" UNIQUE CONSTRAINT, btree (email_vend)
+
+-- ETAPA 04: Exercício 3 - criar e verificar o banco loja_estoque
+CREATE DATABASE loja_estoque;
+CREATE DATABASE
+\l
+                                               List of databases
+     Name     | Owner | Encoding | Locale Provider | Collate |  Ctype  | Locale | ICU Rules | Access privileges 
+--------------+-------+----------+-----------------+---------+---------+--------+-----------+-------------------
+ loja_estoque | gvp   | UTF8     | libc            | C.UTF-8 | C.UTF-8 |        |           | 
+ loja_vendas  | gvp   | UTF8     | libc            | C.UTF-8 | C.UTF-8 |        |           | 
+ postgres     | gvp   | UTF8     | libc            | C.UTF-8 | C.UTF-8 |        |           | 
+ template0    | gvp   | UTF8     | libc            | C.UTF-8 | C.UTF-8 |        |           | =c/gvp           +
+              |       |          |                 |         |         |        |           | gvp=CTc/gvp
+ template1    | gvp   | UTF8     | libc            | C.UTF-8 | C.UTF-8 |        |           | =c/gvp           +
+              |       |          |                 |         |         |        |           | gvp=CTc/gvp
+(5 rows)
+
+\c loja_estoque
+You are now connected to database "loja_estoque" as user "gvp".
+-- ETAPA 05: Exercício 3 - criar e verificar fornecedor
+CREATE TABLE fornecedor (
+    cnpj CHAR(14) NOT NULL,
+    razao_social VARCHAR(100) NOT NULL,
+    nome_fantasia VARCHAR(80),
+    telefone VARCHAR(15),
+    cidade VARCHAR(60) NOT NULL,
+    estado CHAR(2) NOT NULL,
+    data_parceria DATE,
+    CONSTRAINT pk_fornecedor PRIMARY KEY (cnpj),
+    CONSTRAINT unique_razao_social UNIQUE (razao_social)
+);
+CREATE TABLE
+\dt
+           List of tables
+ Schema |    Name    | Type  | Owner 
+--------+------------+-------+-------
+ public | fornecedor | table | gvp
+(1 row)
+
+\d fornecedor
+                        Table "public.fornecedor"
+    Column     |          Type          | Collation | Nullable | Default 
+---------------+------------------------+-----------+----------+---------
+ cnpj          | character(14)          |           | not null | 
+ razao_social  | character varying(100) |           | not null | 
+ nome_fantasia | character varying(80)  |           |          | 
+ telefone      | character varying(15)  |           |          | 
+ cidade        | character varying(60)  |           | not null | 
+ estado        | character(2)           |           | not null | 
+ data_parceria | date                   |           |          | 
+Indexes:
+    "pk_fornecedor" PRIMARY KEY, btree (cnpj)
+    "unique_razao_social" UNIQUE CONSTRAINT, btree (razao_social)
+
+-- ETAPA 06: Exercício 4 - criar e verificar item_estoque
+CREATE TABLE item_estoque (
+    codigo_prod INTEGER NOT NULL,
+    codigo_deposito SMALLINT NOT NULL,
+    quantidade INTEGER NOT NULL DEFAULT 0,
+    data_ultima_conferencia DATE,
+    CONSTRAINT pk_item_estoque PRIMARY KEY (codigo_prod, codigo_deposito)
+);
+CREATE TABLE
+\dt
+            List of tables
+ Schema |     Name     | Type  | Owner 
+--------+--------------+-------+-------
+ public | fornecedor   | table | gvp
+ public | item_estoque | table | gvp
+(2 rows)
+
+\d item_estoque
+                     Table "public.item_estoque"
+         Column          |   Type   | Collation | Nullable | Default 
+-------------------------+----------+-----------+----------+---------
+ codigo_prod             | integer  |           | not null | 
+ codigo_deposito         | smallint |           | not null | 
+ quantidade              | integer  |           | not null | 0
+ data_ultima_conferencia | date     |           |          | 
+Indexes:
+    "pk_item_estoque" PRIMARY KEY, btree (codigo_prod, codigo_deposito)
+

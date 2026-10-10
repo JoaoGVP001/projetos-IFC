@@ -1,0 +1,19 @@
+CREATE DATABASE loja_estoque;
+CREATE DATABASE
+\l
+                                                List of databases
++--------------+-------+----------+-----------------+---------+---------+--------+-----------+-------------------+
+|     Name     | Owner | Encoding | Locale Provider | Collate |  Ctype  | Locale | ICU Rules | Access privileges |
++--------------+-------+----------+-----------------+---------+---------+--------+-----------+-------------------+
+| loja_estoque | gvp   | UTF8     | libc            | C.UTF-8 | C.UTF-8 |        |           |                   |
+| loja_vendas  | gvp   | UTF8     | libc            | C.UTF-8 | C.UTF-8 |        |           |                   |
+| postgres     | gvp   | UTF8     | libc            | C.UTF-8 | C.UTF-8 |        |           |                   |
+| template0    | gvp   | UTF8     | libc            | C.UTF-8 | C.UTF-8 |        |           | =c/gvp           +|
+|              |       |          |                 |         |         |        |           | gvp=CTc/gvp       |
+| template1    | gvp   | UTF8     | libc            | C.UTF-8 | C.UTF-8 |        |           | =c/gvp           +|
+|              |       |          |                 |         |         |        |           | gvp=CTc/gvp       |
++--------------+-------+----------+-----------------+---------+---------+--------+-----------+-------------------+
+(5 rows)
+
+\c loja_estoque
+You are now connected to database "loja_estoque" as user "gvp".

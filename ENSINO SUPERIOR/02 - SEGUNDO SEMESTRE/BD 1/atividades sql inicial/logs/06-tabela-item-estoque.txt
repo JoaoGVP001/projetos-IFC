@@ -1,0 +1,31 @@
+CREATE TABLE item_estoque (
+    codigo_prod INTEGER NOT NULL,
+    codigo_deposito SMALLINT NOT NULL,
+    quantidade INTEGER NOT NULL DEFAULT 0,
+    data_ultima_conferencia DATE,
+    CONSTRAINT pk_item_estoque PRIMARY KEY (codigo_prod, codigo_deposito)
+);
+CREATE TABLE
+\dt
+             List of tables
++--------+--------------+-------+-------+
+| Schema |     Name     | Type  | Owner |
++--------+--------------+-------+-------+
+| public | fornecedor   | table | gvp   |
+| public | item_estoque | table | gvp   |
++--------+--------------+-------+-------+
+(2 rows)
+
+\d item_estoque
+                      Table "public.item_estoque"
++-------------------------+----------+-----------+----------+---------+
+|         Column          |   Type   | Collation | Nullable | Default |
++-------------------------+----------+-----------+----------+---------+
+| codigo_prod             | integer  |           | not null |         |
+| codigo_deposito         | smallint |           | not null |         |
+| quantidade              | integer  |           | not null | 0       |
+| data_ultima_conferencia | date     |           |          |         |
++-------------------------+----------+-----------+----------+---------+
+Indexes:
+    "pk_item_estoque" PRIMARY KEY, btree (codigo_prod, codigo_deposito)
+
