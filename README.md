@@ -2,20 +2,31 @@
 
 Projetos reunidos em um único repositório. Cada pasta mantém os arquivos da branch principal do projeto de origem.
 
-## Projetos
+## Organização
 
-- [sigilrpg](./sigilrpg/): Projeto sigilrpg
-- [BookReadNet](./BookReadNet/): Projeto BookReadNet
-- [ResolveHub](./ResolveHub/): Projeto ResolveHub
-- [dashboard](./dashboard/): Projeto dashboard
-- [merge-sort-c](./merge-sort-c/): Projeto merge-sort-c
-- [atena-next](./atena-next/): Projeto atena-next
-- [notepad.py](./notepad.py/): Projeto notepad.py
-- [v0-TrustV](./v0-TrustV/): Projeto v0-TrustV
-- [RoguePiece](./RoguePiece/): Projeto RoguePiece
-- [Truco-DSDM](./Truco-DSDM/): Projeto Truco-DSDM
-- [API_FILMES](./API_FILMES/): aulas de dw3
-- [Projeto-Integrador-II---2024](./Projeto-Integrador-II---2024/): Repositório destinado ao desenvolvimento do site
+```text
+ENSINO MEDIO/
+└── OUTROS/              # 12 projetos existentes
+ENSINO SUPERIOR/
+└── SEGUNDO SEMESTRE/
+    ├── POO 1/
+    └── BD 1/
+```
+
+## Projetos do ensino médio
+
+- [sigilrpg](./ENSINO%20MEDIO/OUTROS/sigilrpg/): Projeto sigilrpg
+- [BookReadNet](./ENSINO%20MEDIO/OUTROS/BookReadNet/): Projeto BookReadNet
+- [ResolveHub](./ENSINO%20MEDIO/OUTROS/ResolveHub/): Projeto ResolveHub
+- [dashboard](./ENSINO%20MEDIO/OUTROS/dashboard/): Projeto dashboard
+- [merge-sort-c](./ENSINO%20MEDIO/OUTROS/merge-sort-c/): Projeto merge-sort-c
+- [atena-next](./ENSINO%20MEDIO/OUTROS/atena-next/): Projeto atena-next
+- [notepad.py](./ENSINO%20MEDIO/OUTROS/notepad.py/): Projeto notepad.py
+- [v0-TrustV](./ENSINO%20MEDIO/OUTROS/v0-TrustV/): Projeto v0-TrustV
+- [RoguePiece](./ENSINO%20MEDIO/OUTROS/RoguePiece/): Projeto RoguePiece
+- [Truco-DSDM](./ENSINO%20MEDIO/OUTROS/Truco-DSDM/): Projeto Truco-DSDM
+- [API_FILMES](./ENSINO%20MEDIO/OUTROS/API_FILMES/): aulas de dw3
+- [Projeto-Integrador-II---2024](./ENSINO%20MEDIO/OUTROS/Projeto-Integrador-II---2024/): Repositório destinado ao desenvolvimento do site
 
 ## Histórico
 
