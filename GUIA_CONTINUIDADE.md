@@ -1,5 +1,10 @@
 > O produto agora se chama CadernoMat. Consulte PLANEJAMENTO.md para a evolucao para chat e cadernos. O registro abaixo descreve etapas anteriores.
 
+> Entrega de materiais (10/10/2026): veja docs/MATERIAIS.md. Instale requirements.txt
+> atualizado (pypdf/pypdfium2), SQLite com FTS5 e Tesseract opcional. Dados pessoais
+> continuam fora do Git; a migracao v4 cria backup v3. O atalho existente abre a
+> versao nova ao reiniciar. Cadernos, embeddings e IA local permanecem planejados.
+
 > Atualizacao em 10/10/2026: consulte PLANEJAMENTO.md e a secao Linux e instrutor
 > com IA do README. Agora ha Resolver com IA, configuracao pela interface,
 > tratamento de erros e 17 testes. A chamada real continua pendente de chave

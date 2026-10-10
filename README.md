@@ -11,6 +11,8 @@ tentativas usam a API do Gemini ou da OpenAI, conforme o servico escolhido.
 O projeto esta evoluindo para um chat com historico, cadernos por materia,
 listas, provas de pratica e simulados. A versao atual ja tem chats com historico
 local e contexto recente; cadernos e atividades ainda estao planejados.
+Ja e possivel anexar arquivos/links, organizar a biblioteca Materiais, pesquisar
+texto extraido e selecionar materiais para consultas com citacoes.
 Veja [o planejamento completo](PLANEJAMENTO.md) e o
 [registro da fase inicial](HISTORICO_DESENVOLVIMENTO.md).
 
@@ -183,7 +185,8 @@ Use `AI_PROVIDER=openai` para selecionar a OpenAI. Instalacoes antigas sem
 AI_PROVIDER mantem OpenAI para compatibilidade. As variaveis de ambiente tem
 prioridade sobre o `.env`, inclusive AI_PROVIDER. O cliente Gemini usa HTTPS
 com chave no cabecalho, timeout de 60 segundos e nenhuma repeticao automatica.
-A integracao e de texto: imagens e PDFs ainda nao sao entradas do aplicativo.
+A integracao com os provedores e de texto: arquivos e imagens sao interpretados
+localmente, e somente trechos selecionados sao enviados. Veja a biblioteca abaixo.
 Groq e modelos locais ficam para etapas futuras.
 
 ## Apresentacao das respostas
@@ -243,3 +246,25 @@ Chats fixados aparecem primeiro e a escolha permanece apos reiniciar.
 Titulos longos deslizam durante o hover e voltam ao inicio quando o mouse sai.
 Tambem e possivel abrir o menu com o botao direito; Enter abre a conversa e
 Espaco abre o menu quando a linha tem foco.
+
+## Anexos e biblioteca Materiais
+
+Use **+ Arquivo** ou **+ Link** no chat. A aba **Materiais** reune os uploads,
+mostra tamanho, tipo, origem e processamento e oferece visualizacao, edicao de
+materia/assunto/etiquetas, busca textual e filtros. Arquivos, texto e selecoes
+persistem apos reiniciar; conteudos iguais reutilizam a mesma copia local.
+
+Suportados: PDF textual, imagens com OCR opcional, TXT/Markdown/CSV/JSON/LOG/TEX,
+DOCX e links publicos de HTML/texto/PDF. Outros formatos ficam armazenados, mas
+nao sao interpretados pela IA. Limite de 20 MiB por arquivo; OCR exige Tesseract.
+
+Marque **Consultar neste chat**, confira **Previa do envio** e pergunte em um
+modo de IA. A recuperacao textual usa somente materiais marcados; Gemini/OpenAI
+recebem trechos e referencias, sem os originais binarios. Desmarcar materiais
+nao remove informacoes de respostas antigas do historico enviado. A biblioteca
+funciona sem API; as consultas continuam sujeitas as cotas do provedor.
+
+Leia [o guia de materiais](docs/MATERIAIS.md) para formatos, limites, OCR,
+privacidade, citacoes, armazenamento e arquitetura. A migracao para SQLite v4
+preserva chats e cria backup v3. Embeddings e busca semantica ficam para a
+proxima fase; cadernos e IA local continuam planejados.

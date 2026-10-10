@@ -89,6 +89,7 @@ class FluxoIaTest(unittest.TestCase):
     def test_falha_inesperada_libera_interface(self):
         janela = Mock()
         janela._fila = Queue()
+        janela._fila_materiais = Queue()
         janela._ocupado = True
         with patch('tutor_calculo.desktop.resolver', side_effect=ZeroDivisionError('falha')):
             TutorDesktop._executar(janela, 'Resolver', 'enunciado')

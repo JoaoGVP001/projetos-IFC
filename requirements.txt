@@ -3,3 +3,5 @@ sympy>=1.13
 customtkinter>=5.2
 python-dotenv>=1.0
 matplotlib>=3.9,<4
+pypdf>=6,<7
+pypdfium2>=4,<6

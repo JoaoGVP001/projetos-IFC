@@ -26,7 +26,7 @@ class Historico:
         self.db.row_factory = sqlite3.Row
         self.db.execute('PRAGMA foreign_keys=ON')
         versao = self.db.execute('PRAGMA user_version').fetchone()[0]
-        if versao > 3:
+        if versao > 4:
             self.db.close()
             raise RuntimeError('Este historico exige uma versao mais recente do CadernoMat.')
         if versao == 0:
@@ -55,6 +55,22 @@ class Historico:
             with self.db:
                 self.db.execute('ALTER TABLE conversas ADD COLUMN fixada INTEGER NOT NULL DEFAULT 0')
                 self.db.execute('PRAGMA user_version=3')
+        if versao < 4:
+            if versao in {1, 2, 3}:
+                with closing(sqlite3.connect(str(self.caminho)+'.v3.backup')) as destino:
+                    self.db.backup(destino)
+                if os.name != 'nt':
+                    Path(str(self.caminho)+'.v3.backup').chmod(0o600)
+            from .materiais import migrar_materiais
+            try:
+                with self.db:
+                    self.db.execute('BEGIN')
+                    migrar_materiais(self.db)
+                    self.db.execute('PRAGMA user_version=4')
+            except Exception:
+                self.db.close()
+                raise
+        self.db.execute('PRAGMA journal_mode=WAL')
         self.db.create_function('CASEFOLD', 1, lambda texto: texto.casefold())
         if os.name != 'nt':
             self.caminho.chmod(0o600)

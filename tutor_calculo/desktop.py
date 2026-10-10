@@ -2,13 +2,19 @@
 
 from queue import Empty, Queue
 from threading import Thread
+from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
+import subprocess
+import sys
 import webbrowser
-from tkinter import messagebox
+from tkinter import filedialog, messagebox
 
 import customtkinter as ctk
 
 from .chat_item import ChatItem
 from .armazenamento import Historico
+from .materiais import Biblioteca, Extracao, ESTADOS, referencias
+from .biblioteca_ui import MateriaisPainel
 from .app import EXEMPLO, resolver
 from .renderizacao import Renderizador
 from .ia import PROVEDORES, configuracao, perguntar, provedor_ativo, salvar_configuracao
@@ -33,6 +39,10 @@ class TutorDesktop(ctk.CTk):
         self._ocupado = False
         self._arquivados = False
         self.historico = Historico(caminho_historico)
+        self.biblioteca = Biblioteca(self.historico, recuperar=True)
+        self._fila_materiais = Queue()
+        self._processador = ThreadPoolExecutor(max_workers=1, thread_name_prefix='materiais')
+        self._processando = set()
         conversas = self.historico.listar()
         self.conversa_id = conversas[0]["id"] if conversas else self.historico.criar()
         self.protocol("WM_DELETE_WINDOW", self.fechar)
@@ -77,8 +87,10 @@ class TutorDesktop(ctk.CTk):
             font=("Segoe UI", 13), command=self.limpar,
         ).grid(row=0, column=2, padx=(4, 0))
 
-        corpo = ctk.CTkFrame(self, fg_color="transparent")
-        corpo.grid(row=2, column=1, sticky="nsew", padx=30)
+        self.abas = ctk.CTkTabview(self, fg_color="transparent")
+        self.abas.grid(row=2, column=1, sticky="nsew", padx=30)
+        corpo = self.abas.add("Chat")
+        self.abas.add("Materiais")
         corpo.grid_columnconfigure(0, weight=1)
         corpo.grid_rowconfigure(0, weight=1)
         self.entrada = ctk.CTkTextbox(
@@ -86,7 +98,7 @@ class TutorDesktop(ctk.CTk):
             border_color=BORDER, border_width=1, corner_radius=6,
             font=("Consolas", 15), padx=17, pady=17, height=110,
         )
-        self.entrada.grid(row=1, column=0, sticky="ew", pady=(12, 0))
+        self.entrada.grid(row=2, column=0, sticky="ew", pady=(8, 0))
         self.saida = ctk.CTkTextbox(
             corpo, wrap="word", fg_color=SURFACE, text_color=INK,
             border_color=BORDER, border_width=1, corner_radius=6,
@@ -94,6 +106,16 @@ class TutorDesktop(ctk.CTk):
         )
         self.saida.grid(row=0, column=0, sticky="nsew")
         self.renderizador = Renderizador(self.saida._textbox)
+        anexos = ctk.CTkFrame(corpo, fg_color="transparent")
+        anexos.grid(row=1,column=0,sticky="ew",pady=(8,0))
+        anexos.grid_columnconfigure(0,weight=1)
+        self.rotulo_anexos = ctk.CTkLabel(anexos,text="",anchor="w",justify="left",wraplength=490,text_color=MUTED)
+        self.rotulo_anexos.grid(row=0,column=0,sticky="ew")
+        ctk.CTkButton(anexos,text="+ Arquivo",width=90,command=self.anexar_arquivos).grid(row=0,column=1,padx=3)
+        ctk.CTkButton(anexos,text="+ Link",width=70,command=self.anexar_link).grid(row=0,column=2,padx=3)
+        ctk.CTkButton(anexos,text="Gerenciar",width=90,command=self.abrir_materiais).grid(row=0,column=3,padx=3)
+        self.painel_materiais = MateriaisPainel(self.abas.tab("Materiais"),self)
+        self.painel_materiais.pack(fill="both",expand=True)
 
         rodape = ctk.CTkFrame(self, fg_color="transparent")
         rodape.grid(row=3, column=1, sticky="ew", padx=30, pady=(17, 24))
@@ -117,6 +139,9 @@ class TutorDesktop(ctk.CTk):
         self.entrada.focus_set()
         self.rotulo_ia = ctk.CTkLabel(rodape, text="", text_color=MUTED, font=("Segoe UI", 12))
         self.rotulo_ia.grid(row=1, column=0, sticky="w", pady=(8, 0))
+        self.rotulo_envio = ctk.CTkLabel(rodape,text="",anchor="w",justify="left",wraplength=700,text_color=MUTED,font=("Segoe UI",12))
+        self.rotulo_envio.grid(row=2,column=0,sticky="ew",pady=(6,0))
+        ctk.CTkButton(rodape,text="Previa do envio",width=130,height=28,command=self.previa_envio).grid(row=2,column=1,pady=(6,0))
         ctk.CTkButton(rodape, text="Configurar IA", width=130, height=28,
                       fg_color="transparent", text_color=ACCENT,
                       hover_color="#E7EEEC", command=self.configurar_ia).grid(row=1, column=1, pady=(8, 0))
@@ -125,6 +150,7 @@ class TutorDesktop(ctk.CTk):
         lateral.grid_rowconfigure(3, weight=1)
         lateral.grid_columnconfigure(0, weight=1)
         ctk.CTkButton(lateral, text="+ Novo chat", command=self.novo_chat, fg_color=ACCENT).grid(row=0, column=0, padx=15, pady=20, sticky="ew")
+        ctk.CTkButton(lateral,text="Materiais",command=self.abrir_materiais,fg_color=ACCENT).grid(row=1,column=0,padx=15,pady=(0,12),sticky="ew")
         self.lista_chats = ctk.CTkScrollableFrame(lateral, width=190, fg_color="transparent")
         self.lista_chats.grid(row=3, column=0, sticky="nsew", padx=8)
         ctk.CTkLabel(lateral, text="Historico salvo neste PC", text_color=MUTED).grid(row=6, column=0, padx=10, pady=15)
@@ -144,6 +170,126 @@ class TutorDesktop(ctk.CTk):
     def _atualizar_status_ia(self) -> None:
         chave, modelo = configuracao()
         self.rotulo_ia.configure(text=f"IA: {provedor_ativo().title()} · {modelo} · chave configurada" if chave else f"IA: {provedor_ativo().title()} · chave nao configurada · exemplo local funciona sem API")
+        self.atualizar_materiais()
+
+    def abrir_materiais(self):
+        self.abas.set("Materiais")
+        self.painel_materiais.atualizar()
+
+    def atualizar_materiais(self):
+        anexos = self.biblioteca.anexos(self.conversa_id)
+        selecionados = [m for m in anexos if m['selecionado']]
+        nomes = ', '.join(m['nome'][:35] for m in anexos[:3])
+        if len(anexos)>3: nomes += f" e mais {len(anexos)-3}"
+        self.rotulo_anexos.configure(text=f"{len(anexos)} anexos · {len(selecionados)} para IA" + (f"\n{nomes}" if nomes else "\nAdicione materiais de estudo."))
+        self.rotulo_envio.configure(text=f"Envio a {provedor_ativo().title()}: mensagem, historico recente e trechos relevantes de {len(selecionados)} materiais marcados. Originais ficam no PC.")
+        self.painel_materiais.atualizar()
+
+    def anexar_arquivos(self):
+        caminhos = filedialog.askopenfilenames(parent=self,title="Anexar materiais de estudo",
+            filetypes=[("Materiais", "*.pdf *.png *.jpg *.jpeg *.webp *.bmp *.tif *.tiff *.txt *.md *.csv *.json *.docx *.log *.tex"),("Todos os arquivos","*")])
+        self.importar_arquivos(caminhos)
+
+    def importar_arquivos(self, caminhos):
+        erros = []
+        for caminho in caminhos:
+            try:
+                ident, novo = self.biblioteca.adicionar_arquivo(caminho,self.conversa_id)
+                if novo: self.agendar_material(ident)
+            except (ValueError,OSError) as exc:
+                erros.append(str(exc))
+        self.atualizar_materiais()
+        self.estado.configure(text="; ".join(dict.fromkeys(erros)) if erros else "Anexos adicionados; escolha Consultar na aba Materiais.",text_color=MUTED)
+
+    def anexar_link(self):
+        url = ctk.CTkInputDialog(text="Link publico de estudo (HTTP/HTTPS):",title="Adicionar link").get_input()
+        if not url: return
+        try:
+            ident, novo = self.biblioteca.adicionar_link(url,self.conversa_id)
+            if novo: self.agendar_material(ident)
+            self.atualizar_materiais()
+            self.estado.configure(text="Link adicionado. Escolha Consultar apos o processamento.",text_color=MUTED)
+        except (ValueError,OSError) as exc:
+            messagebox.showerror("Adicionar link",str(exc),parent=self)
+
+    def agendar_material(self, ident):
+        if ident in self._processando: return
+        self.biblioteca.obter(ident)
+        self._processando.add(ident)
+        with self.historico.db:
+            self.historico.db.execute("UPDATE materiais SET estado='pendente',aviso='Aguardando processamento local.' WHERE id=?",(ident,))
+        self.atualizar_materiais()
+        self._processador.submit(self._processar_material,self.historico.caminho,ident)
+
+    def _processar_material(self, caminho, ident):
+        banco = None
+        try:
+            self._fila_materiais.put(('inicio',ident))
+            # Limite real de tempo, incluindo parsing de arquivos invalidos e bibliotecas nativas.
+            subprocess.run([sys.executable,'-m','tutor_calculo.processamento',str(caminho),ident],
+                cwd=Path(__file__).resolve().parents[1],capture_output=True,timeout=150,check=True,
+                creationflags=subprocess.CREATE_NO_WINDOW if sys.platform=='win32' else 0)
+        except Exception:
+            try:
+                banco = Historico(caminho)
+                Biblioteca(banco).salvar_extracao(ident,Extracao([], 'erro', 'Falha ou limite de 150 segundos no processamento. Tente reprocessar.'))
+            except Exception: pass
+        finally:
+            if banco: banco.fechar()
+            self._fila_materiais.put(('fim',ident))
+
+    def selecionar_material(self, ident, selecionado):
+        self.biblioteca.vincular(ident,self.conversa_id,selecionado)
+        self.atualizar_materiais()
+
+    def vincular_material(self, ident):
+        self.biblioteca.vincular(ident,self.conversa_id)
+        self.atualizar_materiais()
+
+    def desvincular_material(self, ident):
+        self.biblioteca.desvincular(ident,self.conversa_id)
+        self.atualizar_materiais()
+
+    def excluir_material(self, ident):
+        if ident in self._processando:
+            self.estado.configure(text="Aguarde o processamento para excluir o material.",text_color=MUTED)
+            return
+        nome = self.biblioteca.obter(ident)['nome']
+        if not messagebox.askyesno("Excluir material",f'Excluir "{nome}" de toda a biblioteca? O original copiado, o texto, o indice e os vinculos aos chats serao removidos. Citacoes antigas nas mensagens permanecem.',parent=self): return
+        try:
+            self.biblioteca.excluir(ident)
+            self.atualizar_materiais()
+        except OSError:
+            messagebox.showerror("Excluir material","Nao foi possivel remover o original. Confira as permissoes e tente novamente.",parent=self)
+
+    def ir_origem(self, ident):
+        if self._ocupado: return
+        self.trocar_chat(ident)
+        self.abas.set("Chat")
+
+    def fontes_consulta(self, texto):
+        anexos = self.biblioteca.anexos(self.conversa_id)
+        if not any(m['selecionado'] for m in anexos): return None
+        # Perguntas curtas de continuacao podem aproveitar o assunto da ultima pergunta.
+        if len(texto.split())<4:
+            anteriores = [m['texto'] for m in self.historico.mensagens(self.conversa_id) if m['papel']=='user']
+            if anteriores: texto += ' '+anteriores[-1][:400]
+        return self.biblioteca.recuperar(self.conversa_id,texto)
+
+    def previa_envio(self):
+        texto = self.entrada.get("1.0","end").strip()
+        fontes = self.fontes_consulta(texto)
+        janela = ctk.CTkToplevel(self)
+        janela.title("Dados da proxima consulta"); janela.geometry("820x610"); janela.transient(self)
+        campo = ctk.CTkTextbox(janela,wrap="word")
+        campo.pack(fill="both",expand=True,padx=15,pady=15)
+        from .ia import limitar_contexto
+        historico = limitar_contexto(self.historico.mensagens(self.conversa_id))
+        previa = f"Provedor: {provedor_ativo().title()}\nModelo: {configuracao()[1]}\nEnvia tambem instrucoes pedagogicas e de uso seguro das fontes.\nOs originais binarios nao sao enviados.\n\nMENSAGEM\n{texto}\n\nHISTORICO RECENTE\n"
+        previa += '\n\n'.join(m['role']+': '+m['content'] for m in historico) or '(vazio)'
+        previa += '\n\nTRECHOS RECUPERADOS\n'+(referencias(fontes) if fontes else 'Nenhum trecho relevante. A IA sera informada se ha materiais selecionados sem correspondencia.')
+        for f in fontes or []: previa += f"\n\n[{f['referencia']}]\n{f['texto']}"
+        campo.insert('1.0',previa); campo.configure(state="disabled")
 
     def configurar_ia(self) -> None:
         if self._ocupado:
@@ -266,6 +412,8 @@ class TutorDesktop(ctk.CTk):
         self.entrada.insert("1.0", conversa["rascunho"])
         self._mostrar_conversa()
         self._atualizar_lista()
+        self.abas.set("Chat")
+        self.atualizar_materiais()
 
     def _mostrar_conversa(self):
         mensagens = self.historico.mensagens(self.conversa_id)
@@ -337,6 +485,13 @@ class TutorDesktop(ctk.CTk):
         self.historico.rascunho(self.conversa_id, self.entrada.get("1.0", "end").rstrip())
         self.historico.fechar()
         self.after_cancel(self._timer_fila)
+        if self.painel_materiais._timer_busca:
+            self.painel_materiais.after_cancel(self.painel_materiais._timer_busca)
+        self._processador.shutdown(wait=False,cancel_futures=True)
+        # Cancelar no Tcl preserva a limpeza dos comandos por seus widgets proprietarios.
+        # Evita callbacks de previews/CustomTkinter depois de destruir esta raiz.
+        for timer in self.tk.call('after','info'):
+            self.tk.call('after','cancel',timer)
         self.destroy()
 
     def enviar(self) -> None:
@@ -350,6 +505,10 @@ class TutorDesktop(ctk.CTk):
             self.estado.configure(text="Digite uma mensagem", text_color="#AD4D36")
             return
         modo = self.modo.get()
+        fontes = self.fontes_consulta(texto)
+        if modo == "Resolver" and fontes is not None:
+            self.estado.configure(text="Para consultar materiais, escolha Resolver com IA, Explicar ou Corrigir.",text_color=MUTED)
+            return
         contexto = self.historico.mensagens(self.conversa_id)
         self.historico.adicionar(self.conversa_id, "user", texto)
         if len(self.historico.mensagens(self.conversa_id)) == 1:
@@ -361,11 +520,13 @@ class TutorDesktop(ctk.CTk):
         self._ocupado = True
         self.botao_enviar.configure(state="disabled")
         self.estado.configure(text="Consultando...", text_color=ACCENT)
-        Thread(target=self._executar, args=(modo, texto, contexto), daemon=True).start()
+        Thread(target=self._executar, args=(modo, texto, contexto, fontes), daemon=True).start()
 
-    def _executar(self, modo: str, texto: str, historico=None) -> None:
+    def _executar(self, modo: str, texto: str, historico=None, fontes=None) -> None:
         try:
-            if historico and modo != "Resolver":
+            if fontes is not None:
+                resposta = perguntar(texto,modo="Resolver" if modo=="Resolver com IA" else modo,historico=historico,fontes=fontes)
+            elif historico and modo != "Resolver":
                 resposta = perguntar(texto, modo="Resolver" if modo == "Resolver com IA" else modo, historico=historico)
             elif modo in {"Resolver", "Resolver com IA"}:
                 resposta = resolver(texto, usar_ia=modo == "Resolver com IA")
@@ -396,6 +557,18 @@ class TutorDesktop(ctk.CTk):
                 text_color=ACCENT if tipo == "ok" else "#AD4D36",
             )
         self._timer_fila = self.after(100, self._verificar_fila)
+        mudou = False
+        while True:
+            try:
+                evento, ident = self._fila_materiais.get_nowait()
+            except Empty:
+                break
+            if evento == 'fim': self._processando.discard(ident)
+            elif evento == 'inicio':
+                with self.historico.db:
+                    self.historico.db.execute("UPDATE materiais SET estado='processando' WHERE id=? AND estado='pendente'",(ident,))
+            mudou = True
+        if mudou: self.atualizar_materiais()
 
 
 def main() -> None:

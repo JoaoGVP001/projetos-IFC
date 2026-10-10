@@ -2,6 +2,41 @@
 
 Atualizado em 10/10/2026.
 
+## Entrega — anexos, biblioteca e memoria documental
+
+Analise do codigo: a interface Tk concentra o fluxo de chat; Historico usa
+SQLite v3 no diretorio de dados do usuario; Gemini e OpenAI recebem somente
+texto. Nao existem documentos, indices ou cadernos ainda. Preservaremos esses
+contratos e separaremos armazenamento/extracao/recuperacao da interface.
+
+Ordem desta entrega (antecipando materiais da etapa 6):
+
+1. Migrar SQLite com backup v3, mantendo chats, rascunhos e configuracoes.
+   Guardar originais fora do Git, deduplicados por SHA-256; registrar origem,
+   materias/assuntos/etiquetas, selecao por chat e estados de processamento.
+2. Extrair texto localmente (TXT/Markdown/CSV/JSON, DOCX, PDF e OCR opcional),
+   com limites de tamanho/paginas, processamento em segundo plano e erros
+   recuperaveis. Links publicos HTTP(S) terao copia textual, sem executar scripts.
+3. Entregar aba Materiais: anexar arquivo/link, visualizar texto/original,
+   editar metadados, pesquisar/filtrar, reutilizar em outro chat e excluir.
+   Verificar o fluxo completo incluindo fechar/reabrir e arquivos duplicados.
+4. Indexar trechos por pagina com SQLite FTS5 e recuperar somente dos materiais
+   selecionados. Mostrar a previa dos trechos enviados; pedir citacoes com nome
+   e pagina e tratar documentos como dados nao confiaveis, nunca comandos.
+5. Testar migracoes, extracao, deduplicacao, busca, exclusao, reinicio e os dois
+   provedores sem chamadas pagas; documentar limites e publicar no GitHub.
+
+Criterios: anexar e consultar localmente sem chave; recuperar os mesmos materiais
+apos reiniciar; exclusao limpa indice e selecoes; nenhuma consulta envia o
+original binario ou materiais nao selecionados; extracao falha nunca vira texto
+inventado. Cadernos permanecem futuros: materia sera metadado editavel nesta fase.
+OCR depende de Tesseract instalado; explicitar idiomas disponiveis e limitacoes.
+
+Arquitetura futura: extratores produzem paginas, indexacao produz trechos com
+proveniencia e uma interface de recuperacao independente do provedor. Embeddings
+locais, indice vetorial e busca hibrida entram depois dessa base textual. Nao ha
+treinamento de rede neural, nem instalacao de modelo local nesta entrega.
+
 ## Objetivo
 
 Transformar o tutor em um chat pessoal de estudos de matematica, com cadernos
@@ -16,8 +51,8 @@ Nome do aplicativo: **CadernoMat**. Repositorio: **caderno-mat**.
 
 Ja existem interface desktop, Gemini e OpenAI com chaves individuais, resolucao
 local de continuidade por partes e apresentacao de Markdown/formulas. O usuario
-confirmou uma resposta real do Gemini. Os 31 testes atuais passaram na ultima
-validacao. Agora existem chats persistentes, barra lateral, renomeacao, rascunhos e
+confirmou uma resposta real do Gemini. A validacao desta entrega esta registrada
+abaixo. Agora existem chats persistentes, barra lateral, renomeacao, rascunhos e
 contexto recente enviado a Gemini/OpenAI. Cadernos, provas, simulados e
 acompanhamento de desempenho ainda estao planejados.
 
@@ -138,8 +173,11 @@ coerentes; calculo local e sugestao de IA sao identificados na resposta.
 
 ## Etapa 6 — Materiais, exportacao e acabamento
 
-- [ ] Importar PDFs, imagens e notas com limites de tamanho e preview.
-- [ ] Extrair conteudo e indicar arquivo/pagina ao usar material na resposta.
+- [x] Importar PDFs, imagens, textos, DOCX e links com limites e preview.
+- [x] Biblioteca persistente, deduplicacao, metadados, busca e filtros.
+- [x] Extrair conteudo localmente, OCR opcional e indice FTS5 por trecho/pagina.
+- [x] Selecionar fontes por chat, previa do envio e citacoes com nome/pagina.
+- [ ] Embeddings locais, busca semantica/hibrida e vinculo a cadernos.
 - [ ] Exportar conversas e atividades em Markdown e PDF, com opcao de gabarito.
 - [ ] Backup/restauracao dos cadernos e historico.
 - [ ] Tema claro/escuro, atalhos, acessibilidade e janela adaptavel.
@@ -317,3 +355,30 @@ Implementados menu no hover por chat, fixar/desafixar com persistencia e titulos
 longos deslizantes. Acoes globais de renomear/arquivar foram substituidas pelo
 menu de cada linha. Migracao de esquema para versao 3 com backup anterior.
 Validacao: 40 testes e fluxo de janela de hover, deslocamento e acoes.
+
+## Entrega — biblioteca e RAG textual (10/10/2026)
+
+Implementado o fluxo completo antes da consulta documental: importar arquivos
+ou links, guardar uma copia deduplicada fora do Git, extrair/indexar localmente,
+visualizar original/texto, editar metadados, buscar/filtrar, reutilizar/desvincular,
+excluir e recuperar materiais/selecao apos reiniciar. SQLite v4 com backup v3,
+migracao atomica, paginas/trechos FTS5 e limpeza do indice por exclusao.
+Processamento isolado com timeout; formatos sem extrator e falhas ficam visiveis.
+
+Depois desse fluxo, Gemini/OpenAI passaram a receber trechos de fontes marcadas
+por conversa, com previa e proveniencia. A IA deve citar M1/M2 com nome/pagina,
+distinguir conhecimento geral e ignorar instrucoes nos documentos. O aplicativo
+verifica IDs das citacoes e mostra quando o modelo nao cita. Resumos genericos
+usam amostra inicial sinalizada, sem alegar leitura integral.
+
+Validacao: 61 testes, com OCR real de imagem/PDF digitalizado, extracao de PDF
+textual/DOCX, migracao preservando dados e rollback de DDL, deduplicacao, busca,
+remoção do indice e fluxo de janela com reinicio/consulta simulada. Uma leitura
+real de link publico tambem foi validada. Nao foram feitas chamadas reais a IA
+nem consumidos creditos. Dependencias e diff verificados.
+
+Limites e proximos passos: embeddings/busca semantica, cadernos (hoje materia e
+metadado livre), leitura visual de formulas/diagramas, mais formatos, exportacao
+e backup pela interface. OCR deste PC usa ingles por falta do pacote `por`.
+A recuperacao permanece local e independente do provedor, preparando a futura
+IA local sem instalar modelos agora. Detalhes em docs/MATERIAIS.md.
