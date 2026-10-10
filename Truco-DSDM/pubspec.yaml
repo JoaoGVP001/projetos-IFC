@@ -1,0 +1,33 @@
+name: marcador_truco
+description: Um app simples para marcar pontos no Truco.
+
+publish_to: "none"
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  animated_flip_counter: ^0.3.4
+  flutter_slidable: ^4.0.0
+  flutter_native_splash: ^2.4.6
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/logo.png
+
+flutter_native_splash:
+  color: "#FF2222"
+  image: assets/logo.png
+  android: true
+  ios: true
+  fullscreen: true
