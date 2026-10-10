@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LunarWay - Responder Tópico</title>
+    <link rel="stylesheet" href="/Css/style-add-answer.css">
+    <link rel="stylesheet" href="/Css/global.css">
+    <link rel="stylesheet" href="/Css/header.css">
+    <link rel="stylesheet" href="/Css/footer.css">
+</head>
+<body>
+    <header>
+        <section id="navbar">
+            <img src="/Imgs/logo.png" alt="LunarWay Logo" id="logo">
+            <ul>
+                <li><a href="/">Início</a></li>
+                <li><a href="/artemis">Artemis</a></li>
+                <li><a href="/apollo">Apollo</a></li>
+                <li><a href="/gateway">Gateway</a></li>
+                <li><a href="/forum">Fórum</a></li>
+                <li class="<%= visibilityProfile %>"><a><%- username %></a></li>
+            </ul>
+            <div id="profile">
+                <img src="/Icons/icon-user.png" alt="Profile Icon" id="profile-icon" onclick="toggleDropdown()">
+                <div id="dropdown" class="hidden">
+                    <%- textProfile %>
+                </div>
+            </div>
+        </section>
+    </header>
+
+    <div id="form-container">
+        <div id="form-content">
+            <h1>Responder Tópico</h1>
+            <div id="msgError" class="invisible">Sua resposta não pode ser vazia.</div>
+            <br>
+            <div class="label-float">
+                <label id="answer-label" for="answerText">Resposta:</label>
+                <br>
+                <textarea name="answerText" id="answer-text" rows="6"></textarea>
+            </div>
+            <button type="submit" id="button-add-answer">Adicionar</button>
+        </div>
+    </div>
+
+    <div id="overlay" class="hidden" onclick="toggleDropdown()"></div>
+    </main>
+
+    <footer id="footer">
+        <div>
+            <img src="/Icons/icon-ifc.png" alt="Logo IFC" id="logo-ifc">
+            <img src="/Icons/icon-email.png" alt="Icone Email" id="icon-email">
+            <p>lunarwaysite@gmail.com</p>
+            <a href="Documents/Artigo.pdf" id="artigo" download>Nosso Artigo</a>
+            <a href="#" id="back-to-top">
+                <img src="/Icons/icon-up-arrow.png" alt="Icone voltar início" id="icon-up-arrow">
+            </a>
+        </div>
+    </footer>
+
+    <script src="/Js/effects.js"></script>
+</body>
+</html>

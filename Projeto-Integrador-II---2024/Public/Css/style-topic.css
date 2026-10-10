@@ -1,0 +1,48 @@
+section#section-topic {
+    width: 70%;
+    margin: 0 auto;
+    margin-top: 30px;
+}
+
+div#topic-container {
+    border: 1px solid white;
+    border-radius: 20px;
+    margin-bottom: 3%;
+}
+
+div.topic-content {
+    margin: 2%;
+}
+
+div#topic-container h1, p {
+    margin-bottom: 20px;
+}
+
+div.answer-container {
+    border: 1px solid white;
+    border-radius: 20px;
+    margin-bottom: 3%;
+}
+
+div.answer-content {
+    margin: 2%;
+}
+
+button#button-answer {
+    position: relative;
+    left: 42%;
+    background-color: var(--roxo);
+    cursor: pointer;
+    border: 0;
+    padding-left: 60px;
+    padding-right: 60px;
+    padding: 15px;
+    border-radius: 10px;
+    font-size: 12pt;
+    font-weight: 500;
+    margin-bottom: 20px;
+}
+
+button#button-answer:hover {
+    background-color: var(--roxo-escuro);
+}

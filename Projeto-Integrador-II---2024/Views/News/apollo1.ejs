@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apollo 17</title>
+    <link rel="stylesheet" href="/Css/style-news.css">
+    <link rel="stylesheet" href="/Css/global.css">
+    <link rel="stylesheet" href="/Css/header.css">
+    <link rel="stylesheet" href="/Css/footer.css">
+</head>
+<body>
+    <header>
+        <section id="navbar">
+            <img src="/Imgs/logo.png" alt="LunarWay Logo" id="logo">
+            <ul>
+                <li><a href="/">Início</a></li>
+                <li><a href="/artemis">Artemis</a></li>
+                <li><a href="/apollo">Apollo</a></li>
+                <li><a href="/gateway">Gateway</a></li>
+                <li><a href="/forum">Fórum</a></li>
+                <li class="<%= visibilityProfile %>"><a><%- username %></a></li>
+            </ul>
+            <div id="profile">
+                <img src="/Icons/icon-user.png" alt="Profile Icon" id="profile-icon" onclick="toggleDropdown()">
+                <div id="dropdown" class="hidden">
+                    <%- textProfile %>
+                </div>
+            </div>
+        </section>
+    </header>
+
+    <section id="section-news">
+        <h1>Apollo 17</h1>
+        <br>
+        <p>Há 52 anos ocorreu a Missão Apollo 17, a última missão, pousou no Vale Taurus-Littrow da Lua.
+        Este local foi escolhido para a Apollo 17 como um local onde rochas mais velhas e mais novas do que aquelas
+        retornadas anteriormente de outras missões Apollo, bem como das missões Luna 16 e 20, poderiam ser encontradas.
+        O capitão Eugene A. Cernan registrou 566 horas e 15 minutos no espaço
+        — das quais mais de 73 horas foram gastas na superfície da Lua.
+        O capitão Cernan foi o segundo americano a caminhar no espaço e um dos dois únicos homens a voar para a
+        Lua em duas ocasiões. Como comandante da última missão Apollo à Lua, a Apollo 17, Cernan teve o privilégio e a
+        distinção de ser a última pessoa a deixar suas pegadas na superfície da Lua.</p>
+        <br>
+        <img src="/Imgs/apollo17.jpg" alt="Apollo 17" id="img-apollo17">
+    </section>
+
+    <div id="overlay" class="hidden" onclick="toggleDropdown()"></div>
+    </main>
+
+    <footer id="footer">
+        <div>
+            <img src="/Icons/icon-ifc.png" alt="Logo IFC" id="logo-ifc">
+            <img src="/Icons/icon-email.png" alt="Icone Email" id="icon-email">
+            <p>lunarwaysite@gmail.com</p>
+            <a href="PI_2024___Grupo_1.pdf" id="artigo" download>Nosso Artigo</a>
+            <a href="#" id="back-to-top">
+                <img src="/Icons/icon-up-arrow.png" alt="Icone voltar início" id="icon-up-arrow">
+            </a>
+        </div>
+    </footer>
+
+    <script src="/Js/effects.js"></script>
+    <script>
+        document.getElementById('back-to-top').addEventListener('click', function(e) {
+            e.preventDefault();
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    </script>
+</body>
+</html>

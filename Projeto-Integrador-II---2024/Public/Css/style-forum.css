@@ -1,0 +1,88 @@
+section#forum {
+    margin: 0 auto;
+    width: 70%;
+    margin-bottom: 4%;
+}
+
+section#forum h1 {
+    text-align: center;
+    font-size: 30px;
+    color: white;
+    margin-top: 30px;
+    margin-bottom: 30px;
+}
+
+section#forum h2 {
+    font-size: 20px;
+    color: white;
+}
+
+div#add-topic {
+    border-radius: 30px;
+    border: 3px dashed white;
+    margin-bottom: 3%;
+    cursor: pointer;
+}
+
+div#add-topic:hover {
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+div#add-topic img {
+    cursor: pointer;
+    border: 1px solid white;
+    border-radius: 150%;
+    width: 10%;
+    position: relative;
+    left: 45%;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    background-color: black;
+}
+
+div#without-topics {
+    border: 1px solid white;
+    border-radius: 30px;
+}
+
+div#without-topics h2 {
+    text-align: center;
+    margin-top: 7%;
+    margin-bottom: 2%;
+}
+
+div#without-topics img {
+    position: relative;
+    left: 45%;
+    width: 10%;
+    margin-bottom: 4%;
+}
+
+div.topic-container {
+    margin-bottom: 3%;
+    border: 1px solid white;
+    border-radius: 20px;
+    background-color: black;
+    cursor: pointer;
+}
+
+div.topic-container:hover {
+    background-color: rgba(255, 255, 255, 0.03);
+    position: relative;
+}
+
+div.topic-container div.topic-content {
+    margin: 2%;
+}
+
+section#forum div.topic-container div.topic-content > p {
+    color: var(--cinza);
+    font-size: 14px;
+}
+
+footer.topic-info p {
+    display: inline;
+    margin-right: 2%;
+    color: white;
+    font-size: 14px;
+}

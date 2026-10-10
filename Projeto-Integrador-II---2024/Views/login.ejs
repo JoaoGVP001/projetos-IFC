@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
+    />
+    <link rel="stylesheet" href="Css/style-login.css" />
+    <link rel="stylesheet" href="Css/global.css">
+    <link rel="stylesheet" href="Css/header.css">
+    <title>Login</title>
+  </head>
+  <body>
+    <header>
+        <section id="navbar">
+            <img src="Imgs/logo.png" alt="LunarWay Logo" id="logo">
+            <ul>
+                <li><a href="/">Início</a></li>
+                <li><a href="/artemis">Artemis</a></li>
+                <li><a href="/apollo">Apollo</a></li>
+                <li><a href="/gateway">Gateway</a></li>
+                <li><a href="/forum">Fórum</a></li>
+            </ul>
+            <div id="profile">
+                <img src="Icons/icon-user.png" alt="Profile Icon" id="profile-icon" onclick="toggleDropdown()">
+                <div id="dropdown" class="hidden">
+                    <a href="/login?mode=register">CADASTRAR</a>
+                    <a href="/login?mode=login">LOGIN</a>
+                </div>
+            </div>
+        </section>
+    </header>
+    <div class="container">
+      <div class="card" id="login">
+        <h1>Entrar</h1>
+
+        <div id="msgError" class="<%= visibilityErrorLogin %>"><%= msgError %></div>
+          <form action="/login/login" method="POST">
+            <div class="label-float">
+              <input type="text" name="username" id="username-login" paceholder="" required />
+              <label id="userLabel" for="username-login">Usuario</label>
+            </div>
+
+            <div class="label-float">
+              <input type="password" name="password" id="password-login" paceholder="" required />
+              <label id="senhaLabel" for="password-login">Senha</label>
+              <i class="fa fa-eye" aria-hidden="true" id="see-password-login"></i>
+            </div>
+
+            <div class="justify-center">
+              <button type="submit" id="button-login">Entrar</button>
+            </div>
+          </form>
+      </div>
+      <div class="card" id="register">
+        <h1>Cadastrar</h1>
+
+        <div id="msgError" class="<%= visibilityErrorRegister %>"><%= msgError %></div>
+        <div id="msgSuccess" class="<%= visibilitySuccess %>">Conta criada com sucesso!</div>
+
+        <form action="/login/register" method="POST">
+          <div class="label-float">
+            <input type="text" name="username" id="username-register" placeholder=" " required />
+            <label id="labelUsuario" for="username-register">Usuário</label>
+          </div>
+
+          <div class="label-float">
+            <input type="text" name="email" id="email" placeholder=" " required />
+            <label id="labelUsuario" for="email">E-mail</label>
+          </div>
+
+          <div class="label-float">
+            <input type="password" name="password" id="password-register" placeholder=" " required />
+            <label id="labelSenha" for="password-register">Senha</label>
+            <i class="fa fa-eye" aria-hidden="true" id="see-password-register"></i>
+          </div>
+
+          <div class="label-float">
+            <input type="password" name="confirmPassword" id="confirm-password" placeholder=" " required />
+            <label id="labelConfirmSenha" for="confirm-password">
+              Confirmar Senha</label>
+            <i id="see-confirm-password" class="fa fa-eye" aria-hidden="true"></i>
+          </div>
+
+          <div class="justify-center">
+            <button type="submit" id="button-register">Cadastrar</button>
+          </div>
+        </form>
+      </div>
+      <div class="card <%= modeSide %>" id="greetings-container">
+        <div id="greetings">
+            <h1><%= textLogin[0]%></h1>
+            <p><%= textLogin[1]%></p>
+            <button id="change-mode"><%= textLogin[2]%></button>
+        </div>
+      </div>
+    </div>
+    <script src="Js/effects.js"></script>
+    <script src="Js/effects-login.js"></script>
+    <script src="Js/error-manager.js"></script>
+  </body>
+</html>

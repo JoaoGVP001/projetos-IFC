@@ -1,0 +1,282 @@
+.container {
+  display: flex;
+  justify-content: center;
+  position: relative;
+  left: 20%;
+  margin-bottom: 5%;
+  width: 60%;
+  margin-top: 5%;
+  background-color: #ffffffd5;
+  border-radius: 4%;
+}
+
+.card {
+  padding: 4%;
+  border-radius: 4%;
+  height: 30%;
+  margin: 5%;
+  width: 40%;
+}
+
+#login {
+  position: relative;
+  margin-top: 10%;
+  margin-bottom: 10%;
+}
+
+#greetings-container {
+  position: absolute;
+  top: -8%;
+  height: 100%;
+  width:52%;
+  background-color: #3d2fe0;
+}
+
+.right {
+  left: 43%;
+  border-top-left-radius: 30%;
+  border-bottom-left-radius: 30%;
+}
+
+.left {
+  left: -5%;
+  border-top-right-radius: 30%;
+  border-bottom-right-radius: 30%;
+}
+
+#greetings {
+  margin: 12%;
+  margin-top: 30%;
+  margin-bottom: 30%;
+  width: 80%;
+}
+
+#greetings h1 {
+  text-align: center;
+  color: white;
+  font-size: 2em;
+}
+
+#greetings p {
+  color: white;
+  font-size: 16px;
+}
+
+#greetings button {
+  position: relative;
+  left: 30%;
+  border: 1px solid white;
+  color: white;
+  padding: 3%;
+  padding-left: 5%;
+  padding-right: 5%;
+  border-radius: 10px;
+}
+
+h1{
+  text-align: center;
+  margin-bottom: 20px;
+  color: #272262;
+}
+
+.label-float input{
+  width: 100%;
+  padding: 5px 5px;
+  display: inline-block;
+  border: 0;
+  border-bottom: 2px solid #272262;
+  background-color: transparent;
+  outline: none;
+  min-width: 180px;
+  font-size: 16px;
+  transition: all .3s ease-out;
+  border-radius: 0;
+  color: black;
+  
+}
+
+.label-float{
+  position: relative;
+  padding-top: 13px;
+  margin-top: 5%;
+  margin-bottom: 5%;
+}
+
+.label-float input:focus{
+  border-bottom: 2px solid #4038a0;
+}
+
+.label-float label{
+  color: #272262;
+  position: absolute;
+  top: 0;
+  left: 0;
+  margin-top: 13px;
+  transition: all .05s ease-out;
+}
+
+.label-float input:focus + label,
+.label-float input:valid + label{
+  font-size: 13px;
+  margin-top: 0;
+  color: #4038a0
+}
+
+button{
+  background-color: transparent;
+  border: 1px solid #272262;
+  color: #272262;
+  padding: 7px;
+  font-weight: bold;
+  font-size: 12pt;
+  margin-top: 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  outline: none;
+  transition: all .4s ease-out;
+}
+
+button:hover{
+  background-color: #272262;
+  color: #fff;
+}
+
+.justify-center{
+  display: flex;
+  justify-content: center;
+}
+
+hr{
+  margin-top: 10%;
+  margin-bottom: 10%;
+  width: 60%;
+  border: 1px solid #272262;
+}
+
+p{
+  color: #272262;
+  font-size: 14pt;
+  text-align: center;
+}
+
+a{
+  color: #7a3077;
+  font-weight: bold;
+  text-decoration: none;
+  transition: all .3s ease-out;
+}
+
+a:hover{
+  color: #272262;
+}
+
+.fa-eye{
+  position: absolute;
+  top: 15px;
+  right: 10px;
+  cursor: pointer;
+  color: #272262;
+}
+
+#msgError{
+  text-align: center;
+  color: #ff0000;
+  background-color: #ffbbbb;
+  padding: 10px;
+  border-radius: 4px;
+}
+
+#msgSuccess{
+  text-align: center;
+  color: #00ff00;
+  background-color: #d2fdc3;
+  padding: 10px;
+  border-radius: 4px;
+}
+
+body {
+  margin: 0; 
+  font-family: "Inter", sans-serif;
+}
+
+header {
+  background-color: black; 
+}
+
+/* Estilos do Footer */
+:root {
+  --cinza: #333333;
+  --cinza-claro: #D9D9D9;
+}
+
+footer.topic-info p {
+  display: inline;
+  margin-right: 2%;
+}
+
+footer#footer {
+  border-top: 1px solid var(--cinza);
+  position: relative;
+  background-color: black;
+}
+
+footer#footer div {
+  width: 80%;
+  display: flex;
+  position: relative;
+  align-items: center;
+  left: 20%;
+  padding: 15px 0;
+}
+
+footer#footer div > * {
+  margin-right: 10%;
+}
+
+footer#footer img {
+  display: inline-block;
+  cursor: pointer;
+  position: relative;
+}
+
+footer#footer img#logo-ifc {
+  width: 6%;
+}
+
+footer#footer button#artigo {
+  color: black;
+  background-color: var(--cinza-claro);
+  border-radius: 20px;
+  padding: 10px;
+  cursor: pointer;
+  border: 0;
+  font-weight: bold;
+}
+
+footer#footer img#icon-up-arrow {
+  width: 40px;  /* Tamanho fixo em pixels */
+  height: 40px; /* Mantém proporção quadrada */
+  border: 1px solid white;
+  border-radius: 50%;
+  padding: 5px;
+  transition: opacity 0.3s;
+}
+
+#back-to-top {
+  text-decoration: none;
+  cursor: pointer;
+  display: inline-block;
+  margin-right: 10%;
+}
+
+#back-to-top:hover img {
+  opacity: 0.8;
+}
+
+footer#footer p {
+  color: white; /* Adicionado para garantir que o texto seja visível no fundo preto */
+}
+
+footer#footer img#icon-email {
+  width: 3%; /* Ajuste conforme necessário */
+}
