@@ -14,6 +14,7 @@ from uuid import uuid4
 
 from .extracao import Extracao, MAX_ARQUIVO, extrair, tipo_arquivo
 from .links import extrair_link, normalizar_url
+from .armazenamento import TODOS_CADERNOS
 
 ESTADOS = {'pendente': 'Aguardando', 'processando': 'Processando', 'pronto': 'Pronto',
            'parcial': 'Texto parcial — revise', 'sem_texto': 'Sem texto interpretavel',
@@ -114,6 +115,10 @@ class Biblioteca:
         self.obter(ident)
         with self.db:
             self.db.execute('INSERT OR IGNORE INTO chat_materiais(conversa_id,material_id) VALUES (?,?)', (conversa,ident))
+            if selecionado is None:
+                # Reutilizacao explicita restaura a associacao mesmo quando o anexo ja existe.
+                self.db.execute('''INSERT OR IGNORE INTO materiais_cadernos(material_id,caderno_id)
+                    SELECT ?,caderno_id FROM conversas WHERE id=? AND caderno_id IS NOT NULL''',(ident,conversa))
             if selecionado is not None:
                 self.db.execute('UPDATE chat_materiais SET selecionado=? WHERE conversa_id=? AND material_id=?',
                                 (int(selecionado), conversa, ident))
@@ -208,17 +213,44 @@ class Biblioteca:
     def paginas(self, ident):
         return [dict(x) for x in self.db.execute('SELECT numero,texto FROM paginas WHERE material_id=? ORDER BY numero', (ident,))]
 
-    def metadados(self, ident, nome, materia='', assunto='', etiquetas=''):
+    def metadados(self, ident, nome, materia='', assunto='', etiquetas='', cadernos=None):
         if not nome.strip(): raise ValueError('Digite um nome para o material.')
+        self.obter(ident)
+        ids = self._validar_cadernos(cadernos) if cadernos is not None else None
         with self.db:
             self.db.execute('UPDATE materiais SET nome=?,materia=?,assunto=?,etiquetas=? WHERE id=?',
                             (nome.strip()[:240],materia.strip()[:100],assunto.strip()[:200],etiquetas.strip()[:500],ident))
+            if ids is not None:self._substituir_cadernos(ident,ids)
 
     def materias(self):
         return [x[0] for x in self.db.execute("SELECT DISTINCT materia FROM materiais WHERE materia<>'' ORDER BY materia")]
 
-    def listar(self, busca='', tipo='', materia='', dias=0, conversa=None):
+    def cadernos_material(self, ident):
+        return [dict(x) for x in self.db.execute('''SELECT c.* FROM cadernos c JOIN materiais_cadernos m
+            ON m.caderno_id=c.id WHERE m.material_id=? ORDER BY c.ordem,c.id''',(ident,))]
+
+    def associar_cadernos(self, ident, cadernos):
+        self.obter(ident)
+        ids = self._validar_cadernos(cadernos)
+        with self.db:self._substituir_cadernos(ident,ids)
+
+    def _validar_cadernos(self,cadernos):
+        from .cadernos import Cadernos
+        ids = list(dict.fromkeys(cadernos))
+        for cid in ids: Cadernos(self.historico).obter(cid)
+        return ids
+
+    def _substituir_cadernos(self,ident,ids):
+        self.db.execute('DELETE FROM materiais_cadernos WHERE material_id=?',(ident,))
+        self.db.executemany('INSERT INTO materiais_cadernos VALUES (?,?)',[(ident,cid) for cid in ids])
+
+    def listar(self, busca='', tipo='', materia='', dias=0, conversa=None, caderno=TODOS_CADERNOS):
         regras, args = [], []
+        if caderno is None:
+            regras.append('NOT EXISTS (SELECT 1 FROM materiais_cadernos mc WHERE mc.material_id=m.id)')
+        elif caderno is not TODOS_CADERNOS:
+            regras.append('EXISTS (SELECT 1 FROM materiais_cadernos mc WHERE mc.material_id=m.id AND mc.caderno_id=?)')
+            args.append(caderno)
         for campo, valor in [('tipo',tipo),('materia',materia)]:
             if valor:
                 regras.append(f'm.{campo}=?'); args.append(valor)

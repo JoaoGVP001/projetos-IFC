@@ -13,6 +13,8 @@ import customtkinter as ctk
 
 from .chat_item import ChatItem
 from .armazenamento import Historico
+from .cadernos import Cadernos, contexto_pedagogico
+from .cadernos_ui import CadernosLateral, dialogo_mover, editor_caderno
 from .materiais import Biblioteca, Extracao, ESTADOS, referencias
 from .biblioteca_ui import MateriaisPainel
 from .app import EXEMPLO, resolver
@@ -39,12 +41,21 @@ class TutorDesktop(ctk.CTk):
         self._ocupado = False
         self._arquivados = False
         self.historico = Historico(caminho_historico)
+        self.cadernos = Cadernos(self.historico)
         self.biblioteca = Biblioteca(self.historico, recuperar=True)
         self._fila_materiais = Queue()
         self._processador = ThreadPoolExecutor(max_workers=1, thread_name_prefix='materiais')
         self._processando = set()
-        conversas = self.historico.listar()
-        self.conversa_id = conversas[0]["id"] if conversas else self.historico.criar()
+        navegacao = self.cadernos.navegacao()
+        self.caderno_id = navegacao['caderno_id']
+        self.conversa_id = navegacao['conversa_id']
+        if self.conversa_id:
+            conversa = self.historico.obter(self.conversa_id)
+            self.caderno_id = conversa['caderno_id']
+            self._arquivados = bool(conversa['arquivada'])
+        else:
+            conversas = self.historico.listar(caderno=self.caderno_id)
+            self.conversa_id = conversas[0]['id'] if conversas else None
         self.protocol("WM_DELETE_WINDOW", self.fechar)
 
         self.grid_columnconfigure(1, weight=1)
@@ -63,6 +74,9 @@ class TutorDesktop(ctk.CTk):
             text_color=MUTED, anchor="e",
         )
         self.estado.grid(row=0, column=1, sticky="e")
+        self.titulo_conversa = ctk.CTkLabel(cabecalho,text="",anchor="w",justify="left",wraplength=700,text_color=MUTED)
+        self.titulo_conversa.grid(row=1,column=0,columnspan=2,sticky="ew",pady=(5,0))
+        cabecalho.bind('<Configure>',lambda evento:self.titulo_conversa.configure(wraplength=max(200,evento.width-10)))
 
         barra = ctk.CTkFrame(self, fg_color="transparent")
         barra.grid(row=1, column=1, sticky="ew", padx=30, pady=(0, 18))
@@ -147,18 +161,20 @@ class TutorDesktop(ctk.CTk):
                       hover_color="#E7EEEC", command=self.configurar_ia).grid(row=1, column=1, pady=(8, 0))
         lateral = ctk.CTkFrame(self, width=220, fg_color="#E7EEEC", corner_radius=0)
         lateral.grid(row=0, column=0, rowspan=4, sticky="nsew")
-        lateral.grid_rowconfigure(3, weight=1)
+        lateral.grid_rowconfigure(4, weight=1)
         lateral.grid_columnconfigure(0, weight=1)
         ctk.CTkButton(lateral, text="+ Novo chat", command=self.novo_chat, fg_color=ACCENT).grid(row=0, column=0, padx=15, pady=20, sticky="ew")
         ctk.CTkButton(lateral,text="Materiais",command=self.abrir_materiais,fg_color=ACCENT).grid(row=1,column=0,padx=15,pady=(0,12),sticky="ew")
         self.lista_chats = ctk.CTkScrollableFrame(lateral, width=190, fg_color="transparent")
-        self.lista_chats.grid(row=3, column=0, sticky="nsew", padx=8)
+        self.lista_chats.grid(row=4, column=0, sticky="nsew", padx=8)
+        self.lateral_cadernos = CadernosLateral(lateral,self)
+        self.lateral_cadernos.grid(row=2,column=0,sticky="ew",padx=12,pady=(0,8))
         ctk.CTkLabel(lateral, text="Historico salvo neste PC", text_color=MUTED).grid(row=6, column=0, padx=10, pady=15)
         self.busca = ctk.CTkEntry(lateral, placeholder_text="Buscar titulo ou mensagem")
-        self.busca.grid(row=2, column=0, padx=15, pady=(0, 10), sticky="ew")
+        self.busca.grid(row=3, column=0, padx=15, pady=(0, 10), sticky="ew")
         self.busca.bind("<KeyRelease>", lambda _evento: self._atualizar_lista())
         self.botao_arquivo = ctk.CTkButton(lateral, text="Ver arquivados", command=self.alternar_arquivados, fg_color=ACCENT)
-        self.botao_arquivo.grid(row=4, column=0, padx=15, pady=8, sticky="ew")
+        self.botao_arquivo.grid(row=5, column=0, padx=15, pady=8, sticky="ew")
         self._atualizar_lista()
         self._abrir_chat(self.conversa_id)
         self._atualizar_status_ia()
@@ -166,6 +182,93 @@ class TutorDesktop(ctk.CTk):
 
     def _mudar_modo(self, modo: str) -> None:
         self.botao_enviar.configure(text=modo)
+
+    def caderno_atual(self):
+        return self.cadernos.obter(self.caderno_id) if self.caderno_id else None
+
+    def _salvar_rascunho(self):
+        if self.conversa_id:
+            self.historico.rascunho(self.conversa_id,self.entrada.get('1.0','end').rstrip())
+
+    def _salvar_navegacao(self):
+        self.cadernos.salvar_navegacao(self.caderno_id,self.conversa_id,self._arquivados)
+
+    def _caderno_editavel(self):
+        caderno = self.caderno_atual()
+        return not caderno or not caderno['arquivado']
+
+    def _garantir_chat(self):
+        if self._ocupado or not self._caderno_editavel():
+            self.estado.configure(text='Aguarde a consulta ou restaure o caderno para continuar.',text_color=MUTED)
+            return False
+        if self.conversa_id and self.historico.obter(self.conversa_id)['arquivada']:
+            self.estado.configure(text='Restaure a conversa para adicionar materiais.',text_color=MUTED)
+            return False
+        if not self.conversa_id: self.novo_chat()
+        return bool(self.conversa_id)
+
+    def _atualizar_cabecalho(self):
+        caderno = self.caderno_atual()
+        nome = caderno['nome'] if caderno else 'Geral'
+        titulo = self.historico.obter(self.conversa_id)['titulo'] if self.conversa_id else 'Nenhuma conversa — use Novo chat'
+        self.titulo_conversa.configure(text=nome+(' (caderno arquivado)' if caderno and caderno['arquivado'] else '')+'\n'+titulo)
+        self.lateral_cadernos.atualizar()
+
+    def trocar_caderno(self,ident):
+        if self._ocupado: return
+        if ident: self.cadernos.obter(ident)
+        self._salvar_rascunho()
+        self.caderno_id = ident
+        self._arquivados = False
+        self.busca.delete(0,'end')
+        self.lateral_cadernos.arquivados = bool(ident and self.cadernos.obter(ident)['arquivado'])
+        conversas = self.historico.listar(caderno=ident)
+        self._abrir_chat(conversas[0]['id'] if conversas else None)
+
+    def novo_caderno(self):
+        if not self._ocupado: return editor_caderno(self)
+
+    def salvar_caderno(self,ident,**campos):
+        if self._ocupado: raise ValueError('Aguarde a consulta antes de editar o caderno.')
+        if ident:
+            self.cadernos.editar(ident,**campos)
+            self._atualizar_cabecalho()
+            self.atualizar_materiais()
+        else:
+            ident = self.cadernos.criar(**campos)
+            self.trocar_caderno(ident)
+        return ident
+
+    def acao_caderno(self,acao,ident):
+        if self._ocupado: return
+        if acao=='editar': return editor_caderno(self,ident)
+        if acao in {'subir','descer'}:
+            self.cadernos.ordenar(ident,-1 if acao=='subir' else 1)
+        elif acao=='arquivar':
+            caderno = self.cadernos.obter(ident)
+            self._salvar_rascunho()
+            self.cadernos.arquivar(ident,not caderno['arquivado'])
+            if self.caderno_id==ident:
+                self.lateral_cadernos.arquivados = not caderno['arquivado']
+                self._abrir_chat(self.conversa_id)
+        elif acao=='excluir':
+            nome = self.cadernos.obter(ident)['nome']
+            if not messagebox.askyesno('Excluir caderno',f'Excluir "{nome}"? As conversas passam para Geral e os materiais permanecem na biblioteca. Apenas a organizacao do caderno sera removida.',parent=self): return
+            self._salvar_rascunho()
+            self.cadernos.excluir(ident)
+            if self.caderno_id==ident:
+                self.caderno_id = None
+                self.lateral_cadernos.arquivados = False
+                self._abrir_chat(self.conversa_id)
+        self._atualizar_cabecalho()
+        self.atualizar_materiais()
+
+    def mover_chat(self,ident,destino):
+        if self._ocupado: raise ValueError('Aguarde a consulta antes de mover a conversa.')
+        self._salvar_rascunho()
+        self.cadernos.mover_conversa(ident,destino)
+        self._abrir_chat(ident)
+        self.estado.configure(text='Conversa movida; mensagens e anexos preservados.',text_color=MUTED)
 
     def _atualizar_status_ia(self) -> None:
         chave, modelo = configuracao()
@@ -182,7 +285,7 @@ class TutorDesktop(ctk.CTk):
         nomes = ', '.join(m['nome'][:35] for m in anexos[:3])
         if len(anexos)>3: nomes += f" e mais {len(anexos)-3}"
         self.rotulo_anexos.configure(text=f"{len(anexos)} anexos · {len(selecionados)} para IA" + (f"\n{nomes}" if nomes else "\nAdicione materiais de estudo."))
-        self.rotulo_envio.configure(text=f"Envio a {provedor_ativo().title()}: mensagem, historico recente e trechos relevantes de {len(selecionados)} materiais marcados. Originais ficam no PC.")
+        self.rotulo_envio.configure(text=f"Envio a {provedor_ativo().title()}: preferencias do caderno, mensagem, historico deste chat e trechos de {len(selecionados)} materiais marcados. Originais ficam no PC.")
         self.painel_materiais.atualizar()
 
     def anexar_arquivos(self):
@@ -191,6 +294,7 @@ class TutorDesktop(ctk.CTk):
         self.importar_arquivos(caminhos)
 
     def importar_arquivos(self, caminhos):
+        if not caminhos or not self._garantir_chat(): return
         erros = []
         for caminho in caminhos:
             try:
@@ -204,6 +308,7 @@ class TutorDesktop(ctk.CTk):
     def anexar_link(self):
         url = ctk.CTkInputDialog(text="Link publico de estudo (HTTP/HTTPS):",title="Adicionar link").get_input()
         if not url: return
+        if not self._garantir_chat(): return
         try:
             ident, novo = self.biblioteca.adicionar_link(url,self.conversa_id)
             if novo: self.agendar_material(ident)
@@ -239,14 +344,17 @@ class TutorDesktop(ctk.CTk):
             self._fila_materiais.put(('fim',ident))
 
     def selecionar_material(self, ident, selecionado):
+        if not self._garantir_chat(): return
         self.biblioteca.vincular(ident,self.conversa_id,selecionado)
         self.atualizar_materiais()
 
     def vincular_material(self, ident):
+        if not self._garantir_chat(): return
         self.biblioteca.vincular(ident,self.conversa_id)
         self.atualizar_materiais()
 
     def desvincular_material(self, ident):
+        if not self.conversa_id: return
         self.biblioteca.desvincular(ident,self.conversa_id)
         self.atualizar_materiais()
 
@@ -285,11 +393,13 @@ class TutorDesktop(ctk.CTk):
         campo.pack(fill="both",expand=True,padx=15,pady=15)
         from .ia import limitar_contexto
         historico = limitar_contexto(self.historico.mensagens(self.conversa_id))
-        previa = f"Provedor: {provedor_ativo().title()}\nModelo: {configuracao()[1]}\nEnvia tambem instrucoes pedagogicas e de uso seguro das fontes.\nOs originais binarios nao sao enviados.\n\nMENSAGEM\n{texto}\n\nHISTORICO RECENTE\n"
+        previa = f"Provedor: {provedor_ativo().title()}\nModelo: {configuracao()[1]}\nEnvia tambem instrucoes gerais de estudo e de uso seguro das fontes.\nOs originais binarios nao sao enviados.\n\nCONTEXTO PEDAGOGICO DO CADERNO\n"
+        previa += (contexto_pedagogico(self.caderno_atual()) or 'Geral: sem configuracoes adicionais de caderno.')+f"\n\nMENSAGEM\n{texto}\n\nHISTORICO RECENTE\n"
         previa += '\n\n'.join(m['role']+': '+m['content'] for m in historico) or '(vazio)'
         previa += '\n\nTRECHOS RECUPERADOS\n'+(referencias(fontes) if fontes else 'Nenhum trecho relevante. A IA sera informada se ha materiais selecionados sem correspondencia.')
         for f in fontes or []: previa += f"\n\n[{f['referencia']}]\n{f['texto']}"
         campo.insert('1.0',previa); campo.configure(state="disabled")
+        return janela
 
     def configurar_ia(self) -> None:
         if self._ocupado:
@@ -356,7 +466,7 @@ class TutorDesktop(ctk.CTk):
         campo_chave.focus_set()
 
     def carregar_exemplo(self) -> None:
-        if self._ocupado:
+        if not self._garantir_chat():
             return
         self.modo.set("Resolver")
         self._mudar_modo("Resolver")
@@ -369,7 +479,7 @@ class TutorDesktop(ctk.CTk):
         if self._ocupado:
             return
         self.entrada.delete("1.0", "end")
-        self.historico.rascunho(self.conversa_id, "")
+        if self.conversa_id: self.historico.rascunho(self.conversa_id, "")
         self.estado.configure(text="Pronto", text_color=MUTED)
         self.entrada.focus_set()
 
@@ -386,10 +496,13 @@ class TutorDesktop(ctk.CTk):
     def _atualizar_lista(self):
         for filho in self.lista_chats.winfo_children():
             filho.destroy()
-        for conversa in self.historico.listar(self.busca.get(), self._arquivados):
+        conversas = self.historico.listar(self.busca.get(), self._arquivados,caderno=self.caderno_id)
+        for conversa in conversas:
             ident = conversa["id"]
             ChatItem(self.lista_chats, conversa, ident == self.conversa_id,
                      abrir=lambda cid=ident: self.trocar_chat(cid), acao=self.acao_chat).pack(fill="x", pady=3)
+        if not conversas:
+            ctk.CTkLabel(self.lista_chats,text='Nenhuma conversa encontrada.\nUse Novo chat para comecar.',wraplength=180).pack(pady=15)
 
     def acao_chat(self, acao, ident):
         if self._ocupado:
@@ -399,6 +512,8 @@ class TutorDesktop(ctk.CTk):
             self._atualizar_lista()
         elif acao == "renomear":
             self.renomear_chat(ident)
+        elif acao == "mover":
+            return dialogo_mover(self,ident)
         else:
             self.trocar_chat(ident)
             if acao == "arquivar": self.arquivar_chat()
@@ -406,37 +521,50 @@ class TutorDesktop(ctk.CTk):
 
     def _abrir_chat(self, ident):
         self.conversa_id = ident
+        self.entrada.configure(state='normal')
         self.entrada.delete("1.0", "end")
-        conversa = self.historico.obter(ident)
-        self.botao_enviar.configure(state="disabled" if conversa["arquivada"] else "normal")
-        self.entrada.insert("1.0", conversa["rascunho"])
+        conversa = self.historico.obter(ident) if ident else None
+        if conversa:
+            self.caderno_id = conversa['caderno_id']
+            self._arquivados = bool(conversa['arquivada'])
+            self.entrada.insert("1.0", conversa["rascunho"])
+        self.lateral_cadernos.arquivados = bool(self.caderno_id and self.caderno_atual()['arquivado'])
+        editavel = bool(conversa and not conversa['arquivada'] and self._caderno_editavel())
+        self.botao_enviar.configure(state='normal' if editavel else 'disabled')
+        self.entrada.configure(state='normal' if editavel else 'disabled')
+        self.botao_arquivo.configure(text='Ver ativos' if self._arquivados else 'Ver arquivados')
         self._mostrar_conversa()
         self._atualizar_lista()
         self.abas.set("Chat")
         self.atualizar_materiais()
+        self._atualizar_cabecalho()
+        self._salvar_navegacao()
 
     def _mostrar_conversa(self):
         mensagens = self.historico.mensagens(self.conversa_id)
         texto = "\n\n---\n\n".join(
             ("## Voce\n" if m["papel"] == "user" else "## CadernoMat" + (" — erro" if m["estado"] == "erro" else "") + "\n") + m["texto"]
             for m in mensagens)
-        self._mostrar_saida(texto or "## Comece uma conversa\nDigite sua duvida de matematica abaixo. Use Novo chat para estudar outro assunto.")
+        self._mostrar_saida(texto or ("## Caderno sem conversa aberta\nUse **Novo chat** para iniciar seus estudos. A biblioteca continua disponivel na aba Materiais." if not self.conversa_id else "## Comece uma conversa\nDigite sua duvida de matematica abaixo. Use Novo chat para estudar outro assunto."))
         self.saida._textbox.yview_moveto(1)
 
     def trocar_chat(self, ident):
         if self._ocupado:
             return
-        self.historico.rascunho(self.conversa_id, self.entrada.get("1.0", "end").rstrip())
+        self._salvar_rascunho()
         self._abrir_chat(ident)
 
     def novo_chat(self):
         if self._ocupado:
             return
-        self.historico.rascunho(self.conversa_id, self.entrada.get("1.0", "end").rstrip())
+        if not self._caderno_editavel():
+            self.estado.configure(text='Restaure o caderno para iniciar uma conversa.',text_color=MUTED)
+            return
+        self._salvar_rascunho()
         self._arquivados = False
         self.botao_arquivo.configure(text="Ver arquivados")
         self.busca.delete(0, "end")
-        self._abrir_chat(self.historico.criar())
+        self._abrir_chat(self.historico.criar(self.caderno_id))
         self.estado.configure(text="Novo chat", text_color=MUTED)
 
     def renomear_chat(self, ident=None):
@@ -446,6 +574,7 @@ class TutorDesktop(ctk.CTk):
         if titulo and titulo.strip():
             self.historico.renomear(ident or self.conversa_id, titulo)
             self._atualizar_lista()
+            self._atualizar_cabecalho()
 
     def alternar_arquivados(self):
         if self._ocupado:
@@ -455,15 +584,15 @@ class TutorDesktop(ctk.CTk):
         self._atualizar_lista()
 
     def _selecionar_apos_remocao(self):
-        conversas = self.historico.listar(arquivadas=self._arquivados)
+        conversas = self.historico.listar(arquivadas=self._arquivados,caderno=self.caderno_id)
         if not conversas:
             self._arquivados = False
             self.botao_arquivo.configure(text="Ver arquivados")
-            conversas = self.historico.listar()
-        self._abrir_chat(conversas[0]["id"] if conversas else self.historico.criar())
+            conversas = self.historico.listar(caderno=self.caderno_id)
+        self._abrir_chat(conversas[0]["id"] if conversas else None)
 
     def arquivar_chat(self):
-        if self._ocupado:
+        if self._ocupado or not self.conversa_id:
             return
         conversa = self.historico.obter(self.conversa_id)
         self.historico.rascunho(self.conversa_id, self.entrada.get("1.0", "end").rstrip())
@@ -472,7 +601,7 @@ class TutorDesktop(ctk.CTk):
         self.estado.configure(text="Chat restaurado" if conversa["arquivada"] else "Chat arquivado", text_color=MUTED)
 
     def excluir_chat(self):
-        if self._ocupado:
+        if self._ocupado or not self.conversa_id:
             return
         titulo = self.historico.obter(self.conversa_id)["titulo"]
         if not messagebox.askyesno("Excluir conversa", f'Excluir "{titulo}" e todas as suas mensagens? Esta acao nao pode ser desfeita. Voce pode arquivar para preservar o chat.', parent=self):
@@ -482,7 +611,8 @@ class TutorDesktop(ctk.CTk):
         self.estado.configure(text="Chat excluido", text_color=MUTED)
 
     def fechar(self):
-        self.historico.rascunho(self.conversa_id, self.entrada.get("1.0", "end").rstrip())
+        self._salvar_rascunho()
+        self._salvar_navegacao()
         self.historico.fechar()
         self.after_cancel(self._timer_fila)
         if self.painel_materiais._timer_busca:
@@ -495,6 +625,9 @@ class TutorDesktop(ctk.CTk):
         self.destroy()
 
     def enviar(self) -> None:
+        if not self.conversa_id or not self._caderno_editavel():
+            self.estado.configure(text='Use Novo chat ou restaure o caderno para continuar.',text_color=MUTED)
+            return
         if self.historico.obter(self.conversa_id)["arquivada"]:
             self.estado.configure(text="Restaure o chat para continuar", text_color=MUTED)
             return
@@ -517,17 +650,21 @@ class TutorDesktop(ctk.CTk):
         self.entrada.delete("1.0", "end")
         self._mostrar_conversa()
         self._atualizar_lista()
+        self._atualizar_cabecalho()
         self._ocupado = True
         self.botao_enviar.configure(state="disabled")
         self.estado.configure(text="Consultando...", text_color=ACCENT)
-        Thread(target=self._executar, args=(modo, texto, contexto, fontes), daemon=True).start()
+        caderno = self.caderno_atual()
+        Thread(target=self._executar, args=(modo, texto, contexto, fontes, caderno), daemon=True).start()
 
-    def _executar(self, modo: str, texto: str, historico=None, fontes=None) -> None:
+    def _executar(self, modo: str, texto: str, historico=None, fontes=None, caderno=None) -> None:
         try:
-            if fontes is not None:
-                resposta = perguntar(texto,modo="Resolver" if modo=="Resolver com IA" else modo,historico=historico,fontes=fontes)
+            if (fontes is not None or caderno is not None) and modo!="Resolver":
+                resposta = perguntar(texto,modo="Resolver" if modo=="Resolver com IA" else modo,historico=historico,fontes=fontes,caderno=caderno)
             elif historico and modo != "Resolver":
                 resposta = perguntar(texto, modo="Resolver" if modo == "Resolver com IA" else modo, historico=historico)
+            elif modo == "Resolver" and caderno is not None:
+                resposta = resolver(texto, caderno=caderno, historico=historico)
             elif modo in {"Resolver", "Resolver com IA"}:
                 resposta = resolver(texto, usar_ia=modo == "Resolver com IA")
             elif modo == "Explicar":

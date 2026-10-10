@@ -7,6 +7,8 @@ import sys
 from pathlib import Path
 from uuid import uuid4
 
+TODOS_CADERNOS = object()
+
 
 def caminho_banco():
     if sys.platform == 'win32':
@@ -26,7 +28,7 @@ class Historico:
         self.db.row_factory = sqlite3.Row
         self.db.execute('PRAGMA foreign_keys=ON')
         versao = self.db.execute('PRAGMA user_version').fetchone()[0]
-        if versao > 4:
+        if versao > 5:
             self.db.close()
             raise RuntimeError('Este historico exige uma versao mais recente do CadernoMat.')
         if versao == 0:
@@ -70,25 +72,44 @@ class Historico:
             except Exception:
                 self.db.close()
                 raise
+        if versao < 5:
+            if versao in {1, 2, 3, 4}:
+                with closing(sqlite3.connect(str(self.caminho)+'.v4.backup')) as destino:
+                    self.db.backup(destino)
+                if os.name != 'nt':
+                    Path(str(self.caminho)+'.v4.backup').chmod(0o600)
+            from .cadernos import migrar_cadernos
+            try:
+                with self.db:
+                    self.db.execute('BEGIN')
+                    migrar_cadernos(self.db)
+                    self.db.execute('PRAGMA user_version=5')
+            except Exception:
+                self.db.close()
+                raise
         self.db.execute('PRAGMA journal_mode=WAL')
         self.db.create_function('CASEFOLD', 1, lambda texto: texto.casefold())
         if os.name != 'nt':
             self.caminho.chmod(0o600)
 
-    def criar(self):
+    def criar(self, caderno=None):
+        from .cadernos import Cadernos
+        Cadernos(self).validar_destino(caderno)
         identificador = str(uuid4())
         with self.db:
-            self.db.execute('INSERT INTO conversas(id,titulo) VALUES (?,?)',(identificador,'Novo chat'))
+            self.db.execute('INSERT INTO conversas(id,titulo,caderno_id) VALUES (?,?,?)',(identificador,'Novo chat',caderno))
         return identificador
 
-    def listar(self, busca='', arquivadas=False):
+    def listar(self, busca='', arquivadas=False, caderno=TODOS_CADERNOS):
         # instr faz busca literal, inclusive % e _, sem curingas SQL.
+        filtro = '' if caderno is TODOS_CADERNOS else ' AND c.caderno_id IS ?'
+        args = (int(arquivadas), busca.strip(), busca.strip().casefold(), busca.strip().casefold())
+        if caderno is not TODOS_CADERNOS: args += (caderno,)
         return [dict(x) for x in self.db.execute(
             'SELECT c.* FROM conversas c WHERE c.arquivada=? AND '
             '(?="" OR instr(CASEFOLD(c.titulo),?)>0 OR EXISTS '
             '(SELECT 1 FROM mensagens m WHERE m.conversa_id=c.id AND instr(CASEFOLD(m.texto),?)>0)) '
-            'ORDER BY c.fixada DESC, c.atualizado DESC, c.rowid DESC',
-            (int(arquivadas), busca.strip(), busca.strip().casefold(), busca.strip().casefold()))]
+            +filtro+' ORDER BY c.fixada DESC, c.atualizado DESC, c.rowid DESC', args)]
 
     def obter(self, conversa):
         registro = self.db.execute('SELECT * FROM conversas WHERE id=?',(conversa,)).fetchone()

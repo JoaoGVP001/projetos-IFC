@@ -2,9 +2,47 @@
 
 Atualizado em 10/10/2026.
 
+## Entrega — cadernos integrados
+
+Analise anterior a implementacao: o banco estava em v4; chats e materiais possuem IDs estaveis, a biblioteca
+usa vinculos por conversa e a IA recebe historico/fontes como parametros. A
+interface presumia uma conversa aberta, o que exigiu aceitar cadernos vazios.
+Os 61 testes de base passaram antes das alteracoes.
+
+Sequencia verificavel desta entrega:
+
+1. SQLite v5 com backup v4 e transacao explicita: cadernos com preferencias,
+   conversa.caderno_id opcional e relacao material/cadernos muitos-para-muitos.
+   Criar tres cadernos somente na migracao; chats antigos permanecem em Geral.
+2. Servico de cadernos para CRUD, ordenacao, arquivo/restauracao e movimentacao
+   por ID. Excluir caderno preserva conversas/materiais e a selecao documental.
+3. Interface de cadernos na lateral, gerenciamento e estado vazio sem criar
+   chats. Filtrar conversas por caderno e conservar rascunhos na navegacao.
+4. Biblioteca com filtro/associacoes a cadernos reais. Material importado ou
+   reutilizado herda o caderno da conversa; mover chat acrescenta o destino sem
+   remover associacoes anteriores. Isso nunca seleciona fontes para a IA.
+5. Contexto pedagogico independente de historico/fontes, igual para Gemini e
+   OpenAI, mostrado na previa. Validar isolamento, migracao, reinicio e fluxo UI.
+6. Documentar, validar dependencias/diff e publicar. Manter o atalho existente.
+
+Dados legados de materia sao associados somente por correspondencia exata
+normalizada ou aliases inequivocos dos tres cadernos iniciais. Metadados livres
+continuam preservados. Cadernos arquivados sao navegaveis em leitura e nao
+alteram o estado individual dos chats. A proxima entrega de produto sera
+atividades e tentativas vinculadas ao ID estavel de um caderno; embeddings,
+busca semantica e IA local seguem posteriores.
+
+Fluxo entregue: criar caderno, iniciar chat, anexar, selecionar fonte, conferir
+previa, consultar IA simulada, mover e reiniciar recuperando todos os dados.
+Interface conferida a 1000x650 com nomes longos. Guia em docs/CADERNOS.md.
+Validacao final: 76 testes aprovados, incluindo extracao/OCR e fluxos de janela,
+sem consultas reais a IA. Dependencias e diff conferidos. Banco local migrado
+para v5 com backup v4; verificacao de integridade e comparacao dos registros
+e arquivos existentes confirmaram preservacao. Atalho mantido.
+
 ## Entrega — anexos, biblioteca e memoria documental
 
-Analise do codigo: a interface Tk concentra o fluxo de chat; Historico usa
+Analise anterior a entrega de materiais (registro historico): a interface Tk concentra o fluxo de chat; Historico usa
 SQLite v3 no diretorio de dados do usuario; Gemini e OpenAI recebem somente
 texto. Nao existem documentos, indices ou cadernos ainda. Preservaremos esses
 contratos e separaremos armazenamento/extracao/recuperacao da interface.
@@ -29,7 +67,7 @@ Ordem desta entrega (antecipando materiais da etapa 6):
 Criterios: anexar e consultar localmente sem chave; recuperar os mesmos materiais
 apos reiniciar; exclusao limpa indice e selecoes; nenhuma consulta envia o
 original binario ou materiais nao selecionados; extracao falha nunca vira texto
-inventado. Cadernos permanecem futuros: materia sera metadado editavel nesta fase.
+inventado. Naquela fase materia era metadado editavel; cadernos foram entregues depois.
 OCR depende de Tesseract instalado; explicitar idiomas disponiveis e limitacoes.
 
 Arquitetura futura: extratores produzem paginas, indexacao produz trechos com
@@ -53,8 +91,9 @@ Ja existem interface desktop, Gemini e OpenAI com chaves individuais, resolucao
 local de continuidade por partes e apresentacao de Markdown/formulas. O usuario
 confirmou uma resposta real do Gemini. A validacao desta entrega esta registrada
 abaixo. Agora existem chats persistentes, barra lateral, renomeacao, rascunhos e
-contexto recente enviado a Gemini/OpenAI. Cadernos, provas, simulados e
-acompanhamento de desempenho ainda estao planejados.
+contexto recente enviado a Gemini/OpenAI. Cadernos, biblioteca e RAG textual
+estao implementados. Provas, simulados e acompanhamento de desempenho sao os
+proximos passos; cancelamento/streaming do chat ainda permanecem pendentes.
 
 Este planejamento inclui a evolucao principal e uma etapa final de IA local e
 interface com multiplos modelos, inspirada nos artigos analisados. As funcionalidades abaixo
@@ -79,7 +118,7 @@ Em cada caderno:
 
 - Conversas: duvidas, resolucoes e revisoes.
 - Atividades: listas, provas de pratica, simulados e tentativas realizadas.
-- Materiais: resumos e, em uma etapa posterior, arquivos enviados pelo usuario.
+- Materiais: arquivos e links compartilhados entre cadernos, com selecao por chat.
 
 Uma conversa pertence a um caderno ou a uma area geral. Novo chat inicia um
 contexto independente. Selecionar uma conversa recupera suas mensagens.
@@ -115,12 +154,13 @@ Cancelar ou repetir uma mensagem nao duplica respostas nem corrompe historico.
 
 ## Etapa 3 — Cadernos e contexto por materia
 
-- [ ] Criar, editar, ordenar, arquivar e escolher cadernos.
-- [ ] Criar os tres cadernos iniciais apenas no primeiro uso.
-- [ ] Mover conversas entre cadernos e buscar por materia ou assunto.
-- [ ] Salvar objetivo, nivel, assuntos e preferencias pedagogicas de cada caderno.
-- [ ] Selecionar materia na conversa; adaptar instrucoes da IA ao caderno.
-- [ ] Escolher entre explicacao completa, dicas progressivas e correcao de tentativa.
+- [x] Criar, editar, ordenar, arquivar e escolher cadernos.
+- [x] Criar os tres cadernos iniciais apenas no primeiro uso.
+- [x] Mover conversas entre cadernos e buscar titulo/mensagens na materia escolhida.
+- [x] Salvar objetivo, nivel, assuntos e preferencias pedagogicas de cada caderno.
+- [x] Selecionar materia na conversa; adaptar instrucoes da IA ao caderno.
+- [x] Escolher entre explicacao completa, dicas progressivas e correcao de tentativa.
+- [x] Filtrar e compartilhar materiais entre cadernos sem copia ou autorizacao automatica.
 
 Conclusao: estudo de limites e estudo de inducao ficam em cadernos independentes,
 com contexto adequado. Arquivar um caderno preserva suas conversas.
@@ -129,6 +169,13 @@ com contexto adequado. Arquivar um caderno preserva suas conversas.
 
 Um formulario perguntara materia, assuntos, dificuldade, quantidade de questoes,
 formatos, duracao opcional e se o aluno deseja dicas durante a atividade.
+
+Proxima entrega: servico independente de geracao/correcao referenciando
+`cadernos.id`. Criar tabelas versionadas para atividade, questao, tentativa e
+resposta, preservando as migracoes existentes. Primeiro entregar lista de
+pratica persistente com geracao simulada validada e correcao objetiva; depois
+simulado/retomada e rubricas discursivas. Fontes continuam selecionadas
+explicitamente. Nao antecipar embeddings ou inferencia local.
 
 Formatos iniciais:
 
@@ -177,7 +224,8 @@ coerentes; calculo local e sugestao de IA sao identificados na resposta.
 - [x] Biblioteca persistente, deduplicacao, metadados, busca e filtros.
 - [x] Extrair conteudo localmente, OCR opcional e indice FTS5 por trecho/pagina.
 - [x] Selecionar fontes por chat, previa do envio e citacoes com nome/pagina.
-- [ ] Embeddings locais, busca semantica/hibrida e vinculo a cadernos.
+- [x] Vinculo de materiais a cadernos reais sem duplicacao.
+- [ ] Embeddings locais e busca semantica/hibrida.
 - [ ] Exportar conversas e atividades em Markdown e PDF, com opcao de gabarito.
 - [ ] Backup/restauracao dos cadernos e historico.
 - [ ] Tema claro/escuro, atalhos, acessibilidade e janela adaptavel.
@@ -306,8 +354,9 @@ continua opcional. Nao trocar de provedor automaticamente ao atingir cota.
 
 ## Ordem de implementacao e testes
 
-Seguir a ordem 1 → 2 → 3 → 4 → 5 → 6 → 7. Comecar pelas etapas 1 e 2.
-Depois implementar cadernos e so entao atividades. A etapa de IA local e
+Fundacao, chat e cadernos ja foram entregues, com materiais antecipados a pedido
+do usuario. Continuar por atividades (4), qualidade matematica (5), exportacao
+e acabamento restantes (6). A etapa de IA local e
 interface unificada vem apenas depois das entregas principais.
 Evitar construir geracao de provas antes de existir historico persistente.
 Nao estabelecer prazos fixos antes de validar o primeiro fluxo de chat.

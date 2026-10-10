@@ -10,7 +10,8 @@ tentativas usam a API do Gemini ou da OpenAI, conforme o servico escolhido.
 
 O projeto esta evoluindo para um chat com historico, cadernos por materia,
 listas, provas de pratica e simulados. A versao atual ja tem chats com historico
-local e contexto recente; cadernos e atividades ainda estao planejados.
+local, cadernos por materia e contexto pedagogico. Listas, provas e simulados
+serao a proxima etapa.
 Ja e possivel anexar arquivos/links, organizar a biblioteca Materiais, pesquisar
 texto extraido e selecionar materiais para consultas com citacoes.
 Veja [o planejamento completo](PLANEJAMENTO.md) e o
@@ -222,8 +223,10 @@ esquema e backup antes da criacao de esquema em um arquivo ja existente.
 
 Nos modos de IA do desktop, ate dez pares completos recentes sao usados como
 contexto, limitados a 16 mil caracteres. Mensagens de erro ficam fora; o historico
-completo permanece no banco. O modo Resolver local e o menu de terminal seguem
-sem memoria de conversa. Fechar durante uma consulta preserva a pergunta, mas
+completo permanece no banco. O calculo local nao usa memoria; quando Resolver
+precisa da API no desktop, recebe o contexto do caderno e da conversa. O menu
+de terminal nao usa cadernos nem memoria de conversa. Fechar durante uma
+consulta preserva a pergunta, mas
 nao salva a resposta ainda em andamento. Cancelamento de consultas e streaming serao entregues depois.
 
 
@@ -240,7 +243,7 @@ antes da alteracao. Backup e banco ficam no diretorio local de dados do usuario.
 ### Acoes em cada chat
 
 Ao passar o mouse sobre uma conversa, aparece o botao de tres pontos. Seu menu
-permite renomear, fixar/desafixar no topo, arquivar/restaurar e excluir. As acoes
+permite renomear, fixar/desafixar no topo, mover para caderno, arquivar/restaurar e excluir. As acoes
 operam sobre o chat escolhido, inclusive quando ele nao e a conversa aberta.
 Chats fixados aparecem primeiro e a escolha permanece apos reiniciar.
 Titulos longos deslizam durante o hover e voltam ao inicio quando o mouse sai.
@@ -265,6 +268,34 @@ nao remove informacoes de respostas antigas do historico enviado. A biblioteca
 funciona sem API; as consultas continuam sujeitas as cotas do provedor.
 
 Leia [o guia de materiais](docs/MATERIAIS.md) para formatos, limites, OCR,
-privacidade, citacoes, armazenamento e arquitetura. A migracao para SQLite v4
-preserva chats e cria backup v3. Embeddings e busca semantica ficam para a
-proxima fase; cadernos e IA local continuam planejados.
+privacidade, citacoes, armazenamento e arquitetura. SQLite v5 acrescenta
+cadernos e cria backup v4 antes da migracao. Atividades sao o proximo passo;
+embeddings, busca semantica e IA local continuam planejados.
+
+## Cadernos por materia
+
+A lateral mostra **Geral** e tres cadernos iniciais: Preliminares de Matemática,
+Cálculo Diferencial e Integral I e Matemática Discreta. Chats antigos ficam em
+Geral. Escolha um caderno e clique em **Novo chat**: navegar por cadernos vazios
+nao cria conversas. O cabecalho indica a materia e a conversa abertas.
+
+Use **+** em Cadernos para criar outro. O menu **⋯** permite editar/renomear,
+reordenar, arquivar, restaurar e excluir. Configure objetivo, nivel, assuntos,
+orientacoes e preferencia: explicacao completa, dicas ou correcao de tentativa.
+Gemini/OpenAI recebem essas configuracoes junto do historico deste chat;
+**Previa do envio** permite conferir o contexto. Outros chats nao sao incluidos.
+
+No menu do chat, use **Mover para caderno**. Mensagens, rascunho, fixacao,
+arquivamento e anexos/selecao permanecem. Arquivar um caderno preserva os chats
+e permite leitura; restaure-o para continuar. Excluir caderno move seus chats
+para Geral e preserva documentos e mensagens.
+
+Em **Materiais**, filtre pelo caderno ou use **Do caderno atual**. **Editar**
+permite associar um documento a varios cadernos, sem duplicar arquivo/indice.
+Importar ou reutilizar associa ao caderno do chat; mover um chat acrescenta o
+destino e conserva as associacoes anteriores. Essas associacoes nunca marcam
+fontes para IA: **Consultar neste chat** continua sendo uma escolha separada.
+
+Veja [o guia dos cadernos](docs/CADERNOS.md) para migracao, dados legados,
+preferencias pedagogicas e limites. O atalho da area de trabalho continua
+abrindo a versao atual ao reiniciar o aplicativo.

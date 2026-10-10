@@ -76,6 +76,7 @@ class ChatItem(ctk.CTkFrame):
         self._popup = menu
         for rotulo,acao in [('Renomear','renomear'),
             ('Desafixar' if self.conversa['fixada'] else 'Fixar no topo','fixar'),
+            ('Mover para caderno','mover'),
             ('Restaurar' if self.conversa['arquivada'] else 'Arquivar','arquivar'),('Excluir','excluir')]:
             menu.add_command(label=rotulo,command=lambda operacao=acao:self.acao(operacao,self.conversa['id']))
         try:

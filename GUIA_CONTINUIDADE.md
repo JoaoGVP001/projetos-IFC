@@ -1,3 +1,54 @@
+# Continuidade do CadernoMat — 10/10/2026
+
+## Estado atual e proxima entrega
+
+Chats persistentes, Markdown/formulas, Gemini/OpenAI, biblioteca com extracao
+local/OCR opcional, RAG textual e cadernos por materia estao implementados.
+Veja [Cadernos](docs/CADERNOS.md), [Materiais](docs/MATERIAIS.md) e
+[Planejamento](PLANEJAMENTO.md). Atividades, provas, simulados e tentativas
+versionadas por ID de caderno sao a proxima etapa; IA local fica por ultimo.
+
+O pacote interno continua `tutor_calculo` e o atalho existente continua valido.
+Para atualizar outra instalacao, feche a janela, execute `git pull origin main`,
+instale `requirements.txt` e reinicie. No Linux, use `./iniciar_desktop.sh`;
+no Windows com ambiente preparado, `.venv\Scripts\python.exe -m tutor_calculo.desktop`.
+Use Python 3.12+ com Tkinter; dependencias de extracao estao em requirements.txt.
+Tesseract e opcional. Nao e necessario instalar modelos locais.
+
+## Persistencia e cuidados ao continuar
+
+SQLite v5 migra bancos anteriores com transacao explicita e backup v4. Cadernos
+iniciais sao criados uma unica vez. Chats antigos ficam em Geral; materia legada
+so recebe associacao por nome/alias inequivoco. IDs, mensagens, arquivos, indices,
+rascunhos e selecoes permanecem. Dados ficam fora do Git no diretorio CadernoMat
+do usuario, conforme README. Para backup completo, copie toda essa pasta apos
+fechar a janela e aguardar o worker terminar.
+
+`cadernos.py` concentra CRUD/contexto; `cadernos_ui.py` os componentes de
+organizacao; `armazenamento.py` o historico; `materiais.py` biblioteca/recuperacao;
+`ia.py` os provedores. Conversas possuem `caderno_id` opcional e documentos
+usam associacoes muitos-para-muitos. Atividades futuras devem usar esses mesmos
+IDs e manter versoes para nao alterar tentativas antigas.
+
+Selecao documental continua por chat; associacao a caderno nao autoriza envio.
+Preferencias pedagogicas, historico do chat e trechos ficam separados e aparecem
+na previa. As chaves sao configuradas no proprio aplicativo, permanecem no `.env`
+local ignorado pelo Git e nunca devem entrar nos testes ou exemplos versionados.
+
+## Validacao
+
+Execute `.venv/bin/python -m unittest discover -s tests -v` em Linux, ou o
+equivalente `.venv\Scripts\python.exe` no Windows. Testes usam clientes
+simulados, bancos/arquivos temporarios e nao consomem creditos. Os 76 testes
+passaram nesta entrega. Os fluxos UI
+exigem Tk/display; mantenha esse ambiente para verificar a interface. A suite
+cobre migracao/rollback, contexto, OCR, deduplicacao, movimentacao e reinicio.
+Nao publicar bancos, anexos, backups, indices ou chaves.
+
+---
+
+## Registro historico da fase inicial (nao descreve o estado atual)
+
 > O produto agora se chama CadernoMat. Consulte PLANEJAMENTO.md para a evolucao para chat e cadernos. O registro abaixo descreve etapas anteriores.
 
 > Entrega de materiais (10/10/2026): veja docs/MATERIAIS.md. Instale requirements.txt

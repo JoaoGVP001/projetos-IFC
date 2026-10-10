@@ -12,6 +12,7 @@ from PIL import Image
 
 from .extracao import imagem_pdf
 from .materiais import ESTADOS
+from .armazenamento import TODOS_CADERNOS
 
 TIPOS = {'Todos os tipos': '', 'PDF': 'pdf', 'Imagens': 'imagem', 'Texto': 'texto',
          'DOCX': 'docx', 'Links': 'link', 'Outros': 'arquivo'}
@@ -54,13 +55,17 @@ class MateriaisPainel(ctk.CTkFrame):
         filtros = ctk.CTkFrame(self, fg_color='transparent')
         filtros.grid(row=2, column=0, sticky='ew')
         self.tipo = ctk.CTkOptionMenu(filtros, values=list(TIPOS), width=135, command=lambda _v: self.filtrar())
-        self.tipo.pack(side='left', padx=(0,8))
+        self.tipo.grid(row=0,column=0,padx=(0,8))
         self.materia = ctk.CTkOptionMenu(filtros, values=['Todas as materias'], width=170, command=lambda _v: self.filtrar())
-        self.materia.pack(side='left', padx=(0,8))
+        self.materia.grid(row=0,column=1,padx=(0,8))
         self.data = ctk.CTkOptionMenu(filtros, values=list(DATAS), width=145, command=lambda _v: self.filtrar())
-        self.data.pack(side='left', padx=(0,8))
+        self.data.grid(row=0,column=2,padx=(0,8))
         self.so_chat = ctk.CTkCheckBox(filtros, text='Deste chat', command=self.filtrar, width=100)
-        self.so_chat.pack(side='left')
+        self.so_chat.grid(row=0,column=3)
+        self.caderno = ctk.CTkOptionMenu(filtros,values=['Todos os cadernos','Geral (sem caderno)'],width=310,dynamic_resizing=False,command=lambda _v:self.filtrar())
+        self.caderno.grid(row=1,column=0,columnspan=2,sticky='ew',pady=(8,0))
+        ctk.CTkButton(filtros,text='Do caderno atual',width=145,command=lambda:self.filtrar_caderno(self.app.caderno_id)).grid(row=1,column=2,pady=(8,0))
+        self._opcoes_caderno = {'Todos os cadernos':TODOS_CADERNOS,'Geral (sem caderno)':None}
         self.resumo = ctk.CTkLabel(self, text='', anchor='w', wraplength=750, justify='left', text_color='#667674')
         self.resumo.grid(row=3, column=0, sticky='ew', pady=8)
         self.lista = ctk.CTkScrollableFrame(self, fg_color='transparent')
@@ -86,19 +91,29 @@ class MateriaisPainel(ctk.CTkFrame):
         self._pagina = max(0, self._pagina+passo)
         self.atualizar()
 
+    def filtrar_caderno(self, ident):
+        self.atualizar()
+        self.caderno.set(next(nome for nome,cid in self._opcoes_caderno.items() if cid==ident))
+        self.filtrar()
+
     def atualizar(self):
         for filho in self.lista.winfo_children(): filho.destroy()
         biblioteca = self.app.biblioteca
+        self._opcoes_caderno = {'Todos os cadernos':TODOS_CADERNOS,'Geral (sem caderno)':None,
+            **{'Caderno: '+c['nome']:c['id'] for c in self.app.cadernos.listar(None)}}
+        self.caderno.configure(values=list(self._opcoes_caderno))
+        if self.caderno.get() not in self._opcoes_caderno: self.caderno.set('Todos os cadernos')
         materias = ['Todas as materias']+biblioteca.materias()
         self.materia.configure(values=materias)
         if self.materia.get() not in materias: self.materia.set(materias[0])
-        registros = biblioteca.listar(self.busca.get(), TIPOS[self.tipo.get()],
+        registros = [] if self.so_chat.get() and not self.app.conversa_id else biblioteca.listar(self.busca.get(), TIPOS[self.tipo.get()],
                     '' if self.materia.get() == materias[0] else self.materia.get(),
-                    DATAS[self.data.get()], self.app.conversa_id if self.so_chat.get() else None)
+                    DATAS[self.data.get()], self.app.conversa_id if self.so_chat.get() else None,
+                    caderno=self._opcoes_caderno[self.caderno.get()])
         anexos = {m['id']: m for m in biblioteca.anexos(self.app.conversa_id)}
         self._pagina = min(self._pagina, max(0,(len(registros)-1)//40))
         self.paginacao.configure(text=f'Pagina {self._pagina+1} · {len(registros)} materiais')
-        titulo = self.app.historico.obter(self.app.conversa_id)['titulo']
+        titulo = self.app.historico.obter(self.app.conversa_id)['titulo'] if self.app.conversa_id else 'Nenhuma conversa aberta'
         self.resumo.configure(text=f'Conversa: {titulo}\nMarque Consultar para enviar trechos relevantes a IA. Anexar nao envia arquivos ao provedor.')
         for numero, m in enumerate(registros[self._pagina*40:(self._pagina+1)*40]):
             ident = m['id']
@@ -111,6 +126,8 @@ class MateriaisPainel(ctk.CTkFrame):
             ctk.CTkLabel(linha,text=info,anchor='w',text_color='#667674').grid(row=1,column=0,sticky='ew',padx=12)
             origem = m['origem_titulo'] + (' (chat excluido)' if not m['origem_id'] else '')
             metadados = f"Origem: {origem} · Materia: {m['materia'] or 'Geral'}"
+            associados = biblioteca.cadernos_material(ident)
+            metadados += '\nCadernos: '+(', '.join(c['nome']+(' (arquivado)' if c['arquivado'] else '') for c in associados) or 'Geral')
             if m['assunto'] or m['etiquetas']: metadados += f"\n{m['assunto']} · {m['etiquetas']}"
             if m['aviso']: metadados += '\n'+m['aviso']
             ctk.CTkLabel(linha,text=metadados,anchor='w',justify='left',wraplength=660,
@@ -119,7 +136,8 @@ class MateriaisPainel(ctk.CTkFrame):
             acoes.grid(row=3,column=0,sticky='ew',padx=12,pady=8)
             checkbox = ctk.CTkCheckBox(acoes,text='Consultar neste chat',width=155)
             if anexos.get(ident,{}).get('selecionado'): checkbox.select()
-            if m['estado'] not in {'pronto','parcial'}: checkbox.configure(state='disabled')
+            pode_selecionar = self.app.conversa_id and self.app._caderno_editavel() and not self.app.historico.obter(self.app.conversa_id)['arquivada']
+            if m['estado'] not in {'pronto','parcial'} or not pode_selecionar: checkbox.configure(state='disabled')
             checkbox.configure(command=lambda i=ident,c=checkbox: self.app.selecionar_material(i,bool(c.get())))
             checkbox.pack(side='left',padx=(0,8))
             for texto, comando in [
@@ -135,22 +153,35 @@ class MateriaisPainel(ctk.CTkFrame):
         m = self.app.biblioteca.obter(ident)
         janela = ctk.CTkToplevel(self)
         janela.title('Editar material')
-        janela.geometry('540x410')
+        janela.geometry('560x610')
         janela.transient(self.app)
+        formulario = ctk.CTkScrollableFrame(janela)
+        formulario.pack(fill='both',expand=True,padx=15,pady=10)
         campos = {}
-        for chave, rotulo in [('nome','Nome'),('materia','Materia (cadernos virao depois)'),('assunto','Assunto'),('etiquetas','Etiquetas (separadas por virgula)')]:
-            ctk.CTkLabel(janela,text=rotulo).pack(anchor='w',padx=20,pady=(10,0))
-            campo = ctk.CTkEntry(janela,width=490)
+        for chave, rotulo in [('nome','Nome'),('materia','Materia (metadado livre)'),('assunto','Assunto'),('etiquetas','Etiquetas (separadas por virgula)')]:
+            ctk.CTkLabel(formulario,text=rotulo).pack(anchor='w',padx=10,pady=(10,0))
+            campo = ctk.CTkEntry(formulario,width=470)
             campo.insert(0,m[chave]); campo.pack(padx=20,pady=3)
             campos[chave] = campo
+        ctk.CTkLabel(formulario,text='Cadernos associados (nao autoriza envio a IA)').pack(anchor='w',padx=10,pady=12)
+        associados = {c['id'] for c in self.app.biblioteca.cadernos_material(ident)}
+        escolhas = {}
+        for caderno in self.app.cadernos.listar(None):
+            cid = caderno['id']
+            escolha = ctk.CTkCheckBox(formulario,text=caderno['nome']+(' (arquivado)' if caderno['arquivado'] else ''))
+            if cid in associados: escolha.select()
+            escolha.pack(anchor='w',padx=10,pady=5)
+            escolhas[cid] = escolha
         def salvar():
             try:
-                self.app.biblioteca.metadados(ident,**{k:v.get() for k,v in campos.items()})
+                self.app.biblioteca.metadados(ident,**{k:v.get() for k,v in campos.items()},
+                    cadernos=[cid for cid,campo in escolhas.items() if campo.get()])
                 self.app.atualizar_materiais()
                 janela.destroy()
             except (ValueError,OSError) as exc:
                 messagebox.showerror('Material',str(exc),parent=janela)
         ctk.CTkButton(janela,text='Salvar',command=salvar).pack(pady=15)
+        return janela
 
     def mais(self, ident):
         m = self.app.biblioteca.obter(ident)

@@ -67,7 +67,7 @@ erros em formulas; indique duvidas em vez de adivinhar simbolos.
 
 
 def perguntar(pergunta: str, modo: str = "Resolver", historico: list[dict] | None = None,
-              fontes: list[dict] | None = None) -> str:
+              fontes: list[dict] | None = None, caderno: dict | None = None) -> str:
     if not pergunta.strip():
         raise ValueError("Digite um enunciado ou uma duvida.")
     tarefas = {
@@ -84,6 +84,9 @@ def perguntar(pergunta: str, modo: str = "Resolver", historico: list[dict] | Non
 
     contexto = limitar_contexto(historico or [])
     instrucoes = INSTRUCOES + "\nTarefa desta consulta: " + tarefas[modo]
+    if caderno:
+        from .cadernos import contexto_pedagogico
+        instrucoes += '\n'+contexto_pedagogico(caderno)
     if fontes is not None:
         from .materiais import contexto_documental
         instrucoes += '\n'+INSTRUCOES_DOCUMENTOS

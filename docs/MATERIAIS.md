@@ -7,11 +7,12 @@
 2. Use **Visualizar** para conferir a extracao. PDF tem previa por pagina;
    imagem tem previa do original. **Mais...** permite abrir no aplicativo do
    sistema, ir ao chat de origem, reutilizar, desvincular ou reprocessar.
-3. Em **Editar**, organize nome, materia, assunto e etiquetas. Materia e um
-   metadado livre por enquanto; os cadernos ainda nao foram implementados.
+3. Em **Editar**, organize nome, materia, assunto, etiquetas e cadernos.
+   Materia permanece metadado livre; cadernos usam IDs reais e um material
+   pode pertencer a varias materias sem duplicar original ou indice.
 4. Busque por nome, texto extraido, assunto ou etiquetas. A busca da biblioteca
    e literal, sem distinguir maiusculas ou acentos. Filtre por tipo, materia,
-   data de importacao (UTC) e materiais do chat atual. Ha 40 itens por pagina.
+   caderno, data de importacao (UTC) e materiais do chat atual. Ha 40 itens por pagina.
 5. Marque **Consultar neste chat** somente nos materiais que deseja usar.
    Importar ou reutilizar nao ativa envio a IA automaticamente. A selecao e
    independente por conversa e permanece apos reiniciar.
@@ -62,13 +63,15 @@ na fila sao cancelados e ficam recuperaveis.
 
 ## O que e enviado a IA
 
-Gemini e OpenAI recebem a mensagem, instrucoes de estudo/uso das fontes,
+Gemini e OpenAI recebem a mensagem, preferencias pedagogicas do caderno atual,
+instrucoes de estudo/uso das fontes,
 historico recente da conversa (ate dez pares completos/16 mil caracteres),
 **ate seis trechos relevantes**, limitados a 6 mil caracteres de texto, e sua
 proveniencia (nome, URL e pagina aplicavel). Arquivos originais, imagens e PDFs
 binarios **nao sao enviados**. Historico pode conter informacoes de documentos
 usados em consultas anteriores; desmarcar ou excluir um material nao apaga
-essas mensagens. A previa mostra historico e trechos antes da consulta.
+essas mensagens. A previa mostra caderno, historico e trechos antes da consulta.
+Pertencer ao caderno nunca autoriza consulta documental automaticamente.
 
 Os trechos usam referencias M1, M2 etc, numeradas por consulta. As instrucoes
 pedem citacoes junto das afirmacoes; o app acrescenta nome/pagina das fontes
@@ -97,13 +100,18 @@ o nome e os metadados sao compartilhados na biblioteca. Links sao deduplicados
 pela URL normalizada (sem fragmento), e sua copia textual persiste offline.
 Reprocessar um link atualiza essa copia e substitui o indice atomicamente.
 
-SQLite **v4** acrescenta materiais, vinculos por chat, paginas e trechos com
+SQLite **v4** acrescentou materiais, vinculos por chat, paginas e trechos com
 indice **FTS5**, necessario na instalacao de SQLite. Os triggers removem o indice
 junto dos trechos. A migracao tem transacao explicita e backup v3 antes de
 alterar bancos existentes. Chats, rascunhos, fixacoes e chaves sao preservados.
 Banco usa WAL para leitura enquanto o worker grava. Banco/backups tem permissao
 0600 e pasta de materiais 0700 no Linux/macOS; permissoes Windows dependem do
 perfil do usuario. Dados pessoais nao entram em commits.
+
+SQLite **v5** acrescenta cadernos e associacoes muitos-para-muitos, com backup v4.
+Novos anexos herdam a materia do chat por ID, sem marcar consulta. Dados legados
+so recebem associacoes por correspondencia inequívoca. Veja
+[Cadernos](CADERNOS.md) para filtros, compartilhamento e movimentacao de chats.
 
 Para backup manual, feche o app, aguarde o worker terminar e copie **toda a
 pasta de dados** (banco, auxiliares WAL se existirem e materiais). Backups antigos
