@@ -26,3 +26,13 @@
 
 - Graficos, exercicios por assunto e dicas progressivas.
 - Historico de conversa com acao clara para iniciar uma nova questao.
+
+
+## Integracao Gemini — 10/10/2026
+
+- [x] Gemini e OpenAI selecionaveis, com chaves e modelos separados.
+- [x] Orientacao sobre Gemini Free Tier e uso pago conforme projeto Google.
+- [x] Cliente Gemini para Resolver, Explicar e Corrigir; erros e cotas tratados.
+- [x] Testes simulados dos dois provedores, sem consumo de API.
+- [ ] Validar uma consulta real com chave Gemini configurada pelo usuario.
+- [ ] Avaliar Groq e Ollama local em uma etapa posterior.

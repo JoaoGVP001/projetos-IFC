@@ -1,6 +1,7 @@
 """Configuracao e consultas ao instrutor pela Responses API."""
 
 import os
+import re
 from pathlib import Path
 
 from dotenv import dotenv_values, set_key
@@ -11,24 +12,45 @@ ARQUIVO_ENV = Path(__file__).resolve().parents[1] / ".env"
 MODELO_PADRAO = "gpt-6-astra"
 
 
-def configuracao() -> tuple[str, str]:
+PROVEDORES = {"openai": ("OPENAI", MODELO_PADRAO), "gemini": ("GEMINI", "gemini-3.8-flash")}
+
+
+def provedor_ativo() -> str:
     valores = dotenv_values(ARQUIVO_ENV)
-    chave = os.environ.get("OPENAI_API_KEY", valores.get("OPENAI_API_KEY") or "").strip()
-    modelo = os.environ.get("OPENAI_MODEL", valores.get("OPENAI_MODEL") or MODELO_PADRAO).strip()
-    return chave, modelo or MODELO_PADRAO
+    provedor = os.environ.get("AI_PROVIDER", valores.get("AI_PROVIDER") or "openai").strip().lower()
+    if provedor not in PROVEDORES:
+        raise ValueError("Provedor invalido. Escolha Gemini ou OpenAI em Configurar IA.")
+    return provedor
 
 
-def salvar_configuracao(chave: str, modelo: str = MODELO_PADRAO) -> None:
+def configuracao(provedor: str | None = None) -> tuple[str, str]:
+    provedor = provedor or provedor_ativo()
+    if provedor not in PROVEDORES:
+        raise ValueError("Provedor invalido.")
+    prefixo, padrao = PROVEDORES[provedor]
+    valores = dotenv_values(ARQUIVO_ENV)
+    chave = os.environ.get(prefixo + "_API_KEY", valores.get(prefixo + "_API_KEY") or "").strip()
+    modelo = os.environ.get(prefixo + "_MODEL", valores.get(prefixo + "_MODEL") or padrao).strip()
+    return chave, modelo or padrao
+
+
+def salvar_configuracao(chave: str, modelo: str = MODELO_PADRAO, provedor: str = "openai") -> None:
+    if provedor not in PROVEDORES:
+        raise ValueError("Provedor invalido.")
     chave = chave.strip()
     modelo = modelo.strip()
-    if not chave or "\n" in chave or "\r" in chave:
-        raise ValueError("Informe uma chave da API valida.")
-    if not modelo or any(c.isspace() for c in modelo):
-        raise ValueError("Informe o identificador do modelo sem espacos.")
+    if not chave:
+        chave = configuracao(provedor)[0]
+    if not chave or any(c.isspace() for c in chave):
+        raise ValueError("Informe uma chave da API valida para o servico escolhido.")
+    if not re.fullmatch(r"[a-zA-Z0-9_.-]+", modelo):
+        raise ValueError("Informe o identificador do modelo sem espacos ou barras.")
+    prefixo, _ = PROVEDORES[provedor]
     ARQUIVO_ENV.touch(mode=0o600, exist_ok=True)
     ARQUIVO_ENV.chmod(0o600)
-    set_key(str(ARQUIVO_ENV), "OPENAI_API_KEY", chave)
-    set_key(str(ARQUIVO_ENV), "OPENAI_MODEL", modelo)
+    set_key(str(ARQUIVO_ENV), prefixo + "_API_KEY", chave)
+    set_key(str(ARQUIVO_ENV), prefixo + "_MODEL", modelo)
+    set_key(str(ARQUIVO_ENV), "AI_PROVIDER", provedor)
 
 
 def perguntar(pergunta: str, modo: str = "Resolver") -> str:
@@ -41,9 +63,15 @@ def perguntar(pergunta: str, modo: str = "Resolver") -> str:
     }
     if modo not in tarefas:
         raise ValueError("Modo de estudo invalido.")
+    provedor = provedor_ativo()
     chave, modelo = configuracao()
     if not chave:
-        raise RuntimeError("A IA ainda nao esta configurada. Use Configurar IA ou defina OPENAI_API_KEY no arquivo .env do projeto.")
+        raise RuntimeError(f"A IA {provedor} ainda nao esta configurada. Use Configurar IA ou defina {PROVEDORES[provedor][0]}_API_KEY no arquivo .env.")
+
+    instrucoes = INSTRUCOES + "\nTarefa desta consulta: " + tarefas[modo]
+    if provedor == "gemini":
+        from .gemini import consultar
+        return consultar(chave, modelo, pergunta, instrucoes)
 
     try:
         import openai
@@ -54,7 +82,7 @@ def perguntar(pergunta: str, modo: str = "Resolver") -> str:
         with openai.OpenAI(api_key=chave, timeout=60.0, max_retries=0) as cliente:
             resposta = cliente.responses.create(
                 model=modelo,
-                instructions=INSTRUCOES + "\nTarefa desta consulta: " + tarefas[modo],
+                instructions=instrucoes,
                 input=pergunta,
                 max_output_tokens=4096,
                 store=False,

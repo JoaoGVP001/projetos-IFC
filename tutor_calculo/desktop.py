@@ -2,11 +2,12 @@
 
 from queue import Empty, Queue
 from threading import Thread
+import webbrowser
 
 import customtkinter as ctk
 
 from .app import EXEMPLO, resolver
-from .ia import MODELO_PADRAO, configuracao, perguntar, salvar_configuracao
+from .ia import PROVEDORES, configuracao, perguntar, provedor_ativo, salvar_configuracao
 
 
 BG = "#F4F7F6"
@@ -125,7 +126,7 @@ class TutorDesktop(ctk.CTk):
 
     def _atualizar_status_ia(self) -> None:
         chave, modelo = configuracao()
-        self.rotulo_ia.configure(text=f"IA: chave configurada · {modelo} (acesso ainda precisa ser testado)" if chave else "IA: chave nao configurada · exemplo local funciona sem API")
+        self.rotulo_ia.configure(text=f"IA: {provedor_ativo().title()} · {modelo} · chave configurada" if chave else f"IA: {provedor_ativo().title()} · chave nao configurada · exemplo local funciona sem API")
 
     def configurar_ia(self) -> None:
         if self._ocupado:
@@ -136,28 +137,59 @@ class TutorDesktop(ctk.CTk):
         janela = ctk.CTkToplevel(self)
         self._janela_config = janela
         janela.title("Configurar instrutor com IA")
-        janela.geometry("620x340")
+        janela.geometry("690x530")
         janela.transient(self)
         janela.grid_columnconfigure(0, weight=1)
-        ctk.CTkLabel(janela, text="Chave da API da OpenAI", anchor="w").grid(row=0, column=0, sticky="ew", padx=24, pady=(20, 6))
-        campo_chave = ctk.CTkEntry(janela, show="*", placeholder_text="Cole sua chave aqui")
-        campo_chave.grid(row=1, column=0, sticky="ew", padx=24)
-        ctk.CTkLabel(janela, text="Modelo", anchor="w").grid(row=2, column=0, sticky="ew", padx=24, pady=(12, 6))
+        opcoes = {"Gemini (gratuito ou pago)": "gemini", "OpenAI (API paga)": "openai"}
+        ctk.CTkLabel(janela, text="Servico de IA", anchor="w").grid(row=0, column=0, sticky="ew", padx=24, pady=(18, 6))
+        servico = ctk.CTkOptionMenu(janela, values=list(opcoes))
+        servico.set(next(nome for nome, valor in opcoes.items() if valor == provedor_ativo()))
+        servico.grid(row=1, column=0, sticky="ew", padx=24)
+        ctk.CTkLabel(janela, text="Chave da API do servico escolhido", anchor="w").grid(row=2, column=0, sticky="ew", padx=24, pady=(12, 6))
+        campo_chave = ctk.CTkEntry(janela, show="*", placeholder_text="Cole a chave ou deixe vazio para manter a chave salva")
+        campo_chave.grid(row=3, column=0, sticky="ew", padx=24)
+        ctk.CTkLabel(janela, text="Modelo (voce pode editar o identificador)", anchor="w").grid(row=4, column=0, sticky="ew", padx=24, pady=(12, 6))
         campo_modelo = ctk.CTkEntry(janela)
-        campo_modelo.insert(0, configuracao()[1])
-        campo_modelo.grid(row=3, column=0, sticky="ew", padx=24)
-        aviso = ctk.CTkLabel(janela, text="A chave fica no .env local. Salvar nao faz consultas.\nVariaveis de ambiente tem prioridade. Consultas usam creditos da API.", wraplength=560, justify="left")
-        aviso.grid(row=4, column=0, sticky="w", padx=24, pady=12)
+        campo_modelo.grid(row=5, column=0, sticky="ew", padx=24)
+        aviso = ctk.CTkLabel(janela, text="", wraplength=630, justify="left", anchor="w")
+        aviso.grid(row=6, column=0, sticky="ew", padx=24, pady=12)
+        estado_chave = ctk.CTkLabel(janela, text="", anchor="w")
+        estado_chave.grid(row=7, column=0, sticky="ew", padx=24)
+        def atualizar(_nome=None):
+            provedor = opcoes[servico.get()]
+            chave, modelo = configuracao(provedor)
+            campo_chave.delete(0, "end")
+            campo_modelo.delete(0, "end")
+            campo_modelo.insert(0, modelo)
+            estado_chave.configure(text="Chave deste servico ja configurada; campo vazio preserva a chave." if chave else "Este servico ainda precisa de uma chave.")
+            aviso.configure(text=(
+                "Gemini: use uma chave de projeto Free Tier para uso gratuito, sujeito a cotas. "
+                "Para uso pago, configure faturamento no Google AI Studio. A cobranca depende do projeto e do modelo; "
+                "esta tela nao muda seu plano. No gratuito, dados podem ser usados para melhorar produtos Google."
+                if provedor == "gemini" else
+                "OpenAI: consultas sao cobradas pela API, conforme modelo e uso. A chave e os creditos sao do usuario; "
+                "o aplicativo nao usa o login ou a assinatura do ChatGPT."
+            ), text_color=MUTED)
+        servico.configure(command=atualizar)
+        atualizar()
+        links = ctk.CTkFrame(janela, fg_color="transparent")
+        links.grid(row=8, column=0, sticky="w", padx=24, pady=8)
+        def abrir_chaves():
+            webbrowser.open("https://aistudio.google.com/apikey" if opcoes[servico.get()] == "gemini" else "https://platform.openai.com/api-keys")
+        def abrir_precos():
+            webbrowser.open("https://ai.google.dev/gemini-api/docs/pricing" if opcoes[servico.get()] == "gemini" else "https://developers.openai.com/api/docs/pricing")
+        ctk.CTkButton(links, text="Obter chave", command=abrir_chaves, width=120).pack(side="left", padx=(0, 8))
+        ctk.CTkButton(links, text="Planos e modelos", command=abrir_precos, width=150).pack(side="left")
         def salvar():
             try:
-                salvar_configuracao(campo_chave.get(), campo_modelo.get())
+                salvar_configuracao(campo_chave.get(), campo_modelo.get(), opcoes[servico.get()])
             except (ValueError, OSError) as exc:
-                aviso.configure(text=str(exc), text_color="#AD4D36")
+                estado_chave.configure(text=str(exc), text_color="#AD4D36")
                 return
             self._atualizar_status_ia()
             self.estado.configure(text="Configuracao salva. Use Resolver com IA para testar.", text_color=MUTED)
             janela.destroy()
-        ctk.CTkButton(janela, text="Salvar", command=salvar).grid(row=5, column=0, sticky="e", padx=24)
+        ctk.CTkButton(janela, text="Salvar", command=salvar).grid(row=9, column=0, sticky="e", padx=24, pady=8)
         campo_chave.focus_set()
 
     def carregar_exemplo(self) -> None:

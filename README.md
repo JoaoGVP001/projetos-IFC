@@ -3,7 +3,7 @@
 Aplicativo em Python para estudar limites, continuidade e derivadas. A janela
 desktop recebe exercicios e mostra a resolucao. Funcoes por partes no formato
 abaixo sao analisadas localmente com SymPy; duvidas abertas e correcao de
-tentativas usam a API da OpenAI.
+tentativas usam a API do Gemini ou da OpenAI, conforme o servico escolhido.
 
 ## Instalacao
 
@@ -34,7 +34,7 @@ Para usar o menu de terminal:
 .\.venv\Scripts\python.exe -m tutor_calculo.app
 ```
 
-## API da OpenAI
+## API da OpenAI (opcional, paga por uso)
 
 Para os modos **Explicar**, **Corrigir** e perguntas abertas em **Resolver**,
 crie um arquivo `.env` na raiz deste repositorio com:
@@ -89,7 +89,7 @@ python3 -m venv .venv
 ./iniciar_desktop.sh
 ```
 
-1. Clique em **Configurar IA** e cole sua chave da API no campo protegido.
+1. Clique em **Configurar IA** e escolha Gemini ou OpenAI e cole a chave desse servico no campo protegido.
    O aplicativo salva a chave somente no `.env` local, ignorado pelo Git.
    Salvar nao faz uma consulta e nao confirma o acesso ao modelo.
 2. Selecione **Resolver com IA**, digite o enunciado e clique no botao de envio.
@@ -125,3 +125,51 @@ Testes no Linux, incluindo os casos de API simulada:
 
 O teste de falhas da interface exige Tkinter e e ignorado se ele estiver ausente. Nenhum teste automatico faz
 chamadas reais ou consome creditos da API.
+
+
+## Gemini gratuito ou pago e escolha do servico
+
+Em **Configurar IA**, escolha **Gemini (gratuito ou pago)** ou **OpenAI (API paga)**.
+Cada servico tem sua propria chave e modelo. Trocar o servico preserva a chave
+anterior; deixe o campo de chave vazio para reutilizar uma chave ja configurada.
+Todos os modos de IA usam o servico selecionado. O analisador local continua
+funcionando sem chave. Nao ha troca automatica entre provedores apos falhas.
+
+### Comecar sem pagar com Gemini
+
+1. Abra [Google AI Studio — API keys](https://aistudio.google.com/apikey) e crie
+   uma chave associada a um projeto **Free Tier**, sem ativar faturamento.
+2. Em Configurar IA, escolha Gemini, cole a chave e mantenha o modelo inicial
+   `gemini-3.8-flash`, ou informe outro modelo disponivel para sua conta.
+3. Salve e envie um exercicio em Resolver com IA.
+
+O uso gratuito tem cotas por modelo e projeto. Ao atingir uma cota, o app
+apresenta um erro; ele nao ativa faturamento nem muda para OpenAI automaticamente.
+No Free Tier, os dados enviados podem ser usados para melhorar produtos Google.
+Confira [precos, modelos e tratamento de dados](https://ai.google.dev/gemini-api/docs/pricing).
+
+Para Gemini pago, configure faturamento no projeto Google AI Studio e use a
+chave desse projeto. **Escolher Gemini neste aplicativo nao determina nem
+verifica o plano de cobranca**: ele depende do projeto e do modelo no Google.
+Os botoes Obter chave e Planos e modelos abrem as paginas oficiais do servico.
+O campo de modelo e editavel para usar modelos gratuitos ou pagos disponiveis.
+
+Para OpenAI, configure uma chave propria e creditos de API conforme o modelo.
+A integracao utiliza a API; nao faz login com a conta do ChatGPT.
+
+Configuracao manual equivalente no `.env`:
+
+```text
+AI_PROVIDER=gemini
+GEMINI_API_KEY=sua_chave_google
+GEMINI_MODEL=gemini-3.8-flash
+OPENAI_API_KEY=sua_chave_openai_opcional
+OPENAI_MODEL=gpt-6-astra
+```
+
+Use `AI_PROVIDER=openai` para selecionar a OpenAI. Instalacoes antigas sem
+AI_PROVIDER mantem OpenAI para compatibilidade. As variaveis de ambiente tem
+prioridade sobre o `.env`, inclusive AI_PROVIDER. O cliente Gemini usa HTTPS
+com chave no cabecalho, timeout de 60 segundos e nenhuma repeticao automatica.
+A integracao e de texto: imagens e PDFs ainda nao sao entradas do aplicativo.
+Groq e modelos locais ficam para etapas futuras.
