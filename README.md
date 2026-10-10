@@ -8,9 +8,11 @@ Projetos reunidos em um único repositório. Cada pasta mantém os arquivos da b
 ENSINO MEDIO/
 └── OUTROS/              # 12 projetos existentes
 ENSINO SUPERIOR/
-└── SEGUNDO SEMESTRE/
-    ├── POO 1/
-    └── BD 1/
+├── SEGUNDO SEMESTRE/
+│   ├── POO 1/
+│   └── BD 1/
+├── TERCEIRO SEMESTRE/
+└── QUARTO SEMESTRE/
 ```
 
 ## Projetos do ensino médio
