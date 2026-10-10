@@ -1,0 +1,175 @@
+[
+  {
+    "name": "sigilrpg",
+    "default_branch": "main",
+    "private": true,
+    "description": null,
+    "url": "https://github.com/JoaoGVP001/sigilrpg",
+    "fork": false,
+    "head": "d9c151ee665e536e7ddecc0bbfad60f8c8972548",
+    "tree": "f55f617cd44b07a6d5b0cbcf71dbc993b37689f9",
+    "branches": [
+      "main"
+    ],
+    "tags": []
+  },
+  {
+    "name": "BookReadNet",
+    "default_branch": "main",
+    "private": false,
+    "description": null,
+    "url": "https://github.com/JoaoGVP001/BookReadNet",
+    "fork": false,
+    "head": "cd29dfc2ad3ab536905c1f7e71e176b9115ed0b8",
+    "tree": "80624cc54e20796247a13d9962805c1d3812cc0c",
+    "branches": [
+      "main"
+    ],
+    "tags": []
+  },
+  {
+    "name": "ResolveHub",
+    "default_branch": "main",
+    "private": true,
+    "description": null,
+    "url": "https://github.com/JoaoGVP001/ResolveHub",
+    "fork": false,
+    "head": "d79ce9ba2fdf008c03f6b6880eeeb4dd5af2b8d2",
+    "tree": "354b9ad78f0053f08d74e7d7812098b1aad86556",
+    "branches": [
+      "main"
+    ],
+    "tags": []
+  },
+  {
+    "name": "dashboard",
+    "default_branch": "main",
+    "private": true,
+    "description": null,
+    "url": "https://github.com/JoaoGVP001/dashboard",
+    "fork": false,
+    "head": "fe78b3766c22046d7d5745c1b2ed69120ce85ffa",
+    "tree": "7e25c5352842b57008138e2d3ca2f91a669b9777",
+    "branches": [
+      "codex/frontend-ready-api",
+      "codex/inventory-sales-modules",
+      "codex/vendas-tests-integridade",
+      "main"
+    ],
+    "tags": []
+  },
+  {
+    "name": "merge-sort-c",
+    "default_branch": "main",
+    "private": false,
+    "description": null,
+    "url": "https://github.com/JoaoGVP001/merge-sort-c",
+    "fork": false,
+    "head": "614a75e3f119846e8ffc1bb3dfe17beddfddebfc",
+    "tree": "f86e914e346e8eceb079a2b696e31c94ab7b59c1",
+    "branches": [
+      "main"
+    ],
+    "tags": []
+  },
+  {
+    "name": "atena-next",
+    "default_branch": "main",
+    "private": true,
+    "description": null,
+    "url": "https://github.com/JoaoGVP001/atena-next",
+    "fork": false,
+    "head": "f86e9bb8429507fcedf94457485fb44d54a06e2d",
+    "tree": "a2295b88ef3004b64e0f365ea79b5aca96358cf2",
+    "branches": [
+      "main",
+      "v0/guivp-aea86531"
+    ],
+    "tags": []
+  },
+  {
+    "name": "notepad.py",
+    "default_branch": "main",
+    "private": false,
+    "description": null,
+    "url": "https://github.com/JoaoGVP001/notepad.py",
+    "fork": false,
+    "head": "6b13010bd4a387647a1e7d56dea6a2a0be0828de",
+    "tree": "613101aaf8c21a370d3924f132f8d92560a0af95",
+    "branches": [
+      "main"
+    ],
+    "tags": []
+  },
+  {
+    "name": "v0-TrustV",
+    "default_branch": "main",
+    "private": true,
+    "description": null,
+    "url": "https://github.com/JoaoGVP001/v0-TrustV",
+    "fork": false,
+    "head": "c4ad5c94d539692c4eb0dedcdb036694d0c7fe9e",
+    "tree": "b60b25ff700c8c3c51282a16df4a80527a6d5871",
+    "branches": [
+      "main"
+    ],
+    "tags": []
+  },
+  {
+    "name": "RoguePiece",
+    "default_branch": "main",
+    "private": true,
+    "description": null,
+    "url": "https://github.com/JoaoGVP001/RoguePiece",
+    "fork": false,
+    "head": "3c64fb2a8f86fba7199819b29966eee6f198a3eb",
+    "tree": "23f8469a94c990754e87fb848cd48c309a3a2b04",
+    "branches": [
+      "main"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Truco-DSDM",
+    "default_branch": "main",
+    "private": true,
+    "description": null,
+    "url": "https://github.com/JoaoGVP001/Truco-DSDM",
+    "fork": false,
+    "head": "82b81cb012f05d80bac573efcf1dbc602da9fcd5",
+    "tree": "4be09e4c2a101a219c2a3a28cc4cb52180c1948c",
+    "branches": [
+      "main"
+    ],
+    "tags": []
+  },
+  {
+    "name": "API_FILMES",
+    "default_branch": "master",
+    "private": true,
+    "description": "aulas de dw3",
+    "url": "https://github.com/JoaoGVP001/API_FILMES",
+    "fork": false,
+    "head": "3b7281b8fc6c3f24ecd4fbdffff3c53d24df118a",
+    "tree": "6266a2bb061b6a8ed7f8e6e81dfb14e2b914a7a8",
+    "branches": [
+      "master"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Projeto-Integrador-II---2024",
+    "default_branch": "main",
+    "private": true,
+    "description": "Repositório destinado ao desenvolvimento do site",
+    "url": "https://github.com/JoaoGVP001/Projeto-Integrador-II---2024",
+    "fork": false,
+    "head": "f0fd76678d5a1ef7aa38a8a7f91ad7c24226068f",
+    "tree": "dfe79d5b00ded9f58c15435af2ddba8702b26a2f",
+    "branches": [
+      "login",
+      "main"
+    ],
+    "tags": []
+  }
+]
