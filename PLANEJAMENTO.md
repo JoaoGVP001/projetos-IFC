@@ -20,7 +20,8 @@ confirmou uma resposta real do Gemini. Os 31 testes atuais passaram na ultima
 validacao. Ainda nao existem chats persistentes, cadernos, memoria de conversa,
 provas, simulados ou acompanhamento de desempenho.
 
-Esta atualizacao muda a identidade e registra o plano. As funcionalidades abaixo
+Este planejamento inclui a evolucao principal e uma etapa final de IA local e
+interface com multiplos modelos, inspirada nos artigos analisados. As funcionalidades abaixo
 serao implementadas em entregas separadas, com criterios verificaveis.
 
 ## Experiencia planejada
@@ -140,10 +141,103 @@ coerentes; calculo local e sugestao de IA sao identificados na resposta.
 - [ ] Backup/restauracao dos cadernos e historico.
 - [ ] Tema claro/escuro, atalhos, acessibilidade e janela adaptavel.
 - [ ] Empacotar instalacao para Linux e Windows e atualizar documentacao.
-- [ ] Avaliar Groq e Ollama local apenas depois do fluxo principal estabilizar.
 
 Conclusao: exportacao legivel e restauracao em banco separado preservam dados;
 instalacao limpa abre sem caminhos especificos da maquina de desenvolvimento.
+
+## Etapa 7 — IA local e interface unificada (apos as etapas 1–6)
+
+Esta etapa sera implementada por ultimo. Nao antecipar instalacao de modelos,
+comparacao simultanea ou novas integracoes enquanto chat, cadernos, atividades,
+qualidade matematica, materiais e exportacao nao estiverem funcionando.
+Preparar interfaces extensivas nas etapas anteriores nao significa implementar
+estes recursos antes da sua vez.
+
+### 7.1 — Provedores na mesma conversa
+
+- [ ] Escolher provedor e modelo por conversa; lembrar a escolha ao reabrir.
+- [ ] Trocar entre Gemini, OpenAI e IA local mantendo historico e caderno.
+- [ ] Manter instrucoes, nivel e objetivos no caderno, independentes do modelo.
+- [ ] Registrar qual provedor/modelo respondeu a cada mensagem.
+- [ ] Mostrar capacidade, estado de conexao e modo local/online na interface.
+- [ ] Usar o mesmo contrato para historico, respostas progressivas, cancelamento,
+  limite de contexto e erros; adaptar apenas as particularidades dos provedores.
+
+Conclusao: retomar uma conversa, trocar o modelo e continuar a explicacao com
+contexto coerente, sem apagar mensagens nem mudar as preferencias da materia.
+
+### 7.2 — Experimento com modelo local adequado ao computador
+
+O inventario de 10/10/2026 identificou i5-13420H, cerca de 8 GB de RAM e RTX
+3050 Laptop de 6 GB. O primeiro artigo usa um modelo de 27 bilhoes de parametros
+em uma GPU de 16 GB; seus resultados nao devem ser prometidos neste computador.
+Verificar recursos disponiveis novamente antes dos testes.
+
+- [ ] Avaliar Ollama como primeiro runtime; considerar llama.cpp ou LM Studio
+  se houver necessidade concreta de desempenho ou compatibilidade.
+- [ ] Selecionar um modelo pequeno e quantizado pela memoria e qualidade,
+  verificando licenca, tamanho do download e suporte do runtime.
+- [ ] Medir memoria RAM/VRAM, tempo ate primeira resposta e velocidade com
+  conversas curtas e longas. Limitar contexto para evitar falta de memoria.
+- [ ] Testar portugues, Calculo I e Matematica Discreta com exercicios conhecidos.
+- [ ] Comparar respostas com gabaritos e verificacoes locais, nao apenas fluidez.
+- [ ] Se o desempenho nao for adequado, manter local como opcao experimental e
+  Gemini disponivel, sem exigir compra de hardware.
+
+Conclusao: registrar modelo, quantizacao, contexto, resultados e limitacoes;
+escolher um candidato somente apos demonstrar utilidade nos exercicios reais.
+Nao prometer desempenho de modelos grandes em hardware menor.
+
+### 7.3 — Integracao local utilizavel
+
+- [ ] Conectar ao servidor local e listar modelos ja instalados.
+- [ ] Orientar instalacao e download separadamente, mostrando tamanho previsto.
+- [ ] Permitir selecionar modelo instalado sem chave de API de nuvem.
+- [ ] Conferir disponibilidade do servidor, timeout e falta de memoria com
+  mensagens claras; preservar a pergunta quando houver falha.
+- [ ] Manter inferencia na maquina no modo local, sem troca automatica para API.
+- [ ] Permitir chats e acesso aos cadernos offline apos instalar o modelo.
+- [ ] Explicar que nao ha cobranca de API local, mas ha uso de energia,
+  armazenamento e processamento do computador.
+
+Conclusao: desconectar a internet e conversar com o modelo local instalado;
+reiniciar o servidor e recuperar a conversa sem perder mensagens.
+
+### 7.4 — Materiais locais e verificacao matematica
+
+- [ ] Reutilizar o fluxo de materiais da etapa 6 para consulta com referencias.
+- [ ] Se houver busca por embeddings, executar tambem essa etapa localmente no
+  modo offline; nao enviar arquivos para servicos externos silenciosamente.
+- [ ] Reutilizar verificacoes SymPy da etapa 5 para resultados verificaveis.
+- [ ] Indicar limites de avaliacao automatica de demonstracoes e argumentos.
+
+Conclusao: uma pergunta sobre uma apostila local pode citar arquivo e pagina
+sem depender de API externa, com teste de extracao e recuperacao do conteudo.
+
+### 7.5 — Comparacao e segunda opiniao (opcionais)
+
+- [ ] Botao explicito para pedir segunda opiniao a outro modelo.
+- [ ] Comparacao lado a lado usando o mesmo enunciado e contexto escolhido.
+- [ ] Mostrar que cada provedor online recebe uma consulta e pode consumir
+  creditos ou cota; nao enviar a todos os modelos por padrao.
+- [ ] Permitir pedir critica de uma resolucao e destacar divergencias.
+- [ ] Nao considerar concordancia entre modelos como prova de correcao.
+- [ ] Avaliar Groq como provedor adicional depois da integracao local principal.
+
+Conclusao: duas respostas ficam identificadas e preservadas; o usuario escolhe
+se deseja a consulta adicional. Erro de um provedor nao apaga a outra resposta.
+
+### Referencias e interpretacao
+
+- [Relato de substituicao por IA local](https://www.xda-developers.com/im-not-paying-20-for-chatgpt-claude-or-gemini-because-a-free-local-llm-does-everything-i-need/):
+  inspira inferencia offline e autonomia; e uma experiencia pessoal, nao uma
+  validacao de qualidade matematica para o CadernoMat.
+- [Relato de interface unificada](https://www.xda-developers.com/run-claude-chatgpt-local-llm-through-one-interface/):
+  inspira selecao de modelos, instrucoes persistentes e segunda opiniao. O
+  CadernoMat mantera seu foco em materias, atividades e acompanhamento.
+
+Os artigos sao referencias de produto. Confirmar documentacao oficial,
+compatibilidade, licencas e modelos disponiveis na epoca da implementacao.
 
 ## Base tecnica proposta
 
@@ -171,14 +265,18 @@ continua opcional. Nao trocar de provedor automaticamente ao atingir cota.
 
 ## Ordem de implementacao e testes
 
-Comecar pelas etapas 1 e 2. Depois implementar cadernos e so entao atividades.
+Seguir a ordem 1 → 2 → 3 → 4 → 5 → 6 → 7. Comecar pelas etapas 1 e 2.
+Depois implementar cadernos e so entao atividades. A etapa de IA local e
+interface unificada vem apenas depois das entregas principais.
 Evitar construir geracao de provas antes de existir historico persistente.
 Nao estabelecer prazos fixos antes de validar o primeiro fluxo de chat.
 
 Testes essenciais: migracoes, isolamento entre chats/cadernos, reinicio do app,
 contexto enviado a cada provedor, cancelamento, falha de rede, cota, validacao de
 atividades, correcao deterministica e exportacao. Testes automatizados usam
-clientes simulados; consultas reais sao verificadas separadamente.
+clientes simulados; consultas reais sao verificadas separadamente. Na etapa 7,
+incluir testes offline, servidor local indisponivel, contexto por provedor,
+memoria limitada e ausencia de envio automatico para nuvem.
 
 Nao sincronizar com nuvem, adicionar multiplos usuarios ou construir plugins
 nesta primeira versao. A prioridade e um aplicativo pessoal consistente.
