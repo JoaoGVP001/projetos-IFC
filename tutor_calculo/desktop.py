@@ -7,6 +7,7 @@ import webbrowser
 import customtkinter as ctk
 
 from .app import EXEMPLO, resolver
+from .renderizacao import Renderizador
 from .ia import PROVEDORES, configuracao, perguntar, provedor_ativo, salvar_configuracao
 
 
@@ -92,6 +93,7 @@ class TutorDesktop(ctk.CTk):
             font=("Segoe UI", 15), padx=19, pady=17, state="disabled",
         )
         self.saida.grid(row=1, column=1, sticky="nsew", padx=(16, 0))
+        self.renderizador = Renderizador(self.saida._textbox)
 
         rodape = ctk.CTkFrame(self, fg_color="transparent")
         rodape.grid(row=3, column=0, sticky="ew", padx=30, pady=(17, 24))
@@ -211,17 +213,14 @@ class TutorDesktop(ctk.CTk):
         self.entrada.focus_set()
 
     def copiar(self) -> None:
-        texto = self.saida.get("1.0", "end").strip()
+        texto = self.renderizador.original.strip()
         if texto:
             self.clipboard_clear()
             self.clipboard_append(texto)
             self.estado.configure(text="Resolução copiada", text_color=MUTED)
 
     def _mostrar_saida(self, texto: str) -> None:
-        self.saida.configure(state="normal")
-        self.saida.delete("1.0", "end")
-        self.saida.insert("1.0", texto)
-        self.saida.configure(state="disabled")
+        self.renderizador.mostrar(texto)
 
     def enviar(self) -> None:
         if self._ocupado:

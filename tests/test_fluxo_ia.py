@@ -17,6 +17,11 @@ from tutor_calculo.ia import configuracao, perguntar, salvar_configuracao
 
 
 class FluxoIaTest(unittest.TestCase):
+    def setUp(self):
+        provedor = patch('tutor_calculo.ia.provedor_ativo', return_value='openai')
+        provedor.start()
+        self.addCleanup(provedor.stop)
+
     def test_modos_e_parametros_da_consulta(self):
         for modo in ('Resolver', 'Explicar', 'Corrigir'):
             with self.subTest(modo=modo), patch('tutor_calculo.ia.configuracao', return_value=('teste', 'modelo-teste')), patch('openai.OpenAI') as cls:

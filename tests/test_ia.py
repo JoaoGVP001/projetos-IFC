@@ -6,6 +6,11 @@ from tutor_calculo.ia import perguntar
 
 
 class IntegracaoIaTest(unittest.TestCase):
+    def setUp(self):
+        provedor = patch('tutor_calculo.ia.provedor_ativo', return_value='openai')
+        provedor.start()
+        self.addCleanup(provedor.stop)
+
     def test_exige_chave(self):
         with patch.dict(os.environ, {}, clear=True), patch("tutor_calculo.ia.dotenv_values", return_value={}):
             with self.assertRaisesRegex(RuntimeError, "OPENAI_API_KEY"):

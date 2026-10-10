@@ -173,3 +173,17 @@ prioridade sobre o `.env`, inclusive AI_PROVIDER. O cliente Gemini usa HTTPS
 com chave no cabecalho, timeout de 60 segundos e nenhuma repeticao automatica.
 A integracao e de texto: imagens e PDFs ainda nao sao entradas do aplicativo.
 Groq e modelos locais ficam para etapas futuras.
+
+## Apresentacao das respostas
+
+O painel renderiza titulos Markdown, negrito, listas, codigo em linha e formulas
+LaTeX simples (`$...$`, `$$...$$`, `\(...\)` e `\[...\]`). As formulas sao
+renderizadas localmente com MathText; nao e necessario instalar LaTeX.
+Notacoes nao suportadas usam uma alternativa em texto, preservando a resposta.
+Formulas longas sao reduzidas para caber na largura do painel no momento da
+renderizacao. Copiar resolucao copia a resposta original completa, inclusive
+Markdown/LaTeX, para reutilizacao em editores que suportem essa formatacao.
+
+As instrucoes de Gemini e OpenAI pedem um Resumo e uma pergunta de pratica em
+Sua vez ao concluir explicacoes. As respostas anteriores nao sao regeneradas;
+a estrutura exata continua dependendo da resposta do modelo.
