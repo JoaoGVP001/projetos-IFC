@@ -233,3 +233,13 @@ ficam sem envio ate serem restaurados. Excluir pede confirmacao e remove o chat
 e suas mensagens definitivamente; use Arquivar para preservar o historico.
 A atualizacao do banco da versao 1 para 2 cria `historico.sqlite3.v1.backup`
 antes da alteracao. Backup e banco ficam no diretorio local de dados do usuario.
+
+### Acoes em cada chat
+
+Ao passar o mouse sobre uma conversa, aparece o botao de tres pontos. Seu menu
+permite renomear, fixar/desafixar no topo, arquivar/restaurar e excluir. As acoes
+operam sobre o chat escolhido, inclusive quando ele nao e a conversa aberta.
+Chats fixados aparecem primeiro e a escolha permanece apos reiniciar.
+Titulos longos deslizam durante o hover e voltam ao inicio quando o mouse sai.
+Tambem e possivel abrir o menu com o botao direito; Enter abre a conversa e
+Espaco abre o menu quando a linha tem foco.

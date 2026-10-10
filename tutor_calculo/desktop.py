@@ -7,6 +7,7 @@ from tkinter import messagebox
 
 import customtkinter as ctk
 
+from .chat_item import ChatItem
 from .armazenamento import Historico
 from .app import EXEMPLO, resolver
 from .renderizacao import Renderizador
@@ -124,7 +125,6 @@ class TutorDesktop(ctk.CTk):
         lateral.grid_rowconfigure(3, weight=1)
         lateral.grid_columnconfigure(0, weight=1)
         ctk.CTkButton(lateral, text="+ Novo chat", command=self.novo_chat, fg_color=ACCENT).grid(row=0, column=0, padx=15, pady=20, sticky="ew")
-        ctk.CTkButton(lateral, text="Renomear chat", command=self.renomear_chat, fg_color=ACCENT).grid(row=1, column=0, padx=15, pady=(0, 10), sticky="ew")
         self.lista_chats = ctk.CTkScrollableFrame(lateral, width=190, fg_color="transparent")
         self.lista_chats.grid(row=3, column=0, sticky="nsew", padx=8)
         ctk.CTkLabel(lateral, text="Historico salvo neste PC", text_color=MUTED).grid(row=6, column=0, padx=10, pady=15)
@@ -133,11 +133,6 @@ class TutorDesktop(ctk.CTk):
         self.busca.bind("<KeyRelease>", lambda _evento: self._atualizar_lista())
         self.botao_arquivo = ctk.CTkButton(lateral, text="Ver arquivados", command=self.alternar_arquivados, fg_color=ACCENT)
         self.botao_arquivo.grid(row=4, column=0, padx=15, pady=8, sticky="ew")
-        acoes = ctk.CTkFrame(lateral, fg_color="transparent")
-        acoes.grid(row=5, column=0, padx=15, sticky="ew")
-        self.botao_arquivar = ctk.CTkButton(acoes, text="Arquivar", width=95, command=self.arquivar_chat, fg_color=ACCENT)
-        self.botao_arquivar.pack(side="left", padx=(0, 5))
-        ctk.CTkButton(acoes, text="Excluir", width=85, command=self.excluir_chat, fg_color="#9A493D").pack(side="left")
         self._atualizar_lista()
         self._abrir_chat(self.conversa_id)
         self._atualizar_status_ia()
@@ -247,16 +242,26 @@ class TutorDesktop(ctk.CTk):
             filho.destroy()
         for conversa in self.historico.listar(self.busca.get(), self._arquivados):
             ident = conversa["id"]
-            ctk.CTkButton(self.lista_chats, text=conversa["titulo"][:26], anchor="w",
-                fg_color=ACCENT if ident == self.conversa_id else "transparent",
-                text_color=SURFACE if ident == self.conversa_id else INK,
-                hover_color="#C8DCD6", command=lambda cid=ident: self.trocar_chat(cid)).pack(fill="x", pady=3)
+            ChatItem(self.lista_chats, conversa, ident == self.conversa_id,
+                     abrir=lambda cid=ident: self.trocar_chat(cid), acao=self.acao_chat).pack(fill="x", pady=3)
+
+    def acao_chat(self, acao, ident):
+        if self._ocupado:
+            return
+        if acao == "fixar":
+            self.historico.fixar(ident, not self.historico.obter(ident)["fixada"])
+            self._atualizar_lista()
+        elif acao == "renomear":
+            self.renomear_chat(ident)
+        else:
+            self.trocar_chat(ident)
+            if acao == "arquivar": self.arquivar_chat()
+            elif acao == "excluir": self.excluir_chat()
 
     def _abrir_chat(self, ident):
         self.conversa_id = ident
         self.entrada.delete("1.0", "end")
         conversa = self.historico.obter(ident)
-        self.botao_arquivar.configure(text="Restaurar" if conversa["arquivada"] else "Arquivar")
         self.botao_enviar.configure(state="disabled" if conversa["arquivada"] else "normal")
         self.entrada.insert("1.0", conversa["rascunho"])
         self._mostrar_conversa()
@@ -286,12 +291,12 @@ class TutorDesktop(ctk.CTk):
         self._abrir_chat(self.historico.criar())
         self.estado.configure(text="Novo chat", text_color=MUTED)
 
-    def renomear_chat(self):
+    def renomear_chat(self, ident=None):
         if self._ocupado:
             return
         titulo = ctk.CTkInputDialog(text="Titulo da conversa:", title="Renomear chat").get_input()
         if titulo and titulo.strip():
-            self.historico.renomear(self.conversa_id, titulo)
+            self.historico.renomear(ident or self.conversa_id, titulo)
             self._atualizar_lista()
 
     def alternar_arquivados(self):

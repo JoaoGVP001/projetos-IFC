@@ -43,6 +43,16 @@ class OrganizacaoChatsTest(unittest.TestCase):
         self.assertEqual(len(self.banco.mensagens(b)),1)
         with self.assertRaises(ValueError):self.banco.obter(a)
 
+    def test_fixadas_primeiro_e_persistencia(self):
+        a,b=self.banco.criar(),self.banco.criar()
+        self.banco.fixar(a)
+        self.assertEqual(self.banco.listar()[0]['id'],a)
+        outro=Historico(self.caminho)
+        self.assertEqual(outro.obter(a)['fixada'],1)
+        outro.fechar()
+        self.banco.fixar(a,False)
+        self.assertEqual(self.banco.obter(a)['fixada'],0)
+
     def test_migracao_v1_preserva_dados_e_faz_backup(self):
         caminho=Path(self.pasta.name)/'antigo.sqlite3'
         with sqlite3.connect(caminho) as db:
@@ -53,7 +63,7 @@ class OrganizacaoChatsTest(unittest.TestCase):
         banco=Historico(caminho)
         self.assertEqual(banco.listar()[0]['titulo'],'Antigo')
         self.assertEqual(banco.listar()[0]['arquivada'],0)
-        self.assertEqual(banco.db.execute('PRAGMA user_version').fetchone()[0],2)
+        self.assertEqual(banco.db.execute('PRAGMA user_version').fetchone()[0],3)
         banco.fechar()
         with sqlite3.connect(str(caminho)+'.v1.backup') as backup:
             self.assertEqual(backup.execute('PRAGMA user_version').fetchone()[0],1)

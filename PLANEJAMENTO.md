@@ -310,3 +310,10 @@ Banco migrado para versao 2 com backup da versao 1 antes da alteracao.
 Validacao: 39 testes automatizados e fluxo de janela com cancelamento e
 confirmacao da exclusao. Streaming, cancelamento da consulta e repeticao de
 envio ainda permanecem pendentes nesta etapa.
+
+## Refinamento — acoes por conversa (10/10/2026)
+
+Implementados menu no hover por chat, fixar/desafixar com persistencia e titulos
+longos deslizantes. Acoes globais de renomear/arquivar foram substituidas pelo
+menu de cada linha. Migracao de esquema para versao 3 com backup anterior.
+Validacao: 40 testes e fluxo de janela de hover, deslocamento e acoes.

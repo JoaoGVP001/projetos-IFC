@@ -26,7 +26,7 @@ class Historico:
         self.db.row_factory = sqlite3.Row
         self.db.execute('PRAGMA foreign_keys=ON')
         versao = self.db.execute('PRAGMA user_version').fetchone()[0]
-        if versao > 2:
+        if versao > 3:
             self.db.close()
             raise RuntimeError('Este historico exige uma versao mais recente do CadernoMat.')
         if versao == 0:
@@ -46,6 +46,15 @@ class Historico:
             with self.db:
                 self.db.execute('ALTER TABLE conversas ADD COLUMN arquivada INTEGER NOT NULL DEFAULT 0')
                 self.db.execute('PRAGMA user_version=2')
+        if versao < 3:
+            if versao in {1, 2}:
+                with closing(sqlite3.connect(str(self.caminho)+'.v2.backup')) as destino:
+                    self.db.backup(destino)
+                if os.name != 'nt':
+                    Path(str(self.caminho)+'.v2.backup').chmod(0o600)
+            with self.db:
+                self.db.execute('ALTER TABLE conversas ADD COLUMN fixada INTEGER NOT NULL DEFAULT 0')
+                self.db.execute('PRAGMA user_version=3')
         self.db.create_function('CASEFOLD', 1, lambda texto: texto.casefold())
         if os.name != 'nt':
             self.caminho.chmod(0o600)
@@ -62,7 +71,7 @@ class Historico:
             'SELECT c.* FROM conversas c WHERE c.arquivada=? AND '
             '(?="" OR instr(CASEFOLD(c.titulo),?)>0 OR EXISTS '
             '(SELECT 1 FROM mensagens m WHERE m.conversa_id=c.id AND instr(CASEFOLD(m.texto),?)>0)) '
-            'ORDER BY c.atualizado DESC, c.rowid DESC',
+            'ORDER BY c.fixada DESC, c.atualizado DESC, c.rowid DESC',
             (int(arquivadas), busca.strip(), busca.strip().casefold(), busca.strip().casefold()))]
 
     def obter(self, conversa):
@@ -74,6 +83,10 @@ class Historico:
     def arquivar(self, conversa, arquivada=True):
         with self.db:
             self.db.execute('UPDATE conversas SET arquivada=?, atualizado=CURRENT_TIMESTAMP WHERE id=?',(int(arquivada),conversa))
+
+    def fixar(self, conversa, fixada=True):
+        with self.db:
+            self.db.execute('UPDATE conversas SET fixada=? WHERE id=?',(int(fixada),conversa))
 
     def excluir(self, conversa):
         with self.db:
