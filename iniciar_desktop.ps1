@@ -1,22 +1,10 @@
-$raiz = $PSScriptRoot
-$pacotes = Join-Path $raiz '.venv\Lib\site-packages'
-$registro = 'HKCU:\Software\Python\PythonCore\3.12\InstallPath'
-
-if (-not (Test-Path -LiteralPath $pacotes)) {
-    throw 'Dependencias ausentes. Instale com .\.venv\Scripts\python.exe -m pip install -r requirements.txt'
-}
-
-$python = (Get-ItemProperty -LiteralPath $registro -ErrorAction Stop).ExecutablePath
+$python = Join-Path $PSScriptRoot '.venv\Scripts\python.exe'
 if (-not (Test-Path -LiteralPath $python)) {
-    throw 'Python 3.12 com Tkinter nao encontrado.'
+    throw 'Prepare o ambiente: python -m venv .venv e .\.venv\Scripts\python.exe -m pip install -r requirements.txt'
 }
-
-$pacotesAnteriores = $env:PYTHONPATH
-Push-Location $raiz
+Push-Location $PSScriptRoot
 try {
-    $env:PYTHONPATH = if ($pacotesAnteriores) { "$pacotes;$pacotesAnteriores" } else { $pacotes }
-    & $python -m tutor_calculo.desktop
+    & $python -m tutor_calculo.desktop @args
 } finally {
-    $env:PYTHONPATH = $pacotesAnteriores
     Pop-Location
 }

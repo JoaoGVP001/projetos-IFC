@@ -1,6 +1,40 @@
 # CadernoMat — planejamento de produto e desenvolvimento
 
-Atualizado em 10/10/2026.
+Atualizado em 11/10/2026.
+
+## Entrega — interface React desktop
+
+Analise: SQLite v5 e servicos de cadernos/materiais/IA ja estao separados;
+`desktop.py` concentrava navegacao, rascunho, tarefas, importacao e preview.
+Coordenacao migrada para um servico independente e uma ponte com operacoes
+permitidas. Cada operacao abre/fecha sua propria conexao SQLite na thread que a
+executa; mutacoes sao serializadas e tarefas recebem snapshots. Mantido esquema
+v5, dados existentes e contratos dos provedores, sem novas atividades nesta fase.
+
+Sequencia: (1) servico/ponte e testes; (2) React/TypeScript/Vite/Tailwind e tokens;
+(3) chat completo com Markdown/KaTeX; (4) cadernos/menus; (5) biblioteca/previews;
+(6) configuracao e previa; (7) build local, atalho e testes de janela/reinicio.
+Distribuir assets compilados no repositorio para abrir sem Node ou servidor de
+desenvolvimento. Interface e fontes locais, nenhum CDN. pywebview com Qt/PySide6
+neste Linux; Windows usa WebView2. Manter modo Tk legado durante transicao.
+
+Riscos: concorrencia da ponte, HTML nao confiavel, caminhos/credenciais expostos,
+dependencias de WebView, tarefas interrompidas e regressao do atalho. Validar
+contratos, sanitizacao, navegacao, dois temas a 1000x650, fluxo documental/IA
+simulada/reinicio, preservacao real do banco e funcionamento do build na janela.
+Arquitetura/design documentados e publicacao apos validacao.
+
+Entrega concluida: chats, cadernos e biblioteca completos, Markdown/KaTeX
+sanitizado, claro/escuro, lateral recolhivel, configuracoes e previa estruturada.
+O atalho abre o build local sem Node; --legado permite transicao. Qt validado
+neste Ubuntu, sem Tkinter na rota nova. Fechamento adiado salva rascunho sem
+bloquear a thread grafica. Nenhum provedor novo ou atividade foi acrescentado.
+
+Validacao: 88 testes Python, 9 frontend e fluxo completo de janela/reinicio com
+IA simulada. Capturas ficticias em docs/screenshots; docs/INTERFACE.md e DESIGN.md
+registram contratos e tokens. Esquema v5 e dados existentes preservados.
+Proxima entrega: atividades e tentativas por caderno. Streaming/cancelamento,
+instaladores, virtualizacao e validacao Windows/macOS seguem pendentes.
 
 ## Entrega — cadernos integrados
 

@@ -1,49 +1,71 @@
-# Continuidade do CadernoMat — 10/10/2026
+# Continuidade do CadernoMat — 11/10/2026
 
-## Estado atual e proxima entrega
+## Estado atual e próxima entrega
 
-Chats persistentes, Markdown/formulas, Gemini/OpenAI, biblioteca com extracao
-local/OCR opcional, RAG textual e cadernos por materia estao implementados.
-Veja [Cadernos](docs/CADERNOS.md), [Materiais](docs/MATERIAIS.md) e
-[Planejamento](PLANEJAMENTO.md). Atividades, provas, simulados e tentativas
-versionadas por ID de caderno sao a proxima etapa; IA local fica por ultimo.
+A interface desktop foi migrada para React + TypeScript + Vite + Tailwind,
+com pywebview/Qt. Chats, cadernos, biblioteca, RAG textual, matemática local e
+Gemini/OpenAI foram preservados. Markdown/KaTeX, dois temas, lateral recolhível,
+menus por teclado e prévia do envio seguem um sistema visual comum.
 
-O pacote interno continua `tutor_calculo` e o atalho existente continua valido.
-Para atualizar outra instalacao, feche a janela, execute `git pull origin main`,
-instale `requirements.txt` e reinicie. No Linux, use `./iniciar_desktop.sh`;
-no Windows com ambiente preparado, `.venv\Scripts\python.exe -m tutor_calculo.desktop`.
-Use Python 3.12+ com Tkinter; dependencias de extracao estao em requirements.txt.
-Tesseract e opcional. Nao e necessario instalar modelos locais.
+O pacote permanece tutor_calculo, banco SQLite v5 e repositório caderno-mat.
+Não houve nova migração de esquema nesta entrega. Atividades e tentativas por
+caderno são a próxima etapa; provas/simulados, busca semântica e IA local vêm
+depois, conforme [Planejamento](PLANEJAMENTO.md).
 
-## Persistencia e cuidados ao continuar
+## Atualizar e abrir
 
-SQLite v5 migra bancos anteriores com transacao explicita e backup v4. Cadernos
-iniciais sao criados uma unica vez. Chats antigos ficam em Geral; materia legada
-so recebe associacao por nome/alias inequivoco. IDs, mensagens, arquivos, indices,
-rascunhos e selecoes permanecem. Dados ficam fora do Git no diretorio CadernoMat
-do usuario, conforme README. Para backup completo, copie toda essa pasta apos
-fechar a janela e aguardar o worker terminar.
+Feche a janela, execute git pull origin main, instale requirements.txt e abra
+pelo atalho CadernoMat ou ./iniciar_desktop.sh. Assets compilados estão no Git;
+usuários não precisam de Node. Windows usa o script iniciar_desktop.ps1 com
+.venv\Scripts\python.exe e WebView2, ainda pendente de validação real.
 
-`cadernos.py` concentra CRUD/contexto; `cadernos_ui.py` os componentes de
-organizacao; `armazenamento.py` o historico; `materiais.py` biblioteca/recuperacao;
-`ia.py` os provedores. Conversas possuem `caderno_id` opcional e documentos
-usam associacoes muitos-para-muitos. Atividades futuras devem usar esses mesmos
-IDs e manter versoes para nao alterar tentativas antigas.
+Python 3.12+, pywebview e, neste Linux, PySide6/Qt WebEngine. Tkinter não é
+necessário para a interface nova; requirements-legado.txt e --legado permitem
+abrir a versão anterior. Não abra as duas interfaces no mesmo banco ao mesmo
+tempo. Tesseract é opcional para OCR; não foi instalado nenhum modelo local.
 
-Selecao documental continua por chat; associacao a caderno nao autoriza envio.
-Preferencias pedagogicas, historico do chat e trechos ficam separados e aparecem
-na previa. As chaves sao configuradas no proprio aplicativo, permanecem no `.env`
-local ignorado pelo Git e nunca devem entrar nos testes ou exemplos versionados.
+Para editar a interface: Node 24/pnpm 11, pnpm install --frozen-lockfile,
+pnpm test e pnpm build na pasta frontend. Reinicie com --debug para verificar
+na WebView. O Vite no navegador não possui a ponte Python.
 
-## Validacao
+## Arquitetura, persistência e cuidados
 
-Execute `.venv/bin/python -m unittest discover -s tests -v` em Linux, ou o
-equivalente `.venv\Scripts\python.exe` no Windows. Testes usam clientes
-simulados, bancos/arquivos temporarios e nao consomem creditos. Os 76 testes
-passaram nesta entrega. Os fluxos UI
-exigem Tk/display; mantenha esse ambiente para verificar a interface. A suite
-cobre migracao/rollback, contexto, OCR, deduplicacao, movimentacao e reinicio.
-Nao publicar bancos, anexos, backups, indices ou chaves.
+[Interface](docs/INTERFACE.md) descreve os contratos e a estratégia de threads.
+[Design](docs/DESIGN.md) define tokens/componentes.
+[Materiais](docs/MATERIAIS.md) e [Cadernos](docs/CADERNOS.md) registram regras.
+
+servico.py coordena operações e tarefas; ponte.py expõe somente request e usa
+seletor nativo. Cada operação cria e fecha sua conexão SQLite na própria thread.
+Mutação e snapshots usam RLock; tarefas gravam com conexão própria. Não desative
+check_same_thread. Não exponha shell, SQL, caminhos ou chaves à interface.
+Ao fechar, salve o rascunho fora do callback síncrono Qt antes de destruir a
+janela, para evitar deadlock.
+
+armazenamento.py, cadernos.py, materiais.py, extracao.py, links.py, ia.py e
+app.py mantêm regras existentes. desktop_legado.py e componentes Tk são apenas
+compatibilidade. Atividades futuras devem usar IDs estáveis de caderno e
+preservar versões de tentativas.
+
+Arquivos, banco, índices e interface.json ficam no diretório CadernoMat do
+usuário, fora do Git. Para backup, feche a janela, espere terminar qualquer
+worker e copie a pasta de dados. Chaves continuam no .env protegido/ignorado.
+Seleção documental é independente por chat; associação a matéria nunca autoriza
+envio. Contexto pedagógico, histórico e trechos aparecem separados na prévia.
+
+## Validação e limites
+
+88 testes Python (12 novos de serviço/ponte), 9 testes frontend e fluxo E2E na
+janela Qt com IA simulada passaram. Conferidos fechamento/reinício, cadernos,
+movimentação, arquivo/restauração, processamento, fontes, sanitização, teclado,
+temas e 1000 × 650. Capturas em docs/screenshots usam dados fictícios.
+
+Execute unittest discover -s tests, pnpm test e pnpm e2e. O E2E exige Linux
+gráfico/Qt e cria banco temporário. Testes Tk históricos são opcionais sem Tk.
+Não faça chamadas reais nos testes nem publique dados pessoais ou credenciais.
+
+Não há streaming/cancelamento, instalador, autoatualização ou virtualização de
+históricos extensos. Consultas já iniciadas podem terminar e salvar após fechar;
+extração conserva o timeout de 150 segundos. Windows/macOS não foram executados.
 
 ---
 

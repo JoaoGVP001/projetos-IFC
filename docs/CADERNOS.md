@@ -20,8 +20,7 @@ sem diferenciar maiúsculas ou acentos. Geral é uma área reservada, não um
 caderno editável.
 
 O cabeçalho apresenta o nome completo da matéria e da conversa. Nomes longos
-dos cadernos ficam abreviados na lateral; os chats mantêm o deslocamento do
-título durante o hover. A busca de chats e a lista de fixados/arquivados são
+dos cadernos ficam abreviados na lateral; os chats mostram o título completo por tooltip ao passar o mouse. A busca de chats e a lista de fixados/arquivados são
 restritas ao caderno escolhido.
 
 ## Mover, arquivar e excluir

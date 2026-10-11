@@ -1,7 +1,8 @@
 openai>=3.28,<4
 sympy>=1.13
-customtkinter>=5.2
+Pillow>=11,<13
+pywebview[pyside6]>=6.2,<7; sys_platform == "linux"
+pywebview>=6.2,<7; sys_platform != "linux"
 python-dotenv>=1.0
-matplotlib>=3.9,<4
 pypdf>=6,<7
 pypdfium2>=4,<6

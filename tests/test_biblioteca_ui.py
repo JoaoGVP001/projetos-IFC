@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 try:
     import customtkinter as ctk
-    from tutor_calculo.desktop import TutorDesktop
+    from tutor_calculo.desktop_legado import TutorDesktop
 except ImportError:
     TutorDesktop = None
 
@@ -24,7 +24,7 @@ class FluxoBibliotecaUITest(unittest.TestCase):
         app.update()
 
     def test_anexar_visualizar_buscar_reiniciar_e_consultar(self):
-        with tempfile.TemporaryDirectory() as pasta,patch('tutor_calculo.desktop.provedor_ativo',return_value='gemini'),patch('tutor_calculo.desktop.configuracao',return_value=('teste','modelo')):
+        with tempfile.TemporaryDirectory() as pasta,patch('tutor_calculo.desktop_legado.provedor_ativo',return_value='gemini'),patch('tutor_calculo.desktop_legado.configuracao',return_value=('teste','modelo')):
             banco = Path(pasta)/'dados'/'historico.sqlite3'
             arquivo = Path(pasta)/'notas.md'
             arquivo.write_text('A derivada de x² é 2x. Para x³, temos 3x².',encoding='utf-8')
@@ -53,7 +53,7 @@ class FluxoBibliotecaUITest(unittest.TestCase):
                 self.assertEqual(app.conversa_id,conversa)
                 self.assertIn('derivada',app.entrada.get('1.0','end'))
                 self.assertEqual(app.biblioteca.anexos(conversa)[0]['selecionado'],1)
-                with patch('tutor_calculo.desktop.perguntar',return_value='A derivada e 2x [M1]') as api:
+                with patch('tutor_calculo.desktop_legado.perguntar',return_value='A derivada e 2x [M1]') as api:
                     app.enviar()
                     self.esperar(app,lambda:not app._ocupado)
                     fontes=api.call_args.kwargs['fontes']
@@ -68,10 +68,10 @@ class FluxoBibliotecaUITest(unittest.TestCase):
                 app.desvincular_material(ident)
                 self.assertEqual(app.biblioteca.anexos(novo),[])
                 self.assertEqual(len(app.biblioteca.listar()),1)
-                with patch('tutor_calculo.desktop.messagebox.askyesno',return_value=False):
+                with patch('tutor_calculo.desktop_legado.messagebox.askyesno',return_value=False):
                     app.excluir_material(ident)
                 self.assertEqual(len(app.biblioteca.listar()),1)
-                with patch('tutor_calculo.desktop.messagebox.askyesno',return_value=True):
+                with patch('tutor_calculo.desktop_legado.messagebox.askyesno',return_value=True):
                     app.excluir_material(ident)
                 self.assertEqual(app.biblioteca.listar(),[])
                 self.assertEqual(app.historico.mensagens(conversa),mensagens)

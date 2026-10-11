@@ -1,7 +1,11 @@
 import unittest
-from tutor_calculo.renderizacao import partes, imagem_formula, formula_legivel
+try:
+    from tutor_calculo.renderizacao import partes, imagem_formula, formula_legivel
+except ImportError:
+    partes = None
 
 
+@unittest.skipIf(partes is None, 'Renderizacao Tk legada exige requirements-legado.txt e Tkinter')
 class RenderizacaoTest(unittest.TestCase):
     def test_markdown_e_delimitadores(self):
         tokens=list(partes('Texto **forte** $x^2$\n$$\\frac{1}{2}$$ \\(y=2x\\) `codigo`'))

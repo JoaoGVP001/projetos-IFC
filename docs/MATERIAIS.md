@@ -2,17 +2,17 @@
 
 ## Usar no aplicativo
 
-1. Abra um chat e use **+ Arquivo** ou **+ Link**. A aba **Materiais** tambem
+1. Abra um chat e use **Anexar arquivos** (clipe) ou **Adicionar link**. A aba **Materiais** tambem
    permite importar. Aguarde o estado Pronto ou Texto parcial.
 2. Use **Visualizar** para conferir a extracao. PDF tem previa por pagina;
-   imagem tem previa do original. **Mais...** permite abrir no aplicativo do
+   imagem tem previa do original. o menu **⋯** permite abrir no aplicativo do
    sistema, ir ao chat de origem, reutilizar, desvincular ou reprocessar.
 3. Em **Editar**, organize nome, materia, assunto, etiquetas e cadernos.
    Materia permanece metadado livre; cadernos usam IDs reais e um material
    pode pertencer a varias materias sem duplicar original ou indice.
 4. Busque por nome, texto extraido, assunto ou etiquetas. A busca da biblioteca
    e literal, sem distinguir maiusculas ou acentos. Filtre por tipo, materia,
-   caderno, data de importacao (UTC) e materiais do chat atual. Ha 40 itens por pagina.
+   caderno, data de importacao (UTC) e materiais do chat atual. Ha 30 itens por pagina na interface React.
 5. Marque **Consultar neste chat** somente nos materiais que deseja usar.
    Importar ou reutilizar nao ativa envio a IA automaticamente. A selecao e
    independente por conversa e permanece apos reiniciar.

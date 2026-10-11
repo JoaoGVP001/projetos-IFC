@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 try:
     import customtkinter as ctk
-    from tutor_calculo.desktop import TutorDesktop
+    from tutor_calculo.desktop_legado import TutorDesktop
 except ImportError:
     TutorDesktop=None
 
@@ -29,7 +29,7 @@ class CadernosUITest(unittest.TestCase):
         app.update()
 
     def test_criar_anexar_consultar_mover_e_reabrir(self):
-        with tempfile.TemporaryDirectory() as pasta,patch('tutor_calculo.desktop.provedor_ativo',return_value='gemini'),patch('tutor_calculo.desktop.configuracao',return_value=('teste','modelo')):
+        with tempfile.TemporaryDirectory() as pasta,patch('tutor_calculo.desktop_legado.provedor_ativo',return_value='gemini'),patch('tutor_calculo.desktop_legado.configuracao',return_value=('teste','modelo')):
             banco=Path(pasta)/'historico.sqlite3'; arquivo=Path(pasta)/'notas.txt'
             arquivo.write_text('A derivada de x² e 2x.',encoding='utf-8')
             app=TutorDesktop(banco); app.withdraw()
@@ -65,7 +65,7 @@ class CadernosUITest(unittest.TestCase):
                 self.assertIn('Meu caderno de calculo',previa)
                 self.assertIn('Dicas progressivas',previa)
                 self.assertIn('2x',previa); janela.destroy()
-                with patch('tutor_calculo.desktop.perguntar',return_value='Dica: use a potencia [M1]') as api:
+                with patch('tutor_calculo.desktop_legado.perguntar',return_value='Dica: use a potencia [M1]') as api:
                     app.enviar(); self.esperar(app,lambda:not app._ocupado)
                     dados=api.call_args.kwargs
                     self.assertEqual(dados['caderno']['id'],origem)
@@ -98,7 +98,7 @@ class CadernosUITest(unittest.TestCase):
                 # Outro chat da mesma materia nao herda historico nem autorizacao documental.
                 app.novo_chat(); app.vincular_material(material)
                 app.entrada.insert('1.0','Outra questao')
-                with patch('tutor_calculo.desktop.perguntar',return_value='Resposta isolada') as api:
+                with patch('tutor_calculo.desktop_legado.perguntar',return_value='Resposta isolada') as api:
                     app.enviar(); self.esperar(app,lambda:not app._ocupado)
                     self.assertEqual(api.call_args.kwargs['historico'],[])
                     self.assertIsNone(api.call_args.kwargs['fontes'])
@@ -125,7 +125,7 @@ class CadernosUITest(unittest.TestCase):
                 app.novo_chat(); self.assertEqual(app.conversa_id,chat)
                 app.acao_caderno('arquivar',ids[-1])
                 self.assertEqual(app.entrada.cget('state'),'normal')
-                with patch('tutor_calculo.desktop.messagebox.askyesno',return_value=True):app.acao_caderno('excluir',ids[-1])
+                with patch('tutor_calculo.desktop_legado.messagebox.askyesno',return_value=True):app.acao_caderno('excluir',ids[-1])
                 self.assertIsNone(app.caderno_id); self.assertEqual(app.conversa_id,chat)
                 self.assertIn('Geral',app.titulo_conversa.cget('text'))
                 self.assertIn('Rascunho salvo',app.entrada.get('1.0','end'))

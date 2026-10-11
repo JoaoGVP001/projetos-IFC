@@ -10,7 +10,7 @@ import openai
 
 from tutor_calculo.app import EXEMPLO, resolver
 try:
-    from tutor_calculo.desktop import TutorDesktop
+    from tutor_calculo.desktop_legado import TutorDesktop
 except ImportError:
     TutorDesktop = None
 from tutor_calculo.ia import configuracao, perguntar, salvar_configuracao
@@ -91,7 +91,7 @@ class FluxoIaTest(unittest.TestCase):
         janela._fila = Queue()
         janela._fila_materiais = Queue()
         janela._ocupado = True
-        with patch('tutor_calculo.desktop.resolver', side_effect=ZeroDivisionError('falha')):
+        with patch('tutor_calculo.desktop_legado.resolver', side_effect=ZeroDivisionError('falha')):
             TutorDesktop._executar(janela, 'Resolver', 'enunciado')
         TutorDesktop._verificar_fila(janela)
         self.assertFalse(janela._ocupado)
