@@ -22,7 +22,7 @@ class Ponte:
                 if self._window is None:raise ValueError('Janela nao disponivel.')
                 import webview
                 caminhos=self._window.create_file_dialog(webview.FileDialog.OPEN,allow_multiple=True,
-                    file_types=('Materiais (*.pdf;*.png;*.jpg;*.jpeg;*.webp;*.bmp;*.tif;*.tiff;*.txt;*.md;*.csv;*.json;*.docx;*.log;*.tex)','Todos (*.*)'))
+                    file_types=('Materiais (*.pdf;*.png;*.jpg;*.jpeg;*.webp;*.bmp;*.tif;*.tiff;*.txt;*.md;*.csv;*.json;*.docx;*.pptx;*.log;*.tex)','Todos (*.*)'))
                 resultado=self._app.importar(list(caminhos)) if caminhos else None
             elif operacao=='abrir_link':
                 url=normalizar_url(texto(dados.get('url'),2000,False));webbrowser.open(url);resultado=None

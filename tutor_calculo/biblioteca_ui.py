@@ -15,7 +15,7 @@ from .materiais import ESTADOS
 from .armazenamento import TODOS_CADERNOS
 
 TIPOS = {'Todos os tipos': '', 'PDF': 'pdf', 'Imagens': 'imagem', 'Texto': 'texto',
-         'DOCX': 'docx', 'Links': 'link', 'Outros': 'arquivo'}
+         'DOCX': 'docx', 'PPTX': 'pptx', 'Links': 'link', 'Outros': 'arquivo'}
 DATAS = {'Qualquer data': 0, 'Ultimos 7 dias': 7, 'Ultimos 30 dias': 30, 'Ultimos 90 dias': 90}
 
 
@@ -215,7 +215,7 @@ class MateriaisPainel(ctk.CTkFrame):
         campo.pack(fill='both',expand=True)
         paginas = self.app.biblioteca.paginas(ident)
         cabecalho = f"{m['nome']}\n{ESTADOS[m['estado']]} · {m['metodo']}\n{m['aviso']}\n\n"
-        extraido = '\n\n'.join(f"--- Pagina {p['numero']} ---\n{p['texto']}" if m['tipo']=='pdf' or 'PDF' in m['metodo'] else p['texto'] for p in paginas)
+        extraido = '\n\n'.join(f"--- Slide {p['numero']} ---\n{p['texto']}" if m['tipo']=='pptx' else f"--- Pagina {p['numero']} ---\n{p['texto']}" if m['tipo']=='pdf' or 'PDF' in m['metodo'] else p['texto'] for p in paginas)
         campo.insert('1.0',cabecalho+(extraido or 'Sem texto disponivel. A IA nao recebera conteudo inventado.'))
         campo.configure(state='disabled')
         if m['tipo'] in {'imagem','pdf'}:

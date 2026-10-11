@@ -168,6 +168,7 @@ export type Previa = {
         pagina: number;
         texto: string;
         tipo: string;
+        aviso?: string;
       }[]
     | null;
   originais_enviados: boolean;

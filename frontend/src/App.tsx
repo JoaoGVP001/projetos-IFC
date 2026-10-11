@@ -1796,6 +1796,7 @@ function Materiais({
             imagem: "Imagens",
             texto: "Texto",
             docx: "DOCX",
+            pptx: "PowerPoint (PPTX)",
             link: "Links",
             arquivo: "Outros",
           }).map(([k, v]) => (
@@ -1903,9 +1904,11 @@ function Materiais({
                   <p className="semantic-hit" key={i}>
                     <strong>
                       {hit.selecao}
-                      {m.tipo === "pdf" || m.metodo.includes("PDF")
-                        ? ` · página ${hit.pagina}`
-                        : ""}
+                      {m.tipo === "pptx"
+                        ? ` · slide ${hit.pagina}`
+                        : m.tipo === "pdf" || m.metodo.includes("PDF")
+                          ? ` · página ${hit.pagina}`
+                          : ""}
                     </strong>
                     <br />
                     {hit.texto.slice(0, 280)}
@@ -2067,7 +2070,11 @@ function Preview({ id, notify }: { id: string; notify: (s: string) => void }) {
         >
           {(detail.paginas.length ? detail.paginas : [1]).map((p) => (
             <option value={p} key={p}>
-              {detail.material.tipo === "pdf" ? `Página ${p}` : `Trecho ${p}`}
+              {detail.material.tipo === "pptx"
+                ? `Slide ${p}`
+                : detail.material.tipo === "pdf"
+                  ? `Página ${p}`
+                  : `Trecho ${p}`}
             </option>
           ))}
         </select>
@@ -2167,8 +2174,13 @@ function SendPreview({
           <section key={f.referencia}>
             <strong>
               [{f.referencia}] {f.nome}
-              {f.tipo === "pdf" ? ` · página ${f.pagina}` : ""}
+              {f.tipo === "pptx"
+                ? ` · slide ${f.pagina}`
+                : f.tipo === "pdf"
+                  ? ` · página ${f.pagina}`
+                  : ""}
             </strong>
+            {f.aviso && <p className="notice">Extração parcial: {f.aviso}</p>}
             <pre>{f.texto}</pre>
           </section>
         ))

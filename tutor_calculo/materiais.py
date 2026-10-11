@@ -287,7 +287,7 @@ class Biblioteca:
     def recuperar(self, conversa, pergunta, limite=6000):
         """Contrato de recuperacao: lista de trechos/proveniencia; futuro indice vetorial substituivel."""
         consulta = consulta_fts(pergunta)
-        candidatos = [dict(x) for x in self.db.execute('''SELECT t.*,m.nome,m.url,m.tipo,m.metodo,
+        candidatos = [dict(x) for x in self.db.execute('''SELECT t.*,m.nome,m.url,m.tipo,m.metodo,m.aviso,
             bm25(trechos_fts) AS relevancia FROM trechos_fts JOIN trechos t ON t.id=trechos_fts.rowid
             JOIN materiais m ON m.id=t.material_id JOIN chat_materiais c ON c.material_id=m.id
             WHERE trechos_fts MATCH ? AND c.conversa_id=? AND c.selecionado=1
@@ -296,7 +296,7 @@ class Biblioteca:
         pedido_geral = re.search(r'\b(resum\w*|analise|analisar|simulado\w*|prova\w*|atividad\w*|crie|criar)\b', normalizado(pergunta))
         if not candidatos and pedido_geral:
             # Resumos genericos recebem uma amostra inicial identificada, nunca fingem ler tudo.
-            candidatos = [dict(x) for x in self.db.execute('''SELECT t.*,m.nome,m.url,m.tipo,m.metodo
+            candidatos = [dict(x) for x in self.db.execute('''SELECT t.*,m.nome,m.url,m.tipo,m.metodo,m.aviso
                 FROM trechos t JOIN materiais m ON m.id=t.material_id
                 JOIN chat_materiais c ON c.material_id=m.id WHERE c.conversa_id=? AND c.selecionado=1
                 AND m.estado IN ('pronto','parcial') AND t.ordem=0
@@ -319,7 +319,9 @@ class Biblioteca:
 def contexto_documental(fontes):
     # Serializacao escapa delimitadores e separa metadados do texto nao confiavel.
     return json.dumps([{'referencia': f['referencia'], 'material_id': f.get('material_id'), 'nome': f['nome'], 'url': f['url'],
-                        'pagina': f['pagina'] if f['tipo']=='pdf' or 'PDF' in f.get('metodo','') else None,
+                        'pagina': f['pagina'] if f['tipo'] in ('pdf','pptx') or 'PDF' in f.get('metodo','') else None,
+                        'unidade': 'slide' if f['tipo']=='pptx' else 'pagina' if f['tipo']=='pdf' or 'PDF' in f.get('metodo','') else None,
+                        'aviso_extracao': f.get('aviso','')[:1000],
                         'selecao': f.get('selecao','busca textual'),
                         'texto': f['texto']} for f in fontes], ensure_ascii=False)
 
@@ -327,6 +329,6 @@ def contexto_documental(fontes):
 def referencias(fontes):
     linhas = []
     for f in fontes:
-        pagina = f", pagina {f['pagina']}" if f['tipo'] == 'pdf' or 'PDF' in f.get('metodo','') else ''
+        pagina = f", slide {f['pagina']}" if f['tipo']=='pptx' else f", pagina {f['pagina']}" if f['tipo'] == 'pdf' or 'PDF' in f.get('metodo','') else ''
         linhas.append(f"- [{f['referencia']}] {f['nome']}{pagina}" + (f" — {f['url']}" if f['url'] else ''))
     return '\n'.join(linhas)

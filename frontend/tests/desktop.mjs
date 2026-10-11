@@ -9,7 +9,8 @@ import { createServer } from "node:net";
 
 const raiz = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const pasta = await mkdtemp(resolve(tmpdir(), "cadernomat-e2e-"));
-const capturas = resolve(raiz, "docs/screenshots");
+const capturas =
+  process.env.CADERNOMAT_SCREENSHOTS_DIR || resolve(raiz, "docs/screenshots");
 await mkdir(capturas, { recursive: true });
 await writeFile(
   resolve(pasta, "notas.txt"),
@@ -378,9 +379,40 @@ try {
     async () =>
       !!(await estado()).conversa && !(await estado()).conversa.arquivada,
   );
+  // Arquivo Office sintético: filtro, páginas de slides, fontes e reinício.
+  await writeFile(resolve(pasta, "importar-office"), "1");
+  await click("Anexar arquivos");
+  await wait(async () =>
+    (await estado()).anexos.some(
+      (m) => m.nome === "slides.pptx" && m.estado === "parcial",
+    ),
+  );
+  await click("Visualizar slides.pptx");
+  await wait(async () => (await texto()).includes("Indução: fórmula"));
+  assert.ok((await texto()).includes("Slide 1"));
+  await fill("Página do material", "2");
+  await wait(async () =>
+    (await texto()).includes("Conjuntos no segundo slide"),
+  );
+  await captura("office-slides-sinteticos.png");
+  await fecharDialogo();
+  await click("Consultar slides.pptx");
+  await fill("Mensagem", "Explique indução usando a fórmula dos slides.");
+  await click("Prévia do envio");
+  await wait(async () => (await texto()).includes("slides.pptx · slide 1"));
+  await fecharDialogo();
+  await click("Abrir materiais");
+  await fill("Filtrar por tipo", "pptx");
+  await wait(async () => (await texto()).includes("1 material"));
+  assert.ok((await texto()).includes("slides.pptx"));
+  await fechar();
+  await iniciar();
+  assert.ok(
+    (await estado()).anexos.find((m) => m.nome === "slides.pptx")?.selecionado,
+  );
   assert.deepEqual(errosPagina, []);
   console.log(
-    "E2E OK: janela compilada, cadernos, anexos, prévia, IA simulada, menus/teclado, temas, 1000×650, movimentação, arquivo/restauração, fechamento e reinício.",
+    "E2E OK: janela compilada, cadernos, anexos TXT/PPTX, filtro Office, prévia com slides, IA simulada, menus/teclado, temas, 1000×650, movimentação, arquivo/restauração, fechamento e reinício.",
   );
 } catch (e) {
   try {

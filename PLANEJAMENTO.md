@@ -2,6 +2,27 @@
 
 Atualizado em 11/10/2026.
 
+## Entregue — materiais de disciplinas em PDF e Office
+
+A biblioteca existente é reutilizada para os anexos do Classroom, com associação
+ao caderno, assunto/etiquetas, origem, hash para deduplicação e seleção por chat.
+Não é treinamento do modelo nem sincronização permanente do Classroom.
+Os materiais e relatórios pessoais permanecem fora do repositório.
+
+PPTX ganhou leitura por slide na ordem da apresentação e referências de slides
+em chat/atividades. DOCX/PPTX conservam frações, potências, raízes, índices e
+delimitadores OMML básicos; sobrescritos/subscritos em runs também são lidos.
+Equações desconhecidas são sinalizadas. Imagens e diagramas do Office continuam
+fora da interpretação, com estado de texto parcial e acesso ao original.
+O limite de PDF/slides passou de 80 para 500, mantendo 20 MiB, um milhão de
+caracteres, limites de tempo e OCR de até dez páginas.
+
+Próximas melhorias: leitura de figuras com modelo visual e avaliação de fórmulas
+extraídas; importação/sincronização autorizada pelo próprio aplicativo com o
+Classroom; preservação da numeração automática completa das listas do Office.
+O aplicativo continua compatível com RAG textual e embeddings locais existentes.
+[Formatos e uso](docs/MATERIAIS.md).
+
 ## Entregue — núcleo L2: busca híbrida local
 
 Reutilizar texto/OCR e IDs de trechos existentes. Adicionar Qwen3-Embedding

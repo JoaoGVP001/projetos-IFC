@@ -8,13 +8,15 @@ import subprocess
 import tempfile
 import time
 import zipfile
-import xml.etree.ElementTree as ET
+import posixpath
+
+from .ooxml import ler_xml, paragrafos_xml
 
 from PIL import Image
 
 MAX_ARQUIVO = 20 * 1024 * 1024
 MAX_TEXTO = 1_000_000
-MAX_PAGINAS = 80
+MAX_PAGINAS = 500
 MAX_OCR = 10
 TEXTOS = {'.txt', '.md', '.csv', '.json', '.log', '.tex'}
 IMAGENS = {'.png', '.jpg', '.jpeg', '.webp', '.bmp', '.tif', '.tiff'}
@@ -32,6 +34,7 @@ def tipo_arquivo(nome):
     ext = Path(nome).suffix.lower()
     if ext == '.pdf': return 'pdf'
     if ext == '.docx': return 'docx'
+    if ext == '.pptx': return 'pptx'
     if ext in TEXTOS: return 'texto'
     if ext in IMAGENS: return 'imagem'
     return 'arquivo'
@@ -118,12 +121,50 @@ def extrair_pdf(caminho):
                     ' '.join(dict.fromkeys(avisos))[:4000], metodo)
 
 
+def validar_office(arquivo):
+    itens = arquivo.infolist()
+    if len(itens)>2000 or sum(i.file_size for i in itens)>MAX_ARQUIVO:
+        raise ValueError('Office expandido excede o limite de 20 MiB.')
+    if len({i.filename for i in itens})!=len(itens):
+        raise ValueError('Office contém entradas duplicadas.')
+
+
+def extrair_pptx(caminho):
+    p = '{http://schemas.openxmlformats.org/presentationml/2006/main}'
+    r = '{http://schemas.openxmlformats.org/officeDocument/2006/relationships}'
+    avisos = ['PPTX: texto, tabelas e fórmulas OMML básicas; imagens, diagramas, notas e objetos embutidos não interpretados.']
+    paginas, total = [], 0
+    with zipfile.ZipFile(caminho) as doc:
+        validar_office(doc)
+        raiz = ler_xml(doc,'ppt/presentation.xml')
+        relacoes = {e.get('Id'):e for e in ler_xml(doc,'ppt/_rels/presentation.xml.rels')}
+        slides = raiz.findall(p+'sldIdLst/'+p+'sldId')
+        if len(slides)>MAX_PAGINAS: avisos.append(f'Extraídos somente os primeiros {MAX_PAGINAS} slides.')
+        for numero, slide in enumerate(slides[:MAX_PAGINAS],1):
+            rel = relacoes[slide.get(r+'id')]
+            if rel.get('TargetMode')=='External': raise ValueError('Slide externo não suportado.')
+            destino = rel.get('Target','')
+            nome = posixpath.normpath(destino.lstrip('/') if destino.startswith('/') else 'ppt/'+destino)
+            if not nome.startswith('ppt/slides/') or not nome.endswith('.xml'):
+                raise ValueError('Destino de slide inválido.')
+            texto, alertas = paragrafos_xml(ler_xml(doc,nome))
+            avisos.extend(f'Slide {numero}: {a}' for a in alertas)
+            if texto:
+                paginas.append((numero,texto[:MAX_TEXTO-total])); total += len(paginas[-1][1])
+            else: avisos.append(f'Slide {numero} sem texto interpretável; consulte o original.')
+            if total>=MAX_TEXTO:
+                avisos.append('Limite de texto extraído atingido.'); break
+    return Extracao(paginas,'parcial' if paginas else 'sem_texto',' '.join(dict.fromkeys(avisos))[:4000], 'PPTX + OMML básico')
+
+
 def extrair(caminho, nome):
     caminho = Path(caminho)
     tipo = tipo_arquivo(nome)
     try:
         if tipo == 'pdf':
             return extrair_pdf(caminho)
+        if tipo == 'pptx':
+            return extrair_pptx(caminho)
         if tipo == 'imagem':
             with Image.open(caminho) as img:
                 if img.width * img.height > 40_000_000:
@@ -147,16 +188,11 @@ def extrair(caminho, nome):
                 aviso = 'Texto lido como Windows-1252; prefira UTF-8.'
         elif tipo == 'docx':
             with zipfile.ZipFile(caminho) as doc:
-                itens = doc.infolist()
-                if len(itens) > 2000 or sum(i.file_size for i in itens) > MAX_ARQUIVO:
-                    return Extracao([], 'erro', 'DOCX expandido excede o limite de 20 MiB.')
-                xml = ET.fromstring(doc.read('word/document.xml'))
-            ns = '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}'
-            texto = '\n'.join(''.join(t.text or '' for t in p.iter(ns+'t'))
-                              for p in xml.iter(ns+'p'))
-            aviso = 'DOCX: texto e tabelas; sem paginacao, figuras ou equacoes embutidas.'
+                validar_office(doc)
+                texto, alertas = paragrafos_xml(ler_xml(doc,'word/document.xml'))
+            aviso = 'DOCX: texto, tabelas e fórmulas OMML básicas; sem paginação, figuras ou objetos embutidos. '+' '.join(alertas)
         else:
-            return Extracao([], 'nao_suportado', 'Formato armazenado, mas nao interpretado pela IA. Envie PDF, imagem, DOCX ou texto.')
+            return Extracao([], 'nao_suportado', 'Formato armazenado, mas nao interpretado pela IA. Envie PDF, imagem, DOCX, PPTX ou texto.')
         if len(texto) > MAX_TEXTO:
             aviso += ' Texto truncado no limite de 1 milhao de caracteres.'
         if not texto.strip():

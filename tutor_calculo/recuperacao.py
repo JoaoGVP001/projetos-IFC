@@ -75,7 +75,7 @@ def recuperar_estudo(h, ids, consulta, amostra=False, detalhes=None):
     if not ids: return [], []
     if any(f['estado'] not in ('pronto', 'parcial') for f in fontes): raise ValueError('Selecione apenas materiais com texto pronto ou parcial.')
     parametros = ','.join('?' for _ in ids); q = consulta_fts(consulta)
-    rows = h.db.execute(f'''SELECT t.*,m.nome,m.url,m.tipo,m.metodo FROM trechos_fts JOIN trechos t ON t.id=trechos_fts.rowid
+    rows = h.db.execute(f'''SELECT t.*,m.nome,m.url,m.tipo,m.metodo,m.aviso FROM trechos_fts JOIN trechos t ON t.id=trechos_fts.rowid
         JOIN materiais m ON m.id=t.material_id WHERE trechos_fts MATCH ? AND m.id IN ({parametros}) ORDER BY bm25(trechos_fts),t.id LIMIT 30''', (q, *ids)).fetchall() if q else []
     estrategia = 'busca textual'
     from .semantica import IndiceSemantico
@@ -84,7 +84,7 @@ def recuperar_estudo(h, ids, consulta, amostra=False, detalhes=None):
         rows=index.candidatos(ids,consulta,detalhes)
     elif detalhes is not None:detalhes.update(metodo='busca textual',aviso='',escopo='Materiais selecionados para o estudo')
     if not rows and amostra:
-        rows = h.db.execute(f'''SELECT t.*,m.nome,m.url,m.tipo,m.metodo FROM trechos t JOIN materiais m ON m.id=t.material_id
+        rows = h.db.execute(f'''SELECT t.*,m.nome,m.url,m.tipo,m.metodo,m.aviso FROM trechos t JOIN materiais m ON m.id=t.material_id
             WHERE m.id IN ({parametros}) AND t.ordem=0 ORDER BY t.pagina,t.id LIMIT 30''', ids).fetchall()
         estrategia = 'amostra inicial; não representa o documento inteiro'
     trechos = []; tamanho = 0; por_pagina = {}
@@ -93,6 +93,6 @@ def recuperar_estudo(h, ids, consulta, amostra=False, detalhes=None):
         if por_pagina.get(chave, 0) >= 2: continue
         if tamanho+len(f['texto']) > 6000 or len(trechos) >= 6: continue
         f['referencia'] = f'M{len(trechos)+1}'; f.setdefault('selecao', estrategia)
-        if f['tipo'] != 'pdf' and 'PDF' not in f.get('metodo', ''): f['pagina'] = None
+        if f['tipo'] not in ('pdf','pptx') and 'PDF' not in f.get('metodo', ''): f['pagina'] = None
         por_pagina[chave] = por_pagina.get(chave, 0)+1; tamanho += len(f['texto']); trechos.append(f)
     return trechos, fontes

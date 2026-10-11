@@ -166,15 +166,17 @@ itens. É possível visualizar texto/original, editar, associar a vários cadern
 reutilizar, desvincular, reprocessar e excluir com atualização do índice.
 
 Formatos interpretados: PDF textual; PDF digitalizado/imagens com OCR opcional;
-TXT, MD, CSV, JSON, LOG, TEX; DOCX; links públicos HTML/texto/PDF. Outros formatos
+TXT, MD, CSV, JSON, LOG, TEX; DOCX e PPTX (texto, tabelas e fórmulas OMML básicas); links públicos HTML/texto/PDF. Outros formatos
 podem ser guardados, mas são identificados como não interpretados. Limite de
-20 MiB por arquivo, 80 páginas de PDF e 10 páginas de OCR. OCR exige Tesseract;
+20 MiB por arquivo, 500 páginas de PDF/slides e 10 páginas de OCR. OCR exige Tesseract;
 a disponibilidade de idioma é informada pela extração.
 
 Importar ou pertencer a um caderno **não seleciona fontes para a IA**. Marque
 **Consultar neste chat**, confira a prévia e pergunte em um modo de IA. A busca
 recupera trechos por palavras e, quando ativada, por significado; os originais binários ficam no computador.
-Citações indicam referência e página quando disponível. Desmarcar um material
+Citações indicam referência e página ou slide quando disponível. Office continua
+com texto parcial: figuras/diagramas/objetos embutidos não são interpretados,
+e equações OMML desconhecidas são sinalizadas para conferir no original. Desmarcar um material
 não apaga informações de respostas antigas do histórico.
 
 Arquivos iguais usam uma cópia local, deduplicada por SHA-256. Dados ficam fora

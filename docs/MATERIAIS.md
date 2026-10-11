@@ -32,18 +32,45 @@ antigas e suas citacoes continuam no historico, mesmo apos excluir o material.
 
 | Formato | Interpretacao local | Limites |
 |---|---|---|
-| PDF | Texto por pagina; OCR nas paginas sem texto | Ate 80 paginas e 10 paginas de OCR |
+| PDF | Texto por pagina; OCR nas paginas sem texto | Ate 500 paginas e 10 paginas de OCR |
 | PNG, JPG/JPEG, WebP, BMP, TIFF | Texto via Tesseract; previa da imagem | Ate 40 milhoes de pixels; primeiro quadro |
 | TXT, MD, CSV, JSON, LOG, TEX | Leitura textual, sem executar codigo | UTF-8; alternativa Windows-1252 sinalizada |
-| DOCX | Paragrafos e texto de tabelas | Sem paginacao, figuras ou equacoes embutidas |
+| DOCX | Parágrafos, tabelas e fórmulas OMML básicas | Sem paginação original, figuras ou objetos embutidos; listas automáticas conservam marcadores, sem reconstruir numeração |
+| PPTX | Texto e tabelas por slide, na ordem da apresentação; fórmulas OMML básicas | Até 500 slides; imagens, diagramas, notas e objetos embutidos não interpretados; Abrir original usa o aplicativo do sistema |
 | Links HTTP(S) | Copia textual de HTML, texto/JSON ou PDF publico | Ate 2 MiB; sem login ou JavaScript |
 | Outros | Armazenamento e abertura manual | Sem interpretacao pela IA |
 
 Cada arquivo aceita ate **20 MiB**; cada extracao conserva ate **1 milhao de
-caracteres**. DOCX expandido tambem tem limite de 20 MiB. PDF com senha exige
+caracteres**. DOCX/PPTX expandidos também têm limite de 20 MiB e 2.000 entradas; entidades XML e slides externos são recusados. PDF com senha exige
 copia desbloqueada. Conteudo truncado, paginas sem texto e OCR limitado aparecem
-como avisos, nunca como uma extracao completa. Planilhas XLSX, PPTX, DOC antigo,
+como avisos, nunca como uma extracao completa. Planilhas XLSX, PPT/DOC antigos,
 audio, video, ZIP e paginas dinamicas ainda nao tem extratores.
+
+Fórmulas OMML básicas conservam frações, potências, índices, raízes e
+delimitadores em LaTeX textual. Sobrescritos/subscritos de runs do Word/PowerPoint
+também são preservados, evitando transformar `2^n` em `2n`. Estruturas
+matemáticas desconhecidas recebem um marcador de equação não interpretada.
+Office sempre aparece como **Texto parcial**, mesmo com todos os parágrafos
+lidos: a extração não certifica as fórmulas nem interpreta figuras. O texto de
+PDF também precisa de conferência de símbolos e fórmulas no original.
+Nenhuma macro, objeto embutido ou link interno é executado durante a leitura.
+
+## Materiais do Classroom
+
+Arquivos baixados do Classroom podem ser importados como quaisquer anexos locais.
+Associe-os ao caderno da disciplina e preencha assunto/etiquetas para busca.
+O hash do arquivo evita duplicar o original quando ele é anexado novamente.
+O endereço do arquivo de origem pode ser preservado como referência do material;
+isso não dá ao aplicativo acesso à conta Google nem sincroniza futuras publicações.
+O download inicial exige acesso autorizado ao Classroom/Drive.
+
+Para consultar todos os materiais de uma disciplina, reúna-os em um chat de
+estudo e marque **Consultar neste chat**. A recuperação continua limitada aos
+materiais selecionados e cita páginas de PDF e números de slides de PPTX.
+Um caderno novo ou chat novo não herda automaticamente a seleção documental.
+Para simulados, selecione os materiais também na geração da atividade.
+Arquivos pessoais, livros, índices e relatórios de importação permanecem no
+diretório de dados do aplicativo, fora do Git; publicar o código não os publica.
 
 OCR e opcional. Instale Tesseract no sistema (no Ubuntu, `tesseract-ocr` e
 `tesseract-ocr-por`; no Windows, inclua o executavel no PATH). O aplicativo
@@ -75,7 +102,7 @@ essas mensagens. A previa mostra caderno, historico e trechos antes da consulta.
 Pertencer ao caderno nunca autoriza consulta documental automaticamente.
 
 Os trechos usam referencias M1, M2 etc, numeradas por consulta. As instrucoes
-pedem citacoes junto das afirmacoes; o app acrescenta nome/pagina das fontes
+pedem citacoes junto das afirmacoes; o app acrescenta nome/pagina/slide das fontes
 citadas. Se o modelo omitir citacoes, mostra a lista de trechos disponibilizados
 com esse aviso. Referencias numeradas inexistentes sao marcadas como
 indisponiveis. Isso verifica a existencia da fonte, nao prova automaticamente

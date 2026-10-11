@@ -44,6 +44,8 @@ Qual é o sinal da derivada em $x=4$?'''+citacao
 if __name__=='__main__':
     pasta=Path(os.environ['CADERNOMAT_TEST_DIR'])
     app=Aplicacao(pasta/'historico.sqlite3')
+    from tests.test_office_materiais import pptx
+    pptx(pasta/'slides.pptx','<a:p><a:r><a:t>Indução: fórmula para estudo.</a:t></a:r></a:p>')
     def fechar_pelo_teste():
         import webview
         while not (pasta/'sair').exists():time.sleep(.1)
@@ -55,5 +57,5 @@ if __name__=='__main__':
          patch('tutor_calculo.estudo.configuracao',return_value=('chave-simulada','modelo-simulado')), \
          patch('tutor_calculo.estudo.provedor_ativo',return_value='gemini'), \
          patch('tutor_calculo.estudo.perguntar',side_effect=consultar), \
-         patch('webview.window.Window.create_file_dialog',return_value=(str(pasta/'notas.txt'),)):
+         patch('webview.window.Window.create_file_dialog',side_effect=lambda *a,**k:(str(pasta/('slides.pptx' if (pasta/'importar-office').exists() else 'notas.txt')),)):
         abrir(app)
