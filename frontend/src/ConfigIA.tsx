@@ -5,7 +5,12 @@ import type { Config, DiagnosticoLocal } from "./model";
 import { Button, Field, Badge } from "./ui";
 
 export const nomeProvedor = (p: string) =>
-  ({ ollama: "IA local · Ollama", gemini: "Gemini", openai: "OpenAI" })[p] || p;
+  ({
+    ollama: "IA local · Ollama",
+    gemini: "Gemini",
+    openai: "OpenAI",
+    matematica: "Cálculo local",
+  })[p] || p;
 
 export function ConfigForm({
   config,

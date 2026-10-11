@@ -2068,3 +2068,79 @@ small,
 .semantic-hit strong {
   color: var(--ink);
 }
+
+/* Ferramentas locais L3: tokens da interface, gráfico exportável sobre papel. */
+.math-tools form {
+  display: grid;
+  gap: 16px;
+}
+.math-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.math-operations {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.math-operations legend {
+  font-weight: 600;
+  padding: 0 6px;
+}
+.math-operations label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.math-artifact {
+  display: grid;
+  gap: 12px;
+  margin-top: 20px;
+}
+.math-artifact img {
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+.math-artifact .btn {
+  justify-self: start;
+}
+.math-progress {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+}
+@media (max-width: 1050px) {
+  .math-grid,
+  .math-operations {
+    grid-template-columns: 1fr;
+  }
+}
+.math-ai {
+  border: 1px solid var(--border);
+  padding: 12px;
+  border-radius: 10px;
+  margin: 12px 0;
+}
+.math-ai summary {
+  cursor: pointer;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.math-ai .btn {
+  margin: 8px 8px 4px 0;
+}
+.math-ai-preview pre {
+  max-height: 240px;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+}

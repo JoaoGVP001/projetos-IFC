@@ -1,6 +1,7 @@
 """Leitura e analise de funcoes por partes perto de um ponto."""
 
 import ast
+import math
 import re
 from dataclasses import dataclass
 
@@ -27,33 +28,76 @@ OPERACOES = {
 }
 
 
-def expressao(texto: str):
+def expressao(texto: str, *, preservar=False):
     """Converte uma expressao aritmetica limitada, sem executar codigo Python."""
+    if not isinstance(texto, str) or not texto.strip() or len(texto) > 300:
+        raise ValueError('Use uma expressão de até 300 caracteres.')
     texto = re.sub(r"\bsen\b", "sin", texto.strip(), flags=re.IGNORECASE)
     texto = re.sub(r"\bsenx\b", "sin(x)", texto, flags=re.IGNORECASE)
     texto = texto.replace("^", "**").replace("π", "pi")
     try:
         arvore = ast.parse(texto, mode="eval")
-    except SyntaxError as exc:
+    except (SyntaxError, RecursionError) as exc:
         raise ValueError(f"Expressao invalida: {texto}") from exc
+
+    nos = list(ast.walk(arvore))
+    if len(nos) > 100:
+        raise ValueError('Expressão complexa: limite de 100 nós.')
+    def profundidade(no):
+        return 1 + max((profundidade(f) for f in ast.iter_child_nodes(no)), default=0)
+    if profundidade(arvore) > 16:
+        raise ValueError('Expressão complexa: limite de profundidade 16.')
+    for no in nos:
+        if isinstance(no, ast.Constant) and type(no.value) in (int, float):
+            if abs(no.value) > 1_000_000 or not math.isfinite(no.value):
+                raise ValueError('Literal numérico não finito ou maior que 1 milhão.')
 
     def converter(no):
         if isinstance(no, ast.Constant) and type(no.value) in (int, float):
-            return sp.sympify(no.value)
+            return sp.Rational(str(no.value)) if isinstance(no.value, float) else sp.Integer(no.value)
         if isinstance(no, ast.Name) and no.id.lower() in CONSTANTES:
             return CONSTANTES[no.id.lower()]
         if isinstance(no, ast.BinOp) and type(no.op) in OPERACOES:
-            return OPERACOES[type(no.op)](converter(no.left), converter(no.right))
+            a, b = converter(no.left), converter(no.right)
+            if isinstance(no.op, ast.Pow):
+                # Evita crescimento explosivo antes de construir a potência.
+                if b.free_symbols or b.is_integer is not True or abs(b) > 12:
+                    raise ValueError('Use expoente inteiro entre -12 e 12; para raiz quadrada use sqrt(x).')
+                if isinstance(a, sp.Pow) and a.exp.is_number and abs(a.exp*b) > 12:
+                    raise ValueError('Potências encadeadas excedem o limite de expoente efetivo 12.')
+                if not a.free_symbols and (a.is_finite is not True or a.is_real is not True or abs(a) > sp.Integer(10)**100):
+                    raise ValueError('Base constante fora dos limites permitidos.')
+                if not a.free_symbols and b > 0 and abs(a)**b > sp.Integer(10)**100:
+                    raise ValueError('Potência constante excede 100 dígitos.')
+                return sp.Pow(a, b, evaluate=not preservar)
+            if preservar:
+                if isinstance(no.op, ast.Add): return sp.Add(a, b, evaluate=False)
+                if isinstance(no.op, ast.Sub): return sp.Add(a, sp.Mul(-1, b, evaluate=False), evaluate=False)
+                if isinstance(no.op, ast.Mult): return sp.Mul(a, b, evaluate=False)
+                return sp.Mul(a, sp.Pow(b, -1, evaluate=False), evaluate=False)
+            resultado = OPERACOES[type(no.op)](a, b)
+            if not resultado.free_symbols and (resultado.is_finite is not True or abs(resultado) > sp.Integer(10)**100):
+                raise ValueError('Resultado constante fora dos limites permitidos.')
+            return resultado
         if isinstance(no, ast.UnaryOp) and isinstance(no.op, (ast.UAdd, ast.USub)):
             valor = converter(no.operand)
             return valor if isinstance(no.op, ast.UAdd) else -valor
         if (isinstance(no, ast.Call) and isinstance(no.func, ast.Name)
                 and no.func.id.lower() in FUNCOES and len(no.args) == 1
                 and not no.keywords):
-            return FUNCOES[no.func.id.lower()](converter(no.args[0]))
+            arg = converter(no.args[0])
+            if not arg.free_symbols and (arg.is_real is not True or arg.is_finite is not True or abs(arg) > (100 if no.func.id.lower() == 'exp' else 1_000_000)):
+                raise ValueError('Argumento constante fora dos limites permitidos.')
+            resultado = FUNCOES[no.func.id.lower()](arg, evaluate=not preservar)
+            if not arg.free_symbols and resultado.is_real is False:
+                raise ValueError('Funções de constantes devem ter resultado real.')
+            return resultado
         raise ValueError(f"Expressao nao suportada: {texto}. Use x, numeros, +, -, *, /, ^ e funcoes como sen(x).")
 
-    return converter(arvore.body)
+    resultado = converter(arvore.body)
+    if resultado.has(sp.zoo, sp.nan, sp.oo, -sp.oo):
+        raise ValueError('Expressão contém um valor não finito.')
+    return resultado
 
 
 @dataclass(frozen=True)

@@ -1,3 +1,17 @@
+## Entrega atual — matemática local L3 (11/10/2026)
+
+Leia docs/MATEMATICA_LOCAL.md. SQLite v9 com backup v8; calculos.py gerencia
+snapshots/artefatos, ferramentas_matematicas.py roda isolado, MathTools.tsx
+apresenta formulário/PNG/proposta/explicação. Não avaliar strings como Python.
+Preservar árvore original/domínio, tempos/limites, versões e estados separados
+de cada operação. Propostas só copiam função/intervalo/ponto explícitos; não
+executar automaticamente documentos nem números inventados pelo modelo.
+PNG por IDs/hash fora do Git; falhas/cancelamentos não publicam conclusão.
+Atalho usa a interface compilada. Discreta, páginas L4 e SVG/PDF ficam seguintes.
+Aceite: 175 Python aprovados/10 opcionais ignorados, 24 React, cinco fluxos Qt.
+Comandos: unittest, pnpm test/build/e2e:matematica e aceite Ollama offline em
+scripts/testar_integracao_offline_linux.sh --matematica; Windows não foi testado.
+
 ## Entrega atual — busca híbrida local L2 (11/10/2026)
 
 Leia [docs/BUSCA_SEMANTICA.md](docs/BUSCA_SEMANTICA.md). Novo semantica.py usa

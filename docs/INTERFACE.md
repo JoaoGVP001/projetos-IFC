@@ -4,7 +4,7 @@
 
 ```text
 React + TypeScript → bridge.ts → Ponte.request → Aplicacao
-                                                ├─ Historico / Cadernos / Biblioteca / Atividades / Tentativas (SQLite v8)
+                                                ├─ Historico / Cadernos / Biblioteca / Atividades / Tentativas (SQLite v9)
                                                 ├─ processamento documental em subprocesso
                                                 ├─ ia.py → Gemini / OpenAI / provedores.ollama
                                                 └─ app.py → matemática local / fallback IA
@@ -172,3 +172,12 @@ callback desktop salva o último campo independentemente do rascunho do chat.
 Snapshots/validação ficam em Python. Jobs interrompidos são recuperados como
 falha; o resultado de feedback e a conclusão são persistidos na mesma transação.
 Não entram credenciais ou caminhos arbitrários nos DTOs. Veja [Atividades](ATIVIDADES.md).
+
+## Ferramentas matemáticas L3
+
+`MathTools.tsx` apresenta execução manual, proposta JSON revisável e explicação
+da IA. `math_executar/obter/cancelar/previa/consultar` são operações registradas
+do serviço; `math_exportar` usa o seletor nativo na ponte. PNGs são recuperados
+por ID/hash, sem caminhos internos. O estado do chat acrescenta `calculos`, com
+metadados leves; a imagem só é lida ao visualizar o resultado.
+[Contrato, limites e persistência](MATEMATICA_LOCAL.md).

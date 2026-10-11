@@ -86,3 +86,17 @@ usam duas colunas e grids tornam-se uma coluna na janela menor.
 `pnpm e2e:atividades` produz também editor, revisão, prévia e 1000×650 em ambos os
 temas, usando conteúdo fictício e API simulada. Ctrl/Tab, labels, foco e diálogos
 seguem os componentes existentes; o histórico admite leitura sem liberar edição.
+
+## Cálculos e gráficos
+
+Formulário em diálogo amplo, operações por checkbox e campos necessários
+rotulados. Ajuda de IA em details com prévia do destino/dados; ação de calcular
+separada da proposta. Cards de PNG no chat, exportação nativa e explicação
+identificada. Gráficos mantêm fundo de papel claro para legibilidade/exportação
+nos dois temas; os controles usam os tokens existentes. Até 1000×650, o formulário
+rola verticalmente sem comprimir campos ou introduzir rolagem horizontal.
+
+![Matemática no tema escuro](screenshots/matematica-minima-escuro.png)
+
+`pnpm e2e:matematica` também captura formulário, gráfico, proposta e explicação
+com banco fictício e chamadas online proibidas.

@@ -585,3 +585,38 @@ O banco real foi migrado com backup v5. As 14 tabelas anteriores tiveram o
 mesmo hash de conteúdo antes/depois; integrity_check e foreign_key_check passaram.
 Nenhum dado pessoal foi usado nas capturas ou publicado. O atalho existente
 continua apontando para iniciar_desktop.sh e a interface compilada atual.
+
+## Em desenvolvimento — L3: cálculos e gráficos locais (11/10/2026)
+
+Sequência: parser limitado → motor isolado/PNG → SQLite v9 e ponte → fluxo manual
+no chat com cancelamento, exportação e reinício → propostas JSON e explicação
+pelos três provedores → testes matemáticos, migração, Qt e publicação.
+
+Primeiro aceite: quadrática/derivada/mínimo/tangente persistidos; `1/x` e
+cancelamento algébrico sem ligação através de buracos. Domínio é calculado a
+partir da árvore original. Operações fora do escopo exibem limitação. Integrais
+impróprias ficam recusadas nesta entrega; aproximação só sobre intervalo contínuo.
+Resultados das ferramentas são registros independentes da narrativa da IA.
+Arquivos ficam junto do banco, fora do Git; escrita atômica e processos encerráveis.
+Discreta e páginas completas de caderno permanecem nas subetapas seguintes.
+
+## Entrega L3 — cálculos e gráficos locais (11/10/2026)
+
+Entregue o fluxo manual independente de IA: entrada/AST limitada, domínio
+original, processamento encerrável, resultados por operação, PNG persistente,
+exportação nativa e reinício. SQLite v9 com backup v8/DDL transacional; registros
+e artefatos identificados, fora do Git. Depois: proposta JSON revisável, cópia
+de parâmetros explícitos, prévia exata e explicação separada pelos três provedores.
+Não há execução de conteúdo documental, correção automática de gabaritos nem
+fallback online. Windows ainda requer aceite próprio.
+
+Aceites matemáticos, persistência/migração/rollback, frontend/Qt e modelo real
+Ollama com rede externa bloqueada; resultados e limites em docs/MATEMATICA_LOCAL.md.
+Continuam Discreta, páginas completas L4 e ilustrações L5, mais domínios, integrais
+impróprias, integração visual com atividades e exportação SVG/PDF.
+
+Validação final L3: 185 testes Python (175 aprovados, 10 do legado ignorados),
+24 React, build e cinco fluxos Qt aprovados. Ollama Qwen3.5 4B real com rede
+externa bloqueada: proposta ~24 s, explicação ~49 s, pedido ambíguo sem inventar
+parâmetros e PNG recuperado após reiniciar. Migração pessoal v8→v9 preservou
+os hashes das 25 tabelas anteriores e configurações, com backup/FKs/integridade.

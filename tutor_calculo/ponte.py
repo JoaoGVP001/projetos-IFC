@@ -42,6 +42,20 @@ class Ponte:
             elif operacao=='exemplo':
                 from .app import EXEMPLO
                 resultado=EXEMPLO
+            elif operacao=='math_exportar':
+                if self._window is None:raise ValueError('Janela não disponível.')
+                raw=self._app._calculos.png(ident(dados.get('id')))
+                import webview
+                destino=self._window.create_file_dialog(webview.FileDialog.SAVE,save_filename='grafico-cadernomat.png',file_types=('Imagem PNG (*.png)',))
+                if destino:
+                    p=Path(destino[0]).with_suffix('.png')
+                    import tempfile
+                    fd,tmp=tempfile.mkstemp(prefix='.cadernomat-',dir=p.parent)
+                    try:
+                        with os.fdopen(fd,'wb') as f:f.write(raw);f.flush();os.fsync(f.fileno())
+                        os.replace(tmp,p)
+                    finally:Path(tmp).unlink(missing_ok=True)
+                resultado={'exportado':bool(destino)}
             else:resultado=self._app.executar(operacao,dados)
             return {'ok':True,'data':resultado}
         except (ValueError,RuntimeError,ImportError) as exc:

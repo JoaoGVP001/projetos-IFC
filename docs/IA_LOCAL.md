@@ -361,21 +361,26 @@ Referências: [modelo de embedding](https://ollama.com/library/qwen3-embedding:0
 
 ### L3 — Matemática verificável e gráficos
 
-- [ ] Criar ferramentas locais com entrada estruturada e validada. Reutilizar
+Núcleo entregue em 11/10/2026: [uso, arquitetura e limites](MATEMATICA_LOCAL.md).
+Fluxo manual offline/PNG/reinício primeiro; depois propostas revisáveis e
+explicações pelos três provedores. Integrais impróprias ficam fora deste escopo.
+
+
+- [x] Criar ferramentas locais com entrada estruturada e validada. Reutilizar
   o parser AST restrito, acrescentando limites de nós/profundidade/expoentes,
   amostras e tempo; executar operações custosas em processo encerrável.
-- [ ] Primeira ferramenta: gráfico de função de uma variável em intervalo
+- [x] Primeira ferramenta: gráfico de função de uma variável em intervalo
   especificado, com domínio, descontinuidades, eixos e legenda corretos.
-- [ ] Acrescentar derivada, ponto/linha tangente e área de integral definida,
+- [x] Acrescentar derivada, ponto/linha tangente e área de integral definida,
   distinguindo resultado simbólico, aproximação numérica e não verificado.
 - [ ] Discreta: tabelas-verdade, conjuntos/diagramas e grafos finitos a partir de
   especificações limitadas. A verificação só cobre operações implementadas;
   demonstrações por indução/argumentos não recebem selo automático de prova.
-- [ ] Usar SymPy para cálculo e Matplotlib para SVG/PNG/PDF locais. Avaliar
+- [x] Usar SymPy para cálculo e Matplotlib para PNG local. SVG/PDF ficam posteriores. Avaliar
   Plotly no frontend depois, se zoom/sliders justificarem o peso adicional.
-- [ ] Mostrar ao usuário a função, intervalo, hipóteses e dados usados. Salvar
+- [x] Mostrar ao usuário a função, intervalo, hipóteses e dados usados. Salvar
   especificação, resultado e artefato vinculados à mensagem/atividade.
-- [ ] Permitir pedir gráficos mesmo quando o modelo não usa ferramentas nativas;
+- [x] Permitir pedir gráficos mesmo quando o modelo não usa ferramentas nativas;
   o backend valida uma proposta JSON e executa somente operações registradas.
 
 **Aceite:** para `f(x)=x²−4x+3`, verificar `f'(x)=2x−4`, mínimo `(2,−1)` e

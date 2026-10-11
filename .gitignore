@@ -11,3 +11,4 @@ node_modules/
 frontend/test-results/
 frontend/playwright-report/
 frontend/.vite/
+calculos/

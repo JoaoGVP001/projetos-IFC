@@ -54,6 +54,8 @@ class Aplicacao:
         self._fechado=False
         from .estudo import Estudo
         self._estudo=Estudo(self)
+        from .calculos import Calculos
+        self._calculos=Calculos(self)
         with self._banco() as (h,c,b):
             Biblioteca(h,recuperar=True)
             from .semantica import IndiceSemantico
@@ -63,6 +65,7 @@ class Aplicacao:
                 chats=h.listar(caderno=nav['caderno_id'])
                 if chats:c.salvar_navegacao(nav['caderno_id'],chats[0]['id'])
         self._estudo.recuperar()
+        self._calculos.recuperar()
         self._recuperar_consultas()
 
     @contextmanager
@@ -72,7 +75,7 @@ class Aplicacao:
         finally:h.fechar()
 
     def _ocupado(self):
-        return any(t['tipo'] in ('ia','indice') and t['estado']=='executando' for t in self._tarefas.values())
+        return any(t['tipo'] in ('ia','indice','matematica') and t['estado']=='executando' for t in self._tarefas.values())
 
     def _livre(self):
         if self._ocupado():raise ValueError('Aguarde a consulta antes de alterar a organizacao.')
@@ -137,6 +140,8 @@ class Aplicacao:
             'semantica_indexar':self._semantica_indexar,'semantica_cancelar':self._semantica_cancelar,
             'semantica_ativar':self._semantica_ativar}
         operacoes.update({op:(lambda d, op=op:self._estudo.executar(op,d)) for op in OPERACOES})
+        from .calculos import OPERACOES as MATH_OPS
+        operacoes.update({op:(lambda d, op=op:self._calculos.executar(op,d)) for op in MATH_OPS})
         if not isinstance(operacao,str) or operacao not in operacoes:raise ValueError('Operacao nao permitida.')
         if not isinstance(dados,dict) or len(dados)>15:raise ValueError('Parametros invalidos.')
         with self._lock:
@@ -151,6 +156,7 @@ class Aplicacao:
             return {'revisao':self._revisao,'cadernos':c.listar(None),'navegacao':nav,
                 'conversas':h.listar(busca,bool(nav['arquivados']),nav['caderno_id']),
                 'conversa':chat,'mensagens':h.mensagens(cid),
+                'calculos':self._calculos.listar(h,cid),
                 'anexos':[self._material(b,m,cid) for m in b.anexos(cid)],
                 'config':self._config(h,cid),'preferencias':self._preferencias(),
                 'ocupado':self._ocupado(),'tarefas':list(self._tarefas.values())[-20:],

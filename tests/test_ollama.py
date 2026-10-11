@@ -203,7 +203,7 @@ class MigracaoLocalTest(unittest.TestCase):
 
                 for table in ('semantica_config','semantica_vetores','semantica_preparo','semantica_trabalho'):db.execute('DROP TABLE '+table)
                 db.execute('DROP TRIGGER semantica_texto_alterado')
-                db.execute('DROP TABLE consultas_ia');db.execute('DROP TABLE chat_ia');db.execute('PRAGMA user_version=6')
+                db.execute('DROP TABLE consultas_ia');db.execute('DROP TABLE chat_ia');db.execute('DROP TABLE IF EXISTS calculos');db.execute('PRAGMA user_version=6')
             def fail(db):db.execute('CREATE TABLE temporaria(id)');raise RuntimeError('Falha simulada')
             with patch('tutor_calculo.preferencias_ia.migrar_ia',side_effect=fail),self.assertRaises(RuntimeError):Historico(path)
             with sqlite3.connect(path) as db:

@@ -1,4 +1,5 @@
 import { BuscaSemantica } from "./BuscaSemantica";
+import { MathTools, MathCard } from "./MathTools";
 import {
   useCallback,
   useEffect,
@@ -8,6 +9,7 @@ import {
 } from "react";
 import {
   Sigma,
+  ChartNoAxesCombined,
   ClipboardList,
   BookOpen,
   MessageSquare,
@@ -88,6 +90,7 @@ type Modal =
       dados: Record<string, unknown>;
     }
   | { tipo: "link" }
+  | { tipo: "matematica"; proposta?: string }
   | { tipo: "config" }
   | { tipo: "material"; item: Material }
   | { tipo: "detalhe"; id: string }
@@ -935,6 +938,39 @@ export default function App() {
                       </div>
                       <div className="message-content">
                         <Markdown texto={m.texto} onError={notify} />
+                        {(state.calculos || [])
+                          .filter(
+                            (j) =>
+                              j.tipo === "proposta" &&
+                              j.estado === "concluida" &&
+                              j.mensagem_id === m.id,
+                          )
+                          .map((j) => (
+                            <Button
+                              key={j.id}
+                              disabled={!editable || occupied}
+                              onClick={() =>
+                                setModal({ tipo: "matematica", proposta: j.id })
+                              }
+                            >
+                              Revisar proposta da IA
+                            </Button>
+                          ))}
+                        {(state.calculos || [])
+                          .filter(
+                            (j) =>
+                              j.tipo === "calculo" &&
+                              j.estado === "concluida" &&
+                              j.mensagem_id === m.id,
+                          )
+                          .map((j) => (
+                            <MathCard
+                              key={j.id}
+                              id={j.id}
+                              chat={state.conversa!.id}
+                              notify={notify}
+                            />
+                          ))}
                       </div>
                       <button
                         className="copy-message"
@@ -999,6 +1035,24 @@ export default function App() {
               )}
             </div>
             <div className="composer-region">
+              {state.tarefas
+                .filter(
+                  (t) =>
+                    t.tipo === "matematica" &&
+                    t.estado === "executando" &&
+                    t.conversa === state.conversa?.id,
+                )
+                .map((t) => (
+                  <div className="math-progress" key={t.id} role="status">
+                    <Loading>Processando ferramenta matemática…</Loading>
+                    <Button
+                      disabled={t.cancelando}
+                      onClick={() => void run("math_cancelar", { id: t.id })}
+                    >
+                      {t.cancelando ? "Interrompendo…" : "Cancelar operação"}
+                    </Button>
+                  </div>
+                ))}
               {state.anexos.length > 0 && (
                 <div className="attachment-strip">
                   {state.anexos.map((m) => (
@@ -1069,6 +1123,14 @@ export default function App() {
                 />
                 <div className="composer-tools">
                   <div className="composer-left">
+                    <Button
+                      variant="ghost"
+                      icon={ChartNoAxesCombined}
+                      aria-label="Cálculos e gráficos"
+                      title="Cálculos e gráficos locais"
+                      disabled={!editable || occupied}
+                      onClick={() => setModal({ tipo: "matematica" })}
+                    />
                     <Button
                       variant="ghost"
                       icon={Paperclip}
@@ -1221,16 +1283,29 @@ export default function App() {
                         ? "Organizar material"
                         : modal.tipo === "detalhe"
                           ? "Visualizar material"
-                          : "Prévia do envio"
+                          : modal.tipo === "matematica"
+                            ? "Cálculos e gráficos locais"
+                            : "Prévia do envio"
           }
           subtitle={
             modal.tipo === "config"
               ? "Escolha IA local ou online e onde aplicar a configuração."
               : undefined
           }
-          wide={["detalhe", "previa"].includes(modal.tipo)}
+          wide={["detalhe", "previa", "matematica"].includes(modal.tipo)}
           onClose={() => setModal(null)}
         >
+          {modal.tipo === "matematica" && state.conversa && (
+            <MathTools
+              chat={state.conversa.id}
+              proposta={modal.proposta}
+              notify={notify}
+              onStarted={() => {
+                setModal(null);
+                void refresh();
+              }}
+            />
+          )}
           {modal.tipo === "caderno" && (
             <CadernoForm
               item={modal.item}

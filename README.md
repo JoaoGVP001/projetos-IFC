@@ -11,6 +11,14 @@ OCR e recuperação textual/híbrida local. Markdown e fórmulas são apresentad
 
 ![Conversa no tema claro](docs/screenshots/chat-claro.png)
 
+## Cálculos e gráficos locais (L3)
+
+No chat, abra **Cálculos e gráficos**, use **Exemplo da parábola** e clique em
+**Calcular e salvar no chat**. Derivada, tangente, extremos de polinômios e
+integrais próprias funcionam offline; o PNG fica salvo e pode ser exportado.
+A IA pode propor parâmetros revisáveis e explicar os resultados, com prévia do
+envio e sem alterar as verificações. [Uso, limites e testes](docs/MATEMATICA_LOCAL.md).
+
 ## Abrir no computador atual
 
 Feche a versão anterior e abra **CadernoMat** pelo atalho da área de trabalho.

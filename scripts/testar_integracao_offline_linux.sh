@@ -33,6 +33,11 @@ if [[ "${1:-}" == '--semantica' ]]; then
     .venv/bin/python tests/aceite_semantica_local.py
     exit
 fi
+if [[ "${1:-}" == '--matematica' ]]; then
+    cd -- "$integracao_repo"
+    .venv/bin/python tests/aceite_matematica_local.py
+    exit
+fi
 export CADERNOMAT_REAL_LOCAL=1
 if [[ "${1:-}" != '--so-estudo' ]]; then
     cd -- "$integracao_repo/frontend"

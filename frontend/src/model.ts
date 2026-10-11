@@ -97,6 +97,13 @@ export type Orcamento = {
   trechos_abreviados: number;
 };
 export type Estado = {
+  calculos?: {
+    id: string;
+    tipo: string;
+    estado: string;
+    mensagem_id: number | null;
+    erro: string;
+  }[];
   estudo: import("./activities-model").EstudoNav;
   revisao: number;
   cadernos: Caderno[];
