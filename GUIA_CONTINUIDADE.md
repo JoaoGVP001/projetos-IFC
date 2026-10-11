@@ -1,4 +1,24 @@
-## Piloto atual — IA local no notebook (11/10/2026)
+## Entrega atual — Ollama integrado (11/10/2026)
+
+Leia [docs/OLLAMA.md](docs/OLLAMA.md). SQLite v7 com backup v6, chat_ia e
+consultas_ia; preservar v6, fontes, atividades e tentativas. Ollama agora pode
+ser configurado por conversa ou como padrão, sem chave. Metadados/capacidades,
+streaming, cancelamento, repetição idempotente e recuperação de parciais.
+Orçamento explícito 2K/4K e RAG textual; estudo local 1–3 questões com esquema
+JSON, validador, dicas e feedback. Gemini/OpenAI mantêm seu fluxo e não são
+fallback. Resolver respeita a escolha capturada inclusive fora do analisador.
+
+Novos módulos: provedores/contratos.py, ollama.py e esquemas.py;
+preferencias_ia.py e recuperacao.py; ConfigIA.tsx no React. Dados/chaves/pesos
+continuam fora do Git. Somente o runtime previamente preparado pode ser iniciado
+pelo botão; não permitir downloads/shell arbitrários por conteúdo documental.
+Aceite real Qt em namespace sem rede externa, sandbox ativo; retomada e
+cancelamento validados. Aceite de estudo é estrutural com revisão explícita:
+respostas do modelo não são certificadas matematicamente. Verificação matemática,
+embeddings, gráficos e páginas exportáveis vêm nas etapas seguintes; Windows
+precisa de teste no PC real. O atalho CadernoMat abre os assets compilados novos.
+
+## Registro anterior — piloto no notebook (11/10/2026)
 
 Leia [docs/PILOTO_LOCAL.md](docs/PILOTO_LOCAL.md). Ollama 0.40.3 e Qwen3.5-4B
 Q4_K_M instalados fora do Git neste Ubuntu/RTX 3050 Laptop 6 GB/RAM classe 8 GB.
@@ -7,12 +27,11 @@ terminal utilizável pelo atalho separado IA Local - Testes. Código em
 piloto_local.py, launcher iniciar_ia_local.sh e scripts/benchmark_offline_linux.sh.
 13 novos testes; 119 aprovados na suíte, 10 opcionais Tk ignorados.
 
-Nenhuma mudança no banco pessoal ou na seleção Gemini/OpenAI. Ainda não existe
-provedor local na interface React: implementar L1, não apresentar o piloto como
-integração gráfica. Erro lógico e falhas de formato documentados; priorizar
+Nenhuma mudança no banco pessoal ou na seleção Gemini/OpenAI. Esse piloto de terminal permanece independente; a integração
+posterior está registrada no início deste arquivo. Erro lógico e falhas de formato documentados; priorizar
 consistência/verificação. O plano e o diagnóstico Windows permanecem abaixo.
 
-## Planejamento atual — IA local no Windows (11/10/2026)
+## Registro anterior — planejamento no Windows (11/10/2026)
 
 Leia [docs/IA_LOCAL.md](docs/IA_LOCAL.md) antes da próxima implementação desta
 trilha. PC de casa: Windows, 16 GB RAM e RTX 3060 com 8 ou 12 GB VRAM ainda a

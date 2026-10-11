@@ -4,9 +4,9 @@
 
 ```text
 React + TypeScript → bridge.ts → Ponte.request → Aplicacao
-                                                ├─ Historico / Cadernos / Biblioteca / Atividades / Tentativas (SQLite v6)
+                                                ├─ Historico / Cadernos / Biblioteca / Atividades / Tentativas (SQLite v7)
                                                 ├─ processamento documental em subprocesso
-                                                ├─ ia.py → Gemini / OpenAI
+                                                ├─ ia.py → Gemini / OpenAI / provedores.ollama
                                                 └─ app.py → matemática local / fallback IA
 ```
 
@@ -48,6 +48,8 @@ Erros inesperados recebem texto genérico, sem stacktrace, caminhos ou credencia
 | material_acao, material_salvar | Seleção/reuso/desvincular/reprocessar/excluir e metadados |
 | previa, enviar | Snapshot visível e tarefa de cálculo/IA |
 | configurar, preferencias | Configurações no Python e preferências locais |
+| ollama_diagnostico, ollama_iniciar | Metadados em loopback e iniciar somente runtime previamente preparado |
+| ia_cancelar, ia_repetir | Cancelamento local e repetição idempotente de snapshot autorizado |
 | abrir_original, abrir_link, exemplo | Abrir material registrado/URL validada e exemplo estático |
 
 Validação exige tipos, limites de texto, ações e provedores permitidos. Exclusões
@@ -56,8 +58,9 @@ arbitrários. Importar só aceita `{}`: o Python recebe os caminhos do seletor
 nativo. Abrir original resolve um ID de material; extensões executáveis são
 bloqueadas, e comandos do sistema usam argumentos sem shell.
 
-Estado da configuração contém apenas provedor, modelo e booleano de chave
-configurada. A chave digitada atravessa a ponte somente para salvar no Python;
+Estado da configuração contém provedor/modelo/escopo e, para Ollama, URL de
+loopback, contexto e timeout. O diagnóstico distingue configuração de runtime
+disponível e expõe metadados permitidos. A chave digitada atravessa a ponte somente para salvar no Python;
 ela nunca volta. Nenhuma chave entra em localStorage ou sessionStorage.
 
 ## Conteúdo não confiável
@@ -77,7 +80,9 @@ extração, limites, URLs públicas e proveniência descritas em MATERIAIS.md.
 ## Dados e transição
 
 A migração visual manteve v5; a entrega de atividades acrescenta v6 com backup
-v5 e migração transacional. Consulte ATIVIDADES.md para tabelas e invariantes. Permanecem os IDs, registros, relações FTS5,
+v5 e migração transacional. A integração local acrescenta v7 com backup v6,
+preferências por chat e consultas persistidas. Consulte [Ollama](OLLAMA.md) e
+ATIVIDADES.md para tabelas e invariantes. Permanecem os IDs, registros, relações FTS5,
 arquivos e seleção documental. `interface.json` no diretório de dados conserva
 tema/lateral, com substituição atômica e permissão 0600 no Linux. O cache WebView
 fica nesse mesmo diretório, fora do Git. Não contém chaves de configuração.

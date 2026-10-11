@@ -80,7 +80,7 @@ citações, blocos de código e matemática com `$`, `$$`, `\(...\)` e `\[...\]`
 Fórmulas largas e tabelas podem rolar horizontalmente. Fórmulas inválidas têm
 alternativa textual. **Copiar** preserva o Markdown/LaTeX original.
 
-Os três cadernos iniciais são criados apenas na migração original. A migração para SQLite **v6** cria backup v5 e preserva IDs, mensagens, rascunhos, arquivos, índices e seleções existentes. Veja [Cadernos](docs/CADERNOS.md).
+Os três cadernos iniciais são criados apenas na migração original. A migração atual para SQLite **v7** cria backup v6 e preserva IDs, mensagens, rascunhos, arquivos, índices e seleções existentes. Veja [Cadernos](docs/CADERNOS.md) e [IA local](docs/OLLAMA.md).
 
 ## Praticar com atividades
 
@@ -100,7 +100,11 @@ Veja [formatos, limites e versionamento](docs/ATIVIDADES.md).
 
 ## IA e cálculo local
 
-Em **Configurações de IA**, escolha Gemini ou OpenAI, informe o modelo e sua
+Em **Configurações de IA**, escolha **IA local · Ollama**, Gemini ou OpenAI.
+Ollama usa pesos instalados neste computador, sem chave e sem fallback online.
+Permite configurar por conversa, testar conexão/modelos, escolher perfil 2K/4K
+e tempo limite. Veja [configuração, estados e limites](docs/OLLAMA.md).
+Nos provedores online, informe o modelo e sua
 própria chave no campo protegido. Cada provedor mantém configurações separadas;
 chave vazia reutiliza a anterior. Salvar não testa acesso nem faz consultas.
 A chave permanece no `.env` local, ignorado pelo Git; ela não é devolvida ao
@@ -115,10 +119,13 @@ Não há troca automática entre provedores depois de falhas.
 **Prévia do envio** mostra provedor, modelo e três partes separadas:
 configurações do caderno, histórico recente da conversa atual e trechos dos
 materiais explicitamente selecionados. Até dez pares completos recentes são
-usados, limitados a 16 mil caracteres; erros ficam fora do contexto.
+usados, limitados a 16 mil caracteres no fluxo online. O fluxo local tem orçamento
+de entrada/saída explícito e pode omitir histórico/abreviar trechos, com indicação
+na prévia. Erros e respostas parciais ficam fora do contexto.
 
 **Resolver** analisa localmente continuidade de funções por partes no formato
-suportado; outros enunciados podem usar a API. **Exemplo local** preenche:
+suportado; outros enunciados usam o provedor escolhido nesta conversa, inclusive
+Ollama. **Exemplo local** preenche:
 
 ```text
 f(x) = {
@@ -134,9 +141,10 @@ as condições devem comparar x com o ponto indicado. Para dúvidas abertas,
 use Resolver com IA, Explicar ou Corrigir.
 
 Consultas e processamento documental acontecem em segundo plano. Falhas
-preservam a pergunta e o histórico. Ainda não há streaming ou cancelamento;
-ao fechar, uma tarefa já iniciada pode levar alguns segundos para terminar e
-salvar a resposta. Alterações de organização ficam bloqueadas durante a consulta.
+preservam a pergunta e o histórico. Ollama tem streaming, cancelamento e repetição
+sem duplicar a pergunta. Respostas interrompidas são identificadas e recuperadas
+após reiniciar. Gemini/OpenAI mantêm o fluxo sem streaming/cancelamento.
+Alterações de organização ficam bloqueadas durante a consulta.
 
 ## Materiais e memória documental
 
@@ -174,8 +182,8 @@ No notebook Linux preparado, o atalho **IA Local - Testes** ou
 `./iniciar_ia_local.sh` abre um chat de terminal com Ollama e Qwen3.5-4B.
 Inferência offline, métricas, limitações e reprodução estão em
 [Piloto local](docs/PILOTO_LOCAL.md). Modelos e dados ficam fora do Git.
-A integração local à interface gráfica ainda está planejada; o provedor do
-CadernoMat e seus chats existentes continuam preservados.
+A integração gráfica agora está disponível pelo atalho CadernoMat; o terminal
+permanece um experimento separado. Consulte [Ollama integrado](docs/OLLAMA.md).
 
 ## Desenvolver, compilar e testar
 
@@ -214,8 +222,8 @@ Os testes da interface anterior são opcionais sem Tkinter/display.
 [Plano de IA local, gráficos e páginas de caderno](docs/IA_LOCAL.md) ·
 [Piloto local executado](docs/PILOTO_LOCAL.md).
 
-Atividades e tentativas estão disponíveis. Provas, simulados, embeddings,
-busca semântica e novos provedores na interface permanecem planejados. A trilha
+Atividades, tentativas e Ollama estão disponíveis. Provas, simulados, embeddings,
+busca semântica, gráficos e visão permanecem planejados. A trilha
 local foi detalhada para um PC Windows com 16 GB RAM e RTX 3060 de 8/12 GB VRAM;
 um piloto independente foi depois executado no notebook Linux. O computador
 de casa ainda precisa ser testado.

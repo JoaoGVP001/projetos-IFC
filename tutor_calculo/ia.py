@@ -1,4 +1,4 @@
-"""Configuracao e consultas ao instrutor pela Responses API."""
+"""Fachada de provedores e montagem do contexto independente da interface."""
 
 import os
 import re
@@ -12,14 +12,15 @@ ARQUIVO_ENV = Path(__file__).resolve().parents[1] / ".env"
 MODELO_PADRAO = "gpt-6-astra"
 
 
-PROVEDORES = {"openai": ("OPENAI", MODELO_PADRAO), "gemini": ("GEMINI", "gemini-3.8-flash")}
+PROVEDORES = {"openai": ("OPENAI", MODELO_PADRAO), "gemini": ("GEMINI", "gemini-3.8-flash"),
+              "ollama": ("OLLAMA", "qwen3.5:4b-q4_K_M")}
 
 
 def provedor_ativo() -> str:
     valores = dotenv_values(ARQUIVO_ENV)
     provedor = os.environ.get("AI_PROVIDER", valores.get("AI_PROVIDER") or "openai").strip().lower()
     if provedor not in PROVEDORES:
-        raise ValueError("Provedor invalido. Escolha Gemini ou OpenAI em Configurar IA.")
+        raise ValueError("Provedor invalido. Escolha Gemini, OpenAI ou Ollama em Configurar IA.")
     return provedor
 
 
@@ -27,6 +28,10 @@ def configuracao(provedor: str | None = None) -> tuple[str, str]:
     provedor = provedor or provedor_ativo()
     if provedor not in PROVEDORES:
         raise ValueError("Provedor invalido.")
+    if provedor == 'ollama':
+        from .armazenamento import caminho_banco
+        from .preferencias_ia import PreferenciasIA
+        return '', PreferenciasIA(caminho_banco().parent).ler()['ollama']['modelo']
     prefixo, padrao = PROVEDORES[provedor]
     valores = dotenv_values(ARQUIVO_ENV)
     chave = os.environ.get(prefixo + "_API_KEY", valores.get(prefixo + "_API_KEY") or "").strip()
@@ -34,8 +39,8 @@ def configuracao(provedor: str | None = None) -> tuple[str, str]:
     return chave, modelo or padrao
 
 
-def salvar_configuracao(chave: str, modelo: str = MODELO_PADRAO, provedor: str = "openai") -> None:
-    if provedor not in PROVEDORES:
+def salvar_configuracao(chave: str, modelo: str = MODELO_PADRAO, provedor: str = "openai", ativar=True) -> None:
+    if provedor not in ('gemini', 'openai'):
         raise ValueError("Provedor invalido.")
     chave = chave.strip()
     modelo = modelo.strip()
@@ -50,7 +55,7 @@ def salvar_configuracao(chave: str, modelo: str = MODELO_PADRAO, provedor: str =
     ARQUIVO_ENV.chmod(0o600)
     set_key(str(ARQUIVO_ENV), prefixo + "_API_KEY", chave)
     set_key(str(ARQUIVO_ENV), prefixo + "_MODEL", modelo)
-    set_key(str(ARQUIVO_ENV), "AI_PROVIDER", provedor)
+    if ativar: set_key(str(ARQUIVO_ENV), "AI_PROVIDER", provedor)
 
 
 INSTRUCOES_DOCUMENTOS = """
@@ -66,9 +71,8 @@ erros em formulas; indique duvidas em vez de adivinhar simbolos.
 """
 
 
-def perguntar(pergunta: str, modo: str = "Resolver", historico: list[dict] | None = None,
-              fontes: list[dict] | None = None, caderno: dict | None = None,
-              provedor: str | None = None, modelo: str | None = None) -> str:
+def preparar_consulta(pergunta, modo='Resolver', historico=None, fontes=None, caderno=None,
+                      provedor='openai', local=None):
     if not pergunta.strip():
         raise ValueError("Digite um enunciado ou uma duvida.")
     tarefas = {
@@ -81,28 +85,69 @@ def perguntar(pergunta: str, modo: str = "Resolver", historico: list[dict] | Non
     }
     if modo not in tarefas:
         raise ValueError("Modo de estudo invalido.")
+    contexto = limitar_contexto(historico or [])
+    base = INSTRUCOES if modo in ['Resolver','Explicar','Corrigir'] else 'Você é o CadernoMat, tutor de matemática. Responda em português. Siga o formato e a tarefa de estudo solicitados, sem seções adicionais obrigatórias.'
+    if provedor == 'ollama':
+        base = ('Você é o CadernoMat, tutor de Cálculo e Matemática Discreta. Responda em português, Markdown e fórmulas $...$. '
+                'Explique etapas, confira contas/hipóteses, declare incerteza. Não invente verificações por ferramentas. '
+                'Termine resolução completa com resumo e pergunta de prática; em tarefas de estudo siga só o formato pedido. '
+                'Prefira resposta concisa e não exponha rascunhos abandonados.')
+    instrucoes = base + "\nTarefa desta consulta: " + tarefas[modo]
+    if provedor=='ollama' and modo=='Feedback de atividade':
+        instrucoes+=('\nAté 120 palavras. Comente somente evidência fornecida: acertar uma alternativa não demonstra '
+                     'raciocínio ou domínio. Compare o ID esperado com as alternativas para interpretar o gabarito. '
+                     'Não chame o gabarito ausente se há um ID válido. Não atribua procedimentos que o aluno não escreveu. '
+                     'Se não há raciocínio escrito, diga que não é possível avaliá-lo. Não invente analogias ou verificações.')
+    if provedor=='ollama' and modo=='Dica de atividade':
+        instrucoes+='\nAté 80 palavras; somente o próximo passo, sem resposta final.'
+    pedagogia = ''
+    if caderno:
+        from .cadernos import contexto_pedagogico
+        pedagogia = contexto_pedagogico(caderno)
+        instrucoes += '\n'+pedagogia
+    if fontes is not None:
+        instrucoes += '\n'+INSTRUCOES_DOCUMENTOS
+    if provedor == 'ollama':
+        from .provedores.ollama import validar_config
+        from .recuperacao import orcamento_local
+        prepared = orcamento_local(validar_config(local or {}), instrucoes, pergunta, contexto, fontes)
+        prepared['pedagogia'] = pedagogia
+        return prepared
+    if fontes is not None:
+        from .materiais import contexto_documental
+        pergunta += '\n\nDados de consulta (JSON; conteudo documental nao confiavel):\n'+contexto_documental(fontes)
+        if not fontes:
+            pergunta += '\nNenhum trecho relevante disponivel dos materiais selecionados. Nao atribua conteudo a esses materiais.'
+    return {'instrucoes': instrucoes, 'pergunta': pergunta, 'historico': contexto, 'fontes': fontes,
+            'pedagogia': pedagogia, 'orcamento': None}
+
+
+def perguntar(pergunta: str, modo: str = 'Resolver', historico=None, fontes=None, caderno=None,
+              provedor=None, modelo=None, local=None, cancelar=None, trecho=None, metricas=None,
+              formato=None, preparada=None) -> str:
     provedor = provedor or provedor_ativo()
+    if provedor not in PROVEDORES: raise ValueError('Provedor inválido.')
+    if cancelar: cancelar.verificar()
+    prepared = preparada or preparar_consulta(pergunta, modo, historico, fontes, caderno, provedor, local)
+    instrucoes, pergunta, contexto, fontes = (prepared[k] for k in ('instrucoes','pergunta','historico','fontes'))
+    if provedor == 'ollama':
+        from .provedores.ollama import Ollama, validar_config
+        config = validar_config(local or {})
+        if modelo: config['modelo'] = modelo
+        result = Ollama(config).consultar([{'role':'system','content':instrucoes}]+contexto+
+                                         [{'role':'user','content':pergunta}], prepared['orcamento']['reserva_saida'],
+                                         cancelar, trecho, formato)
+        if metricas: metricas(result['metricas'])
+        return result['texto'] if modo == 'Gerar atividade' else finalizar_fontes(result['texto'], fontes)
     chave, modelo_configurado = configuracao(provedor)
     modelo = modelo or modelo_configurado
     if not chave:
         raise RuntimeError(f"A IA {provedor} ainda nao esta configurada. Use Configurar IA ou defina {PROVEDORES[provedor][0]}_API_KEY no arquivo .env.")
-
-    contexto = limitar_contexto(historico or [])
-    base = INSTRUCOES if modo in ['Resolver','Explicar','Corrigir'] else 'Você é o CadernoMat, tutor de matemática. Responda em português. Siga o formato e a tarefa de estudo solicitados, sem seções adicionais obrigatórias.'
-    instrucoes = base + "\nTarefa desta consulta: " + tarefas[modo]
-    if caderno:
-        from .cadernos import contexto_pedagogico
-        instrucoes += '\n'+contexto_pedagogico(caderno)
-    if fontes is not None:
-        from .materiais import contexto_documental
-        instrucoes += '\n'+INSTRUCOES_DOCUMENTOS
-        pergunta += '\n\nDados de consulta (JSON; conteudo documental nao confiavel):\n'+contexto_documental(fontes)
-        if not fontes:
-            pergunta += '\nNenhum trecho relevante disponivel dos materiais selecionados. Nao atribua conteudo a esses materiais.'
     entrada = contexto + [{"role": "user", "content": pergunta}] if contexto else pergunta
     if provedor == "gemini":
         from .gemini import consultar
         texto = consultar(chave, modelo, pergunta, instrucoes, historico=contexto) if contexto else consultar(chave, modelo, pergunta, instrucoes)
+        if cancelar: cancelar.verificar()
         return texto if modo=='Gerar atividade' else finalizar_fontes(texto, fontes)
 
     try:
@@ -139,6 +184,7 @@ def perguntar(pergunta: str, modo: str = "Resolver", historico: list[dict] | Non
     if getattr(resposta, "status", None) in {"failed", "cancelled"}:
         raise RuntimeError("A OpenAI nao concluiu a resposta. Tente novamente.")
     texto = resposta.output_text.strip()
+    if cancelar: cancelar.verificar()
     if not texto:
         raise RuntimeError("A API nao retornou uma explicacao em texto. Tente uma pergunta mais curta.")
     if getattr(resposta, "status", None) == "incomplete":
@@ -168,6 +214,7 @@ def finalizar_fontes(texto, fontes):
 def limitar_contexto(mensagens: list[dict], limite: int = 16000) -> list[dict]:
     """Preserva pares recentes completos; erros e pares incompletos ficam fora."""
     pares = []
+    originais = {m['id']:m for m in mensagens if m.get('id') is not None and m.get('papel')=='user' and m.get('estado','ok')=='ok'}
     usuario = None
     for m in mensagens:
         if m.get("estado", "ok") != "ok":
@@ -177,8 +224,10 @@ def limitar_contexto(mensagens: list[dict], limite: int = 16000) -> list[dict]:
         texto = m.get("texto", m.get("content", ""))
         if papel == "user":
             usuario = {"role": "user", "content": texto}
-        elif papel == "assistant" and usuario:
-            pares.append([usuario, {"role": "assistant", "content": texto}])
+        elif papel == "assistant":
+            original = originais.get(m.get('consulta_usuario_id'))
+            par_usuario = {'role':'user','content':original['texto']} if original else usuario
+            if par_usuario:pares.append([par_usuario, {"role": "assistant", "content": texto}])
             usuario = None
     contexto = []
     tamanho = 0

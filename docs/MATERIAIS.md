@@ -132,5 +132,6 @@ A base atual e **RAG textual**, nao treinamento de uma rede neural. O contrato
 `recuperar()` retorna trechos com ID do material, pagina, ordem, texto e
 referencia, independente do provedor. Embeddings locais, busca semantica/hibrida,
 versionamento do modelo de embeddings e relacoes entre materiais entram depois.
-O futuro adaptador de IA local pode consumir esse mesmo contexto textual;
-nenhum modelo local foi instalado nesta entrega.
+O adaptador [Ollama](OLLAMA.md) agora consome esse mesmo contexto textual,
+com orçamento local e seleção explícita. Modelos permanecem fora do Git;
+visão e embeddings ainda não foram implementados.

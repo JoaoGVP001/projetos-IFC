@@ -28,7 +28,7 @@ class Historico:
         self.db.row_factory = sqlite3.Row
         self.db.execute('PRAGMA foreign_keys=ON')
         versao = self.db.execute('PRAGMA user_version').fetchone()[0]
-        if versao > 6:
+        if versao > 7:
             self.db.close()
             raise RuntimeError('Este historico exige uma versao mais recente do CadernoMat.')
         if versao == 0:
@@ -101,6 +101,20 @@ class Historico:
             except Exception:
                 self.db.close()
                 raise
+        if versao < 7:
+            if versao:
+                with closing(sqlite3.connect(str(self.caminho)+'.v6.backup')) as destino:
+                    self.db.backup(destino)
+                if os.name != 'nt': Path(str(self.caminho)+'.v6.backup').chmod(0o600)
+            from .preferencias_ia import migrar_ia
+            try:
+                with self.db:
+                    self.db.execute('BEGIN')
+                    migrar_ia(self.db)
+                    self.db.execute('PRAGMA user_version=7')
+            except Exception:
+                self.db.close()
+                raise
         self.db.execute('PRAGMA journal_mode=WAL')
         self.db.create_function('CASEFOLD', 1, lambda texto: texto.casefold())
         if os.name != 'nt':
@@ -144,7 +158,8 @@ class Historico:
             self.db.execute('DELETE FROM conversas WHERE id=?',(conversa,))
 
     def mensagens(self, conversa):
-        return [dict(x) for x in self.db.execute('SELECT * FROM mensagens WHERE conversa_id=? ORDER BY id',(conversa,))]
+        return [dict(x) for x in self.db.execute('''SELECT m.*,q.id AS consulta_id,q.usuario_id AS consulta_usuario_id FROM mensagens m
+            LEFT JOIN consultas_ia q ON q.resposta_id=m.id WHERE m.conversa_id=? ORDER BY m.id''',(conversa,))]
 
     def renomear(self, conversa, titulo):
         if not titulo.strip():
@@ -157,7 +172,7 @@ class Historico:
             self.db.execute('UPDATE conversas SET rascunho=? WHERE id=?',(texto,conversa))
 
     def adicionar(self, conversa, papel, texto, estado='ok', provedor='', modelo=''):
-        if papel not in {'user','assistant'} or estado not in {'ok','erro'}:
+        if papel not in {'user','assistant'} or estado not in {'ok','erro','cancelada','incompleta'}:
             raise ValueError('Mensagem invalida.')
         with self.db:
             cursor=self.db.execute('INSERT INTO mensagens(conversa_id,papel,texto,estado,provedor,modelo) VALUES (?,?,?,?,?,?)',(conversa,papel,texto,estado,provedor,modelo))

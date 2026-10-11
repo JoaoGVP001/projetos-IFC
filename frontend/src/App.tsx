@@ -45,7 +45,6 @@ import { api } from "./bridge";
 import type {
   Caderno,
   Chat,
-  Config,
   Estado,
   Material,
   Filtros,
@@ -65,6 +64,7 @@ import {
 } from "./ui";
 import { Markdown } from "./Markdown";
 import { Activities } from "./Activities";
+import { ConfigForm, nomeProvedor } from "./ConfigIA";
 
 const preferencias: Record<string, string> = {
   completa: "Explicação completa",
@@ -110,6 +110,12 @@ export default function App() {
     nonce: number;
   } | null>(null);
   const firstView = useRef(true);
+  const pendingSend = useRef<{
+    id: string;
+    texto: string;
+    modo: string;
+    requisicao: string;
+  } | null>(null);
   const stateRef = useRef(state),
     draftRef = useRef<{ id: string; texto: string } | null>(null),
     dirty = useRef(false),
@@ -195,7 +201,11 @@ export default function App() {
       top: scroller.current.scrollHeight,
       behavior: "smooth",
     });
-  }, [state?.mensagens.length, state?.conversa?.id]);
+  }, [
+    state?.mensagens.length,
+    state?.conversa?.id,
+    state?.tarefas.find((t) => t.estado === "executando")?.parcial,
+  ]);
   const run = useCallback(
     async (op: string, dados: Record<string, unknown> = {}, close = false) => {
       setWorking(true);
@@ -226,6 +236,9 @@ export default function App() {
   const editable =
     !!state?.conversa && !state.conversa.arquivada && !currentBook?.arquivado;
   const occupied = !!state?.ocupado || working;
+  const activeTask = state?.tarefas.find(
+    (t) => t.estado === "executando" && t.conversa === state.conversa?.id,
+  );
   const navigate = async (
     caderno: string | null,
     conversa?: string,
@@ -438,7 +451,21 @@ export default function App() {
     busyRef.current = true;
     try {
       await flush();
-      await api("enviar", { id: state!.conversa!.id, texto: draft, modo });
+      const cid = state!.conversa!.id;
+      if (
+        !pendingSend.current ||
+        pendingSend.current.id !== cid ||
+        pendingSend.current.texto !== draft ||
+        pendingSend.current.modo !== modo
+      )
+        pendingSend.current = {
+          id: cid,
+          texto: draft,
+          modo,
+          requisicao: crypto.randomUUID(),
+        };
+      await api("enviar", pendingSend.current);
+      pendingSend.current = null;
       changeDraft("");
       dirty.current = false;
       await refresh(true);
@@ -784,9 +811,10 @@ export default function App() {
                 }
               />
               <span>
-                {state.config.provedor === "gemini" ? "Gemini" : "OpenAI"}
+                {nomeProvedor(state.config.provedor)}
                 <small>
-                  {state.config.provedores[state.config.provedor].modelo}
+                  {state.config.modelo ||
+                    state.config.provedores[state.config.provedor].modelo}
                 </small>
               </span>
             </button>
@@ -876,7 +904,7 @@ export default function App() {
                   {state.mensagens.map((m) => (
                     <article
                       key={m.id}
-                      className={`message message-${m.papel} ${m.estado === "erro" ? "message-error" : ""}`}
+                      className={`message message-${m.papel} ${m.estado !== "ok" ? "message-error" : ""}`}
                     >
                       <div className="message-label">
                         <span className={`avatar ${m.papel}`}>
@@ -889,11 +917,19 @@ export default function App() {
                         <strong>
                           {m.papel === "user" ? "Você" : "CadernoMat"}
                         </strong>
-                        {m.estado === "erro" && (
-                          <Badge kind="error">Não concluído</Badge>
+                        {m.estado !== "ok" && (
+                          <Badge kind="warning">
+                            {m.estado === "cancelada"
+                              ? "Cancelada · texto parcial"
+                              : m.estado === "incompleta"
+                                ? "Resposta incompleta"
+                                : "Não concluído"}
+                          </Badge>
                         )}
                         {m.papel === "assistant" && m.provedor && (
-                          <span className="message-provider">{m.provedor}</span>
+                          <span className="message-provider" title={m.modelo}>
+                            {nomeProvedor(m.provedor)} · {m.modelo}
+                          </span>
                         )}
                       </div>
                       <div className="message-content">
@@ -907,15 +943,56 @@ export default function App() {
                         <Copy size={14} />
                         <span>Copiar</span>
                       </button>
+                      {m.estado !== "ok" && m.consulta_id && (
+                        <Button
+                          variant="ghost"
+                          icon={RotateCcw}
+                          disabled={occupied || !editable}
+                          onClick={() =>
+                            void run("ia_repetir", {
+                              id: m.consulta_id,
+                              requisicao: crypto.randomUUID(),
+                            })
+                          }
+                        >
+                          Repetir consulta
+                        </Button>
+                      )}
                     </article>
                   ))}
-                  {state.ocupado && (
-                    <div className="thinking">
-                      <div className="avatar assistant">
-                        <Sigma size={17} />
+                  {activeTask && (
+                    <article
+                      className="message message-assistant streaming-message"
+                      aria-label="Resposta em geração"
+                    >
+                      <div className="message-label">
+                        <span className="avatar assistant">
+                          <Sigma size={17} />
+                        </span>
+                        <strong>CadernoMat</strong>
+                        <Badge kind="warning">Em geração · texto parcial</Badge>
+                        {activeTask.cancelavel && (
+                          <Button
+                            variant="ghost"
+                            disabled={activeTask.cancelando}
+                            onClick={() =>
+                              void run("ia_cancelar", { id: activeTask.id })
+                            }
+                          >
+                            {activeTask.cancelando
+                              ? "Interrompendo…"
+                              : "Cancelar resposta"}
+                          </Button>
+                        )}
                       </div>
-                      <Loading>Construindo a resposta…</Loading>
-                    </div>
+                      {activeTask.parcial ? (
+                        <Markdown texto={activeTask.parcial} onError={notify} />
+                      ) : (
+                        <Loading>
+                          Carregando modelo e construindo a resposta…
+                        </Loading>
+                      )}
+                    </article>
                   )}
                 </div>
               )}
@@ -1147,7 +1224,7 @@ export default function App() {
           }
           subtitle={
             modal.tipo === "config"
-              ? "Escolha o serviço e configure sua própria chave."
+              ? "Escolha IA local ou online e onde aplicar a configuração."
               : undefined
           }
           wide={["detalhe", "previa"].includes(modal.tipo)}
@@ -1199,6 +1276,7 @@ export default function App() {
           )}
           {modal.tipo === "config" && (
             <ConfigForm
+              chat={!!state.conversa && editable}
               config={state.config}
               save={(d) => run("configurar", d, true)}
               busy={working}
@@ -1220,6 +1298,7 @@ export default function App() {
             <SendPreview
               id={state.conversa?.id || null}
               texto={draft}
+              modo={modo}
               notify={notify}
             />
           )}
@@ -1431,120 +1510,6 @@ function LinkForm({
       <div className="form-actions">
         <Button variant="primary" type="submit" disabled={busy} icon={Link}>
           Adicionar link
-        </Button>
-      </div>
-    </form>
-  );
-}
-function ConfigForm({
-  config,
-  save,
-  busy,
-  notify,
-}: {
-  config: Config;
-  save: (d: Record<string, unknown>) => Promise<boolean>;
-  busy: boolean;
-  notify: (m: string) => void;
-}) {
-  const [provider, setProvider] = useState(config.provedor),
-    [model, setModel] = useState(config.provedores[config.provedor].modelo),
-    [key, setKey] = useState("");
-  const escolher = (p: string) => {
-    setProvider(p);
-    setModel(config.provedores[p].modelo);
-    setKey("");
-  };
-  const abrir = (url: string) =>
-    void api("abrir_link", { url }).catch((e) => notify(e.message));
-  return (
-    <form
-      onSubmit={async (e) => {
-        e.preventDefault();
-        try {
-          await save({ provedor: provider, modelo: model, chave: key });
-        } finally {
-          setKey("");
-        }
-      }}
-    >
-      <div className="provider-options">
-        {["gemini", "openai"].map((p) => (
-          <button
-            type="button"
-            key={p}
-            className={`provider-option ${provider === p ? "active" : ""}`}
-            onClick={() => escolher(p)}
-          >
-            <span className="provider-symbol">
-              <Sigma size={21} />
-            </span>
-            <strong>{p === "gemini" ? "Gemini" : "OpenAI"}</strong>
-            <small>
-              {p === "gemini" ? "Cota gratuita ou paga" : "API paga por uso"}
-            </small>
-            {provider === p && <CheckCircle2 size={17} />}
-          </button>
-        ))}
-      </div>
-      <Field label="Modelo">
-        <input
-          required
-          maxLength={100}
-          value={model}
-          onChange={(e) => setModel(e.target.value)}
-        />
-      </Field>
-      <Field
-        label="Chave da API"
-        hint={
-          config.provedores[provider].configurada
-            ? "Já existe uma chave salva. Deixe vazio para reutilizá-la."
-            : "Configure uma chave pessoal desse provedor."
-        }
-      >
-        <input
-          type="password"
-          autoComplete="off"
-          maxLength={500}
-          value={key}
-          onChange={(e) => setKey(e.target.value)}
-          placeholder="Cole sua chave aqui"
-        />
-      </Field>
-      <p className="hint">
-        A chave fica no Python, no arquivo local protegido. Salvar não testa
-        acesso nem ativa faturamento. A assinatura do ChatGPT é separada da API.
-      </p>
-      <div className="config-links">
-        <button
-          type="button"
-          onClick={() =>
-            abrir(
-              provider === "gemini"
-                ? "https://aistudio.google.com/api-keys"
-                : "https://platform.openai.com/api-keys",
-            )
-          }
-        >
-          Criar ou conferir chave <ExternalLink size={13} />
-        </button>
-        <button
-          type="button"
-          onClick={() =>
-            abrir(
-              provider === "gemini"
-                ? "https://ai.google.dev/gemini-api/docs/pricing"
-                : "https://openai.com/api/pricing/",
-            )
-          }
-        >
-          Cotas e preços <ExternalLink size={13} />
-        </button>
-      </div>
-      <div className="form-actions">
-        <Button type="submit" variant="primary" disabled={busy} icon={Check}>
-          Salvar configuração
         </Button>
       </div>
     </form>
@@ -2018,19 +1983,21 @@ function Preview({ id, notify }: { id: string; notify: (s: string) => void }) {
 function SendPreview({
   id,
   texto,
+  modo,
   notify,
 }: {
   id: string | null;
   texto: string;
+  modo: string;
   notify: (s: string) => void;
 }) {
   const [p, setP] = useState<Previa | null>(null),
     [error, setError] = useState("");
   useEffect(() => {
-    api<Previa>("previa", { id, texto })
+    api<Previa>("previa", { id, texto, modo })
       .then(setP)
       .catch((e) => setError(e.message));
-  }, [id, texto]);
+  }, [id, texto, modo]);
   if (error) return <p role="alert">{error}</p>;
   if (!p) return <Loading />;
   return (
@@ -2038,14 +2005,36 @@ function SendPreview({
       <div className="notice">
         <CheckCircle2 size={18} />
         <span>
-          Consulta a <strong>{p.provedor}</strong> · {p.modelo}. Originais
-          binários ficam neste computador.
+          Consulta a <strong>{nomeProvedor(p.provedor)}</strong> · {p.modelo}.{" "}
+          {p.destino}. Originais binários ficam neste computador.
         </span>
       </div>
+      {p.orcamento && (
+        <section className="local-budget">
+          <h3>Orçamento do modelo local</h3>
+          <p>
+            Entrada estimada: {p.orcamento.entrada_estimada} · saída reservada:{" "}
+            {p.orcamento.reserva_saida} · margem: {p.orcamento.margem} ·
+            contexto: {p.orcamento.contexto} tokens.
+          </p>
+          <p className="hint">
+            {p.orcamento.metodo}. Pares omitidos: {p.orcamento.pares_omitidos};
+            trechos omitidos: {p.orcamento.trechos_omitidos}; abreviados:{" "}
+            {p.orcamento.trechos_abreviados}. Abaixo estão os dados que serão
+            usados.
+          </p>
+        </section>
+      )}
       <h3>Configurações do caderno</h3>
       <pre>{p.pedagogia || "Geral: instruções padrão de estudo."}</pre>
       <h3>Mensagem</h3>
       <pre>{p.mensagem || "(vazia)"}</pre>
+      {p.instrucoes && (
+        <details>
+          <summary>Instruções desta consulta</summary>
+          <pre>{p.instrucoes}</pre>
+        </details>
+      )}
       <h3>Histórico desta conversa</h3>
       {p.historico.length ? (
         p.historico.map((m, i) => (

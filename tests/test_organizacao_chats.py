@@ -63,7 +63,7 @@ class OrganizacaoChatsTest(unittest.TestCase):
         banco=Historico(caminho)
         self.assertEqual(banco.listar()[0]['titulo'],'Antigo')
         self.assertEqual(banco.listar()[0]['arquivada'],0)
-        self.assertEqual(banco.db.execute('PRAGMA user_version').fetchone()[0],6)
+        self.assertEqual(banco.db.execute('PRAGMA user_version').fetchone()[0],7)
         banco.fechar()
         with sqlite3.connect(str(caminho)+'.v1.backup') as backup:
             self.assertEqual(backup.execute('PRAGMA user_version').fetchone()[0],1)

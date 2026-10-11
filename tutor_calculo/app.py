@@ -26,16 +26,24 @@ def ler_multilinha() -> str:
     return "\n".join(linhas).strip()
 
 
-def resolver(texto: str, usar_ia: bool = False, *, caderno=None, historico=None) -> str:
+def usa_analisador(texto):
+    normalizado=re.sub(r"\s+", "", texto.lower())
+    return "f(x)" in normalizado and ("sex" in normalizado or ",x" in normalizado)
+
+
+def resolver(texto: str, usar_ia: bool = False, *, caderno=None, historico=None,
+             provedor=None, modelo=None, local=None, cancelar=None, trecho=None, metricas=None, preparada=None) -> str:
     contexto = {}
     if caderno is not None:
         contexto['caderno'] = caderno
     if historico is not None:
         contexto['historico'] = historico
+    for key,value in {'provedor':provedor,'modelo':modelo,'local':local,'cancelar':cancelar,
+                      'trecho':trecho,'metricas':metricas,'preparada':preparada}.items():
+        if value is not None:contexto[key]=value
     if usar_ia:
         return perguntar(texto, modo="Resolver", **contexto)
-    normalizado = re.sub(r"\s+", "", texto.lower())
-    if "f(x)" in normalizado and ("sex" in normalizado or ",x" in normalizado):
+    if usa_analisador(texto):
         from .matematica import analisar_continuidade, ler_problema
 
         return analisar_continuidade(ler_problema(re.sub(r"f\s*\(\s*x\s*\)", "f(x)", texto, flags=re.IGNORECASE)))

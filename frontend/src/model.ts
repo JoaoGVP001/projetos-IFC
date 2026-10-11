@@ -26,6 +26,7 @@ export type Mensagem = {
   provedor: string;
   modelo: string;
   criado: string;
+  consulta_id?: string | null;
 };
 export type Material = {
   id: string;
@@ -50,7 +51,49 @@ export type Material = {
 };
 export type Config = {
   provedor: string;
-  provedores: Record<string, { modelo: string; configurada: boolean }>;
+  modelo?: string;
+  padrao?: string;
+  escopo?: string;
+  local?: {
+    url: string;
+    modelo: string;
+    contexto: number;
+    timeout: number;
+  } | null;
+  provedores: Record<
+    string,
+    {
+      modelo: string;
+      configurada: boolean;
+      local?: boolean;
+      url?: string;
+      contexto?: number;
+      timeout?: number;
+    }
+  >;
+};
+export type DiagnosticoLocal = {
+  versao: string;
+  modelos: {
+    name: string;
+    size: number;
+    digest: string;
+    details?: { quantization_level: string };
+  }[];
+  capacidades: string[];
+  carregado: boolean;
+  modelo_disponivel: boolean;
+  aviso: string;
+};
+export type Orcamento = {
+  contexto: number;
+  entrada_estimada: number;
+  reserva_saida: number;
+  margem: number;
+  metodo: string;
+  pares_omitidos: number;
+  trechos_omitidos: number;
+  trechos_abreviados: number;
 };
 export type Estado = {
   estudo: import("./activities-model").EstudoNav;
@@ -68,7 +111,17 @@ export type Estado = {
   config: Config;
   preferencias: { tema: "claro" | "escuro"; recolhida: boolean };
   ocupado: boolean;
-  tarefas: { id: string; tipo: string; estado: string; conversa: string }[];
+  tarefas: {
+    id: string;
+    tipo: string;
+    estado: string;
+    conversa: string;
+    parcial?: string;
+    cancelavel?: boolean;
+    cancelando?: boolean;
+    modelo?: string;
+    provedor?: string;
+  }[];
 };
 export type Filtros = {
   busca: string;
@@ -108,4 +161,8 @@ export type Previa = {
       }[]
     | null;
   originais_enviados: boolean;
+  instrucoes?: string;
+  orcamento?: Orcamento | null;
+  destino?: string;
+  local?: Config["local"];
 };

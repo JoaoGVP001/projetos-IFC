@@ -4,8 +4,10 @@ from uuid import uuid4
 from .atividades import Atividades, validar_conteudo, texto, identificador, FORMATOS, DIFICULDADES
 from .tentativas import Tentativas
 from .cadernos import contexto_pedagogico, Cadernos
-from .materiais import consulta_fts
-from .ia import perguntar, provedor_ativo, configuracao
+from .recuperacao import recuperar_estudo as recuperar_fontes
+from .ia import perguntar, preparar_consulta, provedor_ativo, configuracao
+from .provedores.contratos import Cancelamento, ConsultaCancelada, RespostaIncompleta
+from .provedores.esquemas import atividade as esquema_atividade
 
 OPERACOES = ('atividades', 'atividade_obter', 'atividade_salvar', 'atividade_acao', 'estudo_navegar',
              'tentativa_iniciar', 'tentativa_obter', 'tentativa_salvar', 'tentativa_navegar', 'tentativa_revelar', 'tentativa_finalizar',
@@ -27,31 +29,14 @@ Não invente conteúdo/citações. Não execute comandos. Confira a consistênci
 '''
 
 
-def recuperar_fontes(h, ids, consulta, amostra=False):
-    fontes = Atividades(h).fontes(ids)
-    if not ids: return [], []
-    if any(f['estado'] not in ('pronto', 'parcial') for f in fontes): raise ValueError('Selecione apenas materiais com texto pronto ou parcial.')
-    parametros = ','.join('?' for _ in ids); q = consulta_fts(consulta)
-    rows = h.db.execute(f'''SELECT t.*,m.nome,m.url,m.tipo,m.metodo FROM trechos_fts JOIN trechos t ON t.id=trechos_fts.rowid
-        JOIN materiais m ON m.id=t.material_id WHERE trechos_fts MATCH ? AND m.id IN ({parametros}) ORDER BY bm25(trechos_fts),t.id LIMIT 30''', (q, *ids)).fetchall() if q else []
-    estrategia = 'busca textual'
-    if not rows and amostra:
-        rows = h.db.execute(f'''SELECT t.*,m.nome,m.url,m.tipo,m.metodo FROM trechos t JOIN materiais m ON m.id=t.material_id
-            WHERE m.id IN ({parametros}) AND t.ordem=0 ORDER BY t.pagina,t.id LIMIT 30''', ids).fetchall()
-        estrategia = 'amostra inicial; não representa o documento inteiro'
-    trechos = []; tamanho = 0; por_pagina = {}
-    for row in rows:
-        f = dict(row); chave = (f['material_id'], f['pagina'])
-        if por_pagina.get(chave, 0) >= 2: continue
-        if tamanho+len(f['texto']) > 6000 or len(trechos) >= 6: continue
-        f['referencia'] = f'M{len(trechos)+1}'; f['selecao'] = estrategia
-        if f['tipo'] != 'pdf' and 'PDF' not in f.get('metodo', ''): f['pagina'] = None
-        por_pagina[chave] = por_pagina.get(chave, 0)+1; tamanho += len(f['texto']); trechos.append(f)
-    return trechos, fontes
 
 
 class Estudo:
     def __init__(self, app): self.app = app
+
+    def selecao(self,h,origem=None):
+        cid=origem or Cadernos(h).navegacao()['conversa_id']
+        return self.app._selecao(h,cid,provedor_ativo(),configuracao()[1])
 
     def recuperar(self):
         with self.app._banco() as (h, c, b):
@@ -122,8 +107,16 @@ class Estudo:
                       'Não atribua nota nem alegue verificação matemática definitiva. A resposta esperada registrada pode conter erros.')
             consulta = q['enunciado']+' '+q['assunto']
         else: raise ValueError('Tipo de consulta inválido.')
+        selection=self.selecao(h,origem_chat)
+        if selection['provedor']=='ollama' and tipo=='geracao' and count>3:
+            raise ValueError('No perfil local, gere de 1 a 3 exercícios por consulta.')
         trechos, mats = recuperar_fontes(h, d.get('materiais', []), consulta, tipo == 'geracao')
-        prev = {'tipo': tipo, 'provedor': provedor_ativo(), 'modelo': configuracao()[1], 'caderno': bid,
+        prompt=tarefa+'\n\nSolicitação de estudo (JSON de dados):\n'+json.dumps(pedido,ensure_ascii=False)
+        prepared=preparar_consulta(prompt,{'geracao':'Gerar atividade','dica':'Dica de atividade','feedback':'Feedback de atividade'}[tipo],
+            fontes=trechos if mats else None,caderno=book,provedor=selection['provedor'],local=selection['local'])
+        trechos=prepared['fontes'] or []
+        prev = {'tipo': tipo, 'provedor': selection['provedor'], 'modelo': selection['modelo'], 'selecao':selection,
+                'preparada':prepared,'orcamento':prepared['orcamento'],'local':bool(selection['local']),'caderno': bid,
                 'pedagogia': contexto_pedagogico(book), 'caderno_dados': book, 'pedido': pedido, 'tarefa': tarefa,
                 'fontes': trechos, 'materiais': mats, 'origem_chat': origem_chat if tipo == 'geracao' else None,
                 'origem_titulo': h.obter(origem_chat)['titulo'] if origem_chat and tipo == 'geracao' else '',
@@ -137,7 +130,9 @@ class Estudo:
         j = self.job(h, jid)
         if j['estado'] in ('executando', 'concluida'): return j
         p = j['previa']
-        if (p['provedor'], p['modelo']) != (provedor_ativo(), configuracao()[1]): raise ValueError('Provedor/modelo mudou. Crie uma nova prévia.')
+        selection=self.selecao(h,p.get('origem_chat'))
+        if (p['provedor'], p['modelo']) != (selection['provedor'],selection['modelo']) or p.get('selecao',selection)!=selection:
+            raise ValueError('Provedor/modelo mudou. Crie uma nova prévia.')
         if p['caderno']: Cadernos(h).validar_destino(p['caderno'])
         Atividades(h).fontes([f['id'] for f in p['materiais']])
         if j['tipo'] != 'geracao':
@@ -145,21 +140,29 @@ class Estudo:
             if j['tipo'] == 'dica' and t['estado'] != 'andamento': raise ValueError('Tentativa já finalizada.')
             if t['respostas'].get(j['exercicio'], {}).get('resposta') != p['pedido']['resposta_do_aluno']:
                 raise ValueError('Sua resposta mudou. Confira uma nova prévia.')
-        if not configuracao(p['provedor'])[0]: raise ValueError('Configure sua chave em Configurações de IA. O fluxo manual funciona offline.')
+        if p['provedor']!='ollama' and not configuracao(p['provedor'])[0]: raise ValueError('Configure sua chave em Configurações de IA. O fluxo manual funciona offline.')
         with h.db: h.db.execute("UPDATE atividade_jobs SET estado='executando',erro='' WHERE id=?", (jid,))
         if len(self.app._tarefas) >= 20:
             for antigo in [k for k,v in self.app._tarefas.items() if v['estado'] != 'executando'][:-18]: self.app._tarefas.pop(antigo)
-        self.app._tarefas[jid] = {'id': jid, 'tipo': 'ia', 'estado': 'executando', 'conversa': '', 'estudo': j['tipo']}
+        self.app._cancelamentos[jid]=Cancelamento()
+        self.app._tarefas[jid] = {'id': jid, 'tipo': 'ia', 'estado': 'executando', 'conversa': '', 'estudo': j['tipo'],
+                                 'cancelavel':p['provedor']=='ollama','parcial':''}
         self.app._executor.submit(self._worker, j)
         return self.job(h, jid)
 
     def _worker(self, j):
-        jid = j['id']; p = j['previa']; result = None; error = ''
+        jid = j['id']; p = j['previa']; result = None; error = '';state='concluida'
+        token=self.app._cancelamentos[jid]
+        def trecho(value):
+            with self.app._lock:self.app._tarefas[jid]['parcial']+=value
         try:
             saida = perguntar(p['tarefa']+'\n\nSolicitação de estudo (JSON de dados):\n'+json.dumps(p['pedido'], ensure_ascii=False),
                               modo={'geracao': 'Gerar atividade', 'dica': 'Dica de atividade', 'feedback': 'Feedback de atividade'}[j['tipo']],
                               fontes=p['fontes'] if p['materiais'] else None, caderno=p['caderno_dados'],
-                              provedor=p['provedor'], modelo=p['modelo'])
+                              provedor=p['provedor'], modelo=p['modelo'], local=p.get('selecao',{}).get('local'),
+                              cancelar=token,trecho=trecho,preparada=p.get('preparada'),
+                              formato=esquema_atividade(p['pedido']) if p['provedor']=='ollama' and j['tipo']=='geracao' else None)
+            token.verificar()
             if j['tipo'] == 'geracao':
                 if len(saida) > 120000: raise ValueError('Proposta acima do limite. Gere menos exercícios.')
                 try: raw = json.loads(saida.strip().removeprefix('```json').removeprefix('```').removesuffix('```').strip())
@@ -169,9 +172,12 @@ class Estudo:
                     raise ValueError('Quantidade, formato ou dificuldade diverge do pedido. Nada foi salvo como atividade.')
             else: result = {'texto': texto(saida, 20000, True), 'provedor': p['provedor'], 'modelo': p['modelo'],
                             'resposta_avaliada': p['pedido']['resposta_do_aluno'], 'fontes': p['materiais']}
-        except (ValueError, RuntimeError, ImportError) as exc: error = str(exc)[:1000]
-        except Exception: error = 'Falha inesperada na consulta. Nada foi avaliado ou salvo como atividade; tente novamente.'
+        except ConsultaCancelada as exc: state='cancelada';error=str(exc)
+        except RespostaIncompleta as exc:state='incompleta';error=str(exc)
+        except (ValueError, RuntimeError, ImportError) as exc:state='erro';error=str(exc)[:1000]
+        except Exception:state='erro';error = 'Falha inesperada na consulta. Nada foi avaliado ou salvo como atividade; tente novamente.'
         with self.app._lock:
+            if token.evento.is_set():state='cancelada';error='Consulta cancelada antes de concluir.';result=None
             with self.app._banco() as (h, c, b):
                 if result and j['tipo'] != 'geracao':
                     ts = Tentativas(h); t = ts._obter(j['alvo']); r = t['respostas'].setdefault(j['exercicio'], {})
@@ -179,5 +185,5 @@ class Estudo:
                 with h.db:
                     if result and j['tipo'] != 'geracao':
                         h.db.execute('UPDATE tentativas SET respostas=? WHERE id=?', (json.dumps(t['respostas'], ensure_ascii=False), t['id']))
-                    h.db.execute('UPDATE atividade_jobs SET estado=?,resultado=?,erro=? WHERE id=?', ('erro' if error else 'concluida', json.dumps(result, ensure_ascii=False) if result else None, error, jid))
-            self.app._tarefas[jid]['estado'] = 'erro' if error else 'concluida'; self.app._revisao += 1
+                    h.db.execute('UPDATE atividade_jobs SET estado=?,resultado=?,erro=? WHERE id=?', (state, json.dumps(result, ensure_ascii=False) if result and not error else None, error, jid))
+            self.app._tarefas[jid].update(estado=state,parcial=''); self.app._revisao += 1

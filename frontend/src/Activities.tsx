@@ -793,7 +793,7 @@ export function Activities({ state, notify, seed, onChat }: Props) {
                 ? "Dica progressiva com IA"
                 : "Feedback pedagógico com IA"
           }
-          subtitle="Consulta opcional à API configurada. Confira os dados antes de enviar."
+          subtitle="Consulta opcional ao provedor escolhido. Confira os dados antes de enviar."
           wide
           onClose={() => setJob(null)}
         >
@@ -803,7 +803,7 @@ export function Activities({ state, notify, seed, onChat }: Props) {
               Consultando {job.previa.provedor}… Pode continuar escrevendo sua
               resposta.
             </Loading>
-          ) : job.estado === "erro" ? (
+          ) : ["erro", "cancelada", "incompleta"].includes(job.estado) ? (
             <p role="alert" className="activity-warning">
               {job.erro}
             </p>
@@ -813,6 +813,17 @@ export function Activities({ state, notify, seed, onChat }: Props) {
             <Markdown texto={(job.resultado as { texto: string }).texto} />
           ) : null}
           <div className="dialog-actions">
+            {job.estado === "executando" && job.previa.local && (
+              <Button
+                onClick={() =>
+                  void safe(async () => {
+                    await api("ia_cancelar", { id: job.id });
+                  })
+                }
+              >
+                Cancelar consulta local
+              </Button>
+            )}
             {job.estado === "concluida" && job.tipo === "geracao" ? (
               <Button
                 variant="primary"
@@ -841,7 +852,9 @@ export function Activities({ state, notify, seed, onChat }: Props) {
                   )
                 }
               >
-                Confirmar consulta à API
+                {job.previa.local
+                  ? "Confirmar consulta local"
+                  : "Confirmar consulta à API"}
               </Button>
             ) : null}
             <Button onClick={() => setJob(null)}>Fechar</Button>
@@ -2092,11 +2105,17 @@ function GenerationForm({
                   onChange={(e) => setSubject(e.target.value)}
                 />
               </Field>
-              <Field label="Quantidade de exercícios (1–10)">
+              <Field
+                label={
+                  state.config.provedor === "ollama"
+                    ? "Quantidade de exercícios (1–3)"
+                    : "Quantidade de exercícios (1–10)"
+                }
+              >
                 <input
                   type="number"
                   min={1}
-                  max={10}
+                  max={state.config.provedor === "ollama" ? 3 : 10}
                   required
                   value={count}
                   onChange={(e) => setCount(Number(e.target.value))}
@@ -2172,12 +2191,23 @@ function JobPreview({ job }: { job: Job }) {
       </div>
       <p className="muted">
         Nenhum arquivo original, outro chat ou chave entra nos dados abaixo. A
-        confirmação usa exatamente esta prévia. A API pode ter cotas ou cobrança
-        conforme sua conta.
+        confirmação usa exatamente esta prévia.{" "}
+        {p.local
+          ? "Processamento somente no Ollama deste computador, sem fallback online."
+          : "A API pode ter cotas ou cobrança conforme sua conta."}
       </p>
       {p.aviso && (
         <p role="status" className="activity-warning">
           {p.aviso}
+        </p>
+      )}
+      {p.orcamento && (
+        <p className="hint">
+          Contexto local: {p.orcamento.contexto} tokens; entrada estimada:{" "}
+          {p.orcamento.entrada_estimada}; reserva de saída:{" "}
+          {p.orcamento.reserva_saida}; margem: {p.orcamento.margem}.{" "}
+          {p.orcamento.metodo}. Trechos omitidos: {p.orcamento.trechos_omitidos}
+          , abreviados: {p.orcamento.trechos_abreviados}.
         </p>
       )}
       <details open>

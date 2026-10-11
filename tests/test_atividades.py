@@ -33,16 +33,16 @@ class EstudoTest(unittest.TestCase):
     def test_migracao_backup_preserva_v5(self):
         cid=self.h.criar(); self.h.adicionar(cid,'user','preservar'); self.h.rascunho(cid,'rascunho'); self.h.fechar()
         with sqlite3.connect(self.path) as db:
-            for tabela in ['estudo_navegacao','atividade_jobs','tentativas','atividade_versoes','atividades']: db.execute('DROP TABLE '+tabela)
+            for tabela in ['consultas_ia','chat_ia','estudo_navegacao','atividade_jobs','tentativas','atividade_versoes','atividades']: db.execute('DROP TABLE '+tabela)
             db.execute('PRAGMA user_version=5')
         self.h=Historico(self.path)
-        self.assertEqual(self.h.db.execute('PRAGMA user_version').fetchone()[0],6)
+        self.assertEqual(self.h.db.execute('PRAGMA user_version').fetchone()[0],7)
         self.assertEqual(self.h.obter(cid)['rascunho'],'rascunho'); self.assertEqual(self.h.mensagens(cid)[0]['texto'],'preservar')
         with sqlite3.connect(str(self.path)+'.v5.backup') as db: self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],5)
     def test_rollback_ddl(self):
         self.h.fechar()
         with sqlite3.connect(self.path) as db:
-            for tabela in ['estudo_navegacao','atividade_jobs','tentativas','atividade_versoes','atividades']: db.execute('DROP TABLE '+tabela)
+            for tabela in ['consultas_ia','chat_ia','estudo_navegacao','atividade_jobs','tentativas','atividade_versoes','atividades']: db.execute('DROP TABLE '+tabela)
             db.execute('PRAGMA user_version=5')
         def falha(db): db.execute('CREATE TABLE parcial(id)'); raise RuntimeError('simulada')
         with patch('tutor_calculo.atividades.migrar_atividades',side_effect=falha), self.assertRaises(RuntimeError): Historico(self.path)
@@ -128,7 +128,7 @@ class EstudoTest(unittest.TestCase):
         tabelas=['conversas','mensagens','cadernos','navegacao','materiais','chat_materiais','materiais_cadernos','paginas','trechos','trechos_fts']
         antes={k:[tuple(r) for r in self.h.db.execute('SELECT * FROM '+k)] for k in tabelas};self.h.fechar()
         with sqlite3.connect(self.path) as db:
-            for tabela in ['estudo_navegacao','atividade_jobs','tentativas','atividade_versoes','atividades']:db.execute('DROP TABLE '+tabela)
+            for tabela in ['consultas_ia','chat_ia','estudo_navegacao','atividade_jobs','tentativas','atividade_versoes','atividades']:db.execute('DROP TABLE '+tabela)
             db.execute('PRAGMA user_version=5')
         self.h=Historico(self.path)
         self.assertEqual(antes,{k:[tuple(r) for r in self.h.db.execute('SELECT * FROM '+k)] for k in tabelas})

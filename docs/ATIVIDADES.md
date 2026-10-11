@@ -123,7 +123,10 @@ enunciado/resposta/explicação 8.000 e alternativa 2.000 caracteres. Propostas
 limitadas a 120.000 caracteres, feedback a 20.000. Editores manuais ainda não
 salvos não têm rascunho automático; tentativas e propostas de IA têm persistência.
 Encerramento abrupto pode perder os últimos 300 ms; fechamento normal salva o
-último campo. Não há cancelamento/streaming nem avaliação universal de provas.
+último campo. A integração [Ollama](OLLAMA.md) permite cancelar consultas locais,
+gerar 1–3 questões com esquema JSON e usar dicas/feedback sem chave. O chat local
+tem streaming; uma proposta JSON parcial não vira atividade. Não há avaliação
+universal de provas.
 
 ## Validação
 
@@ -146,6 +149,6 @@ pnpm e2e:atividades
 
 As capturas em `docs/screenshots/atividades-*.png` usam dados fictícios. A execução
 do usuário continua pelo atalho CadernoMat, com assets compilados localmente.
-Provas/simulados cronometrados, flashcards, embeddings e IA local permanecem para
+Provas/simulados cronometrados, flashcards e embeddings permanecem para
 outras entregas. Próxima etapa: provas/simulados usando estas versões e tentativas,
 com regras explícitas de conclusão, tempo e apresentação dos resultados.

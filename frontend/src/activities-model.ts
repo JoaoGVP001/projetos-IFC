@@ -101,6 +101,8 @@ export type Job = {
   criado: string;
   resultado: Conteudo | Feedback | null;
   previa: {
+    local?: boolean;
+    orcamento?: import("./model").Orcamento | null;
     tipo: string;
     provedor: string;
     modelo: string;

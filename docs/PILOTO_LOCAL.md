@@ -1,7 +1,7 @@
 # Piloto de IA local no notebook
 
 Experimento iniciado em **11/10/2026**, como execução inicial de L0 do
-[plano de IA local](IA_LOCAL.md). A integração gráfica (L1) continua pendente.
+[plano de IA local](IA_LOCAL.md). A integração gráfica posterior está em [Ollama integrado](OLLAMA.md).
 
 ## Ambiente confirmado
 
@@ -160,9 +160,10 @@ Testes automatizados do cliente/avaliador usam HTTP simulado e dados fictícios:
 .venv/bin/python -m unittest discover -s tests -p test_piloto_local.py -v
 ```
 
-## Próxima entrega
+## Entrega posterior
 
-Integrar o contrato local à configuração e ao chat React, mantendo os provedores
+O contrato local foi integrado à configuração e ao chat React; consulte
+[Ollama integrado](OLLAMA.md). O plano dessa entrega conserva os provedores
 online, contexto por conversa, prévia, cancelamento e os serviços de estudo.
 Priorizar verificação matemática e consistência de resposta/explicação.
 Gráficos, páginas de caderno, embeddings, visão e ComfyUI continuam nas entregas

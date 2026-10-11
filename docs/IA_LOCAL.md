@@ -3,7 +3,7 @@
 Planejamento elaborado em **11/10/2026**. A revisão inicial foi somente de
 documentação. Depois, a pedido do usuário fora de casa, foi executado um
 [piloto real no notebook](PILOTO_LOCAL.md): Ollama/Qwen3.5-4B, medições e teste
-offline. A integração gráfica L1 e o teste no PC Windows continuam pendentes;
+offline. A integração gráfica L1 foi entregue depois ([Ollama integrado](OLLAMA.md)); o teste no PC Windows continua pendente;
 nenhum fork foi necessário.
 
 Este documento detalha a etapa de IA local do [planejamento geral](../PLANEJAMENTO.md).
@@ -291,24 +291,28 @@ existe. Nesta máquina de desenvolvimento o comando não confirma o PC de casa.
 
 ### L1 — Um chat local completo no CadernoMat
 
-- [ ] Refatorar contrato de provedores conservando os testes Gemini/OpenAI.
-- [ ] Adicionar “IA local — Ollama”: testar conexão, listar modelos instalados,
+- [x] Refatorar contrato de provedores conservando os testes Gemini/OpenAI.
+- [x] Adicionar “IA local — Ollama”: testar conexão, listar modelos instalados,
   identificar modelo local e selecionar perfil de contexto, sem campo de chave.
-- [ ] Usar `/api/tags`, `/api/chat` e `/api/ps`; ler capacidades do modelo pela
+- [x] Usar `/api/tags`, `/api/chat` e `/api/ps`; ler capacidades do modelo pela
   API de metadados suportada na versão instalada.
-- [ ] Armazenar preferências de modelo local no diretório de dados. Criar migração
+- [x] Armazenar preferências de modelo local no diretório de dados. Criar migração
   transacional/backup para preferência por conversa, mantendo valores antigos.
-- [ ] Montar instruções + contexto pedagógico + histórico + fontes + pergunta
+- [x] Montar instruções + contexto pedagógico + histórico + fontes + pergunta
   dentro do orçamento do modelo, com reserva para saída e margem. Usar tokenizer
   compatível quando disponível; caso contrário, estimativa conservadora explicitada.
-- [ ] Introduzir streaming, cancelar, repetir com IDs idempotentes e estados de
+- [x] Introduzir streaming, cancelar, repetir com IDs idempotentes e estados de
   resposta incompleta. Texto parcial não pode parecer uma conclusão validada.
-- [ ] Timeout configurável para carregamento/geração local; erros de servidor,
+- [x] Timeout configurável para carregamento/geração local; erros de servidor,
   modelo ausente, memória e JSON inválido preservam a pergunta.
-- [ ] Integrar geração de atividades, dicas e feedback à disponibilidade do
+- [x] Integrar geração de atividades, dicas e feedback à disponibilidade do
   provedor; para gerar atividades, usar esquema JSON e validação Python existente.
   Começar com listas curtas de 1–3 questões no perfil 4K.
-- [ ] Segunda opinião online somente por ação explícita, com nova prévia dos dados.
+- [x] Segunda opinião online somente por ação explícita, com nova prévia dos dados.
+
+Entrega do núcleo L1: [uso e validação](OLLAMA.md). Streaming/cancelamento são
+locais; provedores online mantêm seus adaptadores anteriores. A segunda opinião
+se faz por troca explícita e nova prévia, sem botão de comparação automática.
 
 **Aceite:** continuar um chat existente usando modelo local, gerar uma atividade
 revisável, consultar uma dica, fechar/reabrir e retomar. Repetir sem internet;
@@ -507,5 +511,5 @@ próprias entregas e critérios acima.
 
 O piloto de terminal não muda o provedor do aplicativo, nem o banco pessoal.
 Ainda não houve comparação entre modelos, embeddings, gráficos ou geração de
-imagens. L0 do PC de casa e L1–L5 continuam planejados. Revalidar modelos,
+imagens. O núcleo L1 foi integrado na interface e validado neste notebook (consulte [Ollama](OLLAMA.md)). L0 do PC de casa e L2–L5 continuam planejados. Revalidar modelos,
 versões, licenças e recursos na data de cada implementação.

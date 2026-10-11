@@ -2,6 +2,22 @@
 
 Atualizado em 11/10/2026.
 
+## Entregue — L1: Ollama na interface
+
+O runtime já testado foi integrado ao chat React: configuração sem chave, diagnóstico
+de conexão/modelos/capacidades, preferência por conversa e orçamento explícito
+de contexto. SQLite v7 cria backup v6, consultas persistidas com IDs idempotentes
+e recuperação de respostas interrompidas. Streaming e cancelamento mantêm texto
+parcial identificado; repetir uma falha conserva a pergunta original.
+
+Reutilizar FTS e fontes autorizadas nos chats e no estudo. Atividades locais
+começam com 1–3 questões, esquema JSON e validação existente. Gemini/OpenAI são
+opções explícitas e não há fallback. Migração/reinício, isolamento,
+cancelamento, contratos Python/React e fluxos Qt validados, incluindo aceite
+local real com dados fictícios. [Entrega e limites](docs/OLLAMA.md). A qualidade
+matemática continua experimental; não confundir estrutura JSON com gabarito
+verificado. Embeddings, gráficos, visão e imagens continuam em L2–L5.
+
 ## Piloto executado — IA local no notebook (11/10/2026)
 
 A pedido do usuário sem acesso ao PC de casa, L0 foi iniciado no notebook:
@@ -13,8 +29,7 @@ Não confundir esse resultado experimental com certificação de matemática.
 
 [Relatório e reprodução](docs/PILOTO_LOCAL.md). Piloto independente de terminal,
 atalho separado, arquivos fora do Git e nenhum envio às APIs online. Banco e
-configuração pessoal preservados. A integração à interface React (L1) é a
-próxima entrega desta trilha; Windows/RTX 3060 ainda precisa de diagnóstico real.
+configuração pessoal preservados. A integração à interface React (L1) foi entregue depois, conforme seção acima; Windows/RTX 3060 ainda precisa de diagnóstico real.
 
 ## Revisão — IA local no PC de casa (11/10/2026)
 

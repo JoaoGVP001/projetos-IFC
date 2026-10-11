@@ -10,12 +10,16 @@ import os
 import subprocess
 import sys
 from uuid import uuid4
+import time
 
 from .armazenamento import Historico, TODOS_CADERNOS, caminho_banco
 from .cadernos import Cadernos, contexto_pedagogico
 from .materiais import Biblioteca, Extracao, ESTADOS
-from .ia import configuracao, limitar_contexto, perguntar, provedor_ativo, salvar_configuracao
-from .app import resolver
+from .ia import configuracao, limitar_contexto, perguntar, preparar_consulta, provedor_ativo, salvar_configuracao
+from .preferencias_ia import PreferenciasIA
+from .provedores.contratos import Cancelamento, ConsultaCancelada, RespostaIncompleta
+from .provedores.ollama import Ollama, validar_config
+from .app import resolver, usa_analisador
 from .links import normalizar_url
 
 
@@ -42,6 +46,8 @@ class Aplicacao:
         self._lock=RLock()
         self._executor=ThreadPoolExecutor(max_workers=3,thread_name_prefix='cadernomat')
         self._tarefas={}
+        self._cancelamentos={}
+        self._ia_preferencias=PreferenciasIA(self.caminho.parent)
         self._processando=set()
         self._revisao=0
         self._fechado=False
@@ -54,6 +60,7 @@ class Aplicacao:
                 chats=h.listar(caderno=nav['caderno_id'])
                 if chats:c.salvar_navegacao(nav['caderno_id'],chats[0]['id'])
         self._estudo.recuperar()
+        self._recuperar_consultas()
 
     @contextmanager
     def _banco(self):
@@ -81,9 +88,26 @@ class Aplicacao:
                     'recolhida':bool(dados.get('recolhida',False))}
         except (OSError,ValueError):return {'tema':'claro','recolhida':False}
 
-    def _config(self):
-        return {'provedor':provedor_ativo(),'provedores':{
-            p:{'modelo':configuracao(p)[1],'configurada':bool(configuracao(p)[0])} for p in ['gemini','openai']}}
+    def _selecao(self,h=None,cid=None,padrao=None,modelo_padrao=None):
+        prefs=self._ia_preferencias.ler()
+        provider=prefs['padrao'] or padrao or provedor_ativo()
+        model=prefs['ollama']['modelo'] if provider=='ollama' else (modelo_padrao if provider==padrao and modelo_padrao else configuracao(provider)[1])
+        local=prefs['ollama'] if provider=='ollama' else None
+        scope='padrao'
+        if h and cid:
+            row=h.db.execute('SELECT * FROM chat_ia WHERE conversa_id=?',(cid,)).fetchone()
+            if row:
+                provider,model,scope=row['provedor'],row['modelo'],'chat'
+                if provider not in ('ollama','openai','gemini'):raise ValueError('Preferência da conversa inválida.')
+                local=validar_config(json.loads(row['config'])) if provider=='ollama' else None
+        return {'provedor':provider,'modelo':model,'local':local,'escopo':scope}
+
+    def _config(self,h=None,cid=None):
+        selection=self._selecao(h,cid)
+        local=self._ia_preferencias.ler()['ollama']
+        providers={p:{'modelo':configuracao(p)[1],'configurada':bool(configuracao(p)[0]),'local':False} for p in ['gemini','openai']}
+        providers['ollama']={**local,'configurada':True,'local':True}
+        return {**selection,'padrao':self._selecao()['provedor'],'provedores':providers}
 
     def _material(self,b,m,cid):
         # DTO explicito: nenhum caminho local, hash ou chave sai para o navegador.
@@ -104,7 +128,9 @@ class Aplicacao:
             'caderno_acao':self._caderno_acao,'materiais':self._materiais,'link':self._link,
             'material_acao':self._material_acao,'material_salvar':self._material_salvar,
             'material_detalhe':self._material_detalhe,'previa':self._previa,'enviar':self._enviar,
-            'configurar':self._configurar,'preferencias':self._salvar_preferencias}
+            'configurar':self._configurar,'preferencias':self._salvar_preferencias,
+            'ollama_diagnostico':self._ollama_diagnostico,'ollama_iniciar':self._ollama_iniciar,'ia_cancelar':self._ia_cancelar,
+            'ia_repetir':self._ia_repetir}
         operacoes.update({op:(lambda d, op=op:self._estudo.executar(op,d)) for op in OPERACOES})
         if not isinstance(operacao,str) or operacao not in operacoes:raise ValueError('Operacao nao permitida.')
         if not isinstance(dados,dict) or len(dados)>15:raise ValueError('Parametros invalidos.')
@@ -121,7 +147,7 @@ class Aplicacao:
                 'conversas':h.listar(busca,bool(nav['arquivados']),nav['caderno_id']),
                 'conversa':chat,'mensagens':h.mensagens(cid),
                 'anexos':[self._material(b,m,cid) for m in b.anexos(cid)],
-                'config':self._config(),'preferencias':self._preferencias(),
+                'config':self._config(h,cid),'preferencias':self._preferencias(),
                 'ocupado':self._ocupado(),'tarefas':list(self._tarefas.values())[-20:],
                 'estudo':self._estudo_navegacao(h)}
 
@@ -327,7 +353,8 @@ class Aplicacao:
         if len(pergunta.split())<4:
             anteriores=[m['texto'] for m in h.mensagens(cid) if m['papel']=='user']
             if anteriores:pergunta+=' '+anteriores[-1][:400]
-        return b.recuperar(cid,pergunta)
+        from .recuperacao import recuperar_chat
+        return recuperar_chat(b,cid,pergunta)
 
     def _previa(self,d):
         cid=ident(d.get('id'),True);pergunta=texto(d.get('texto',''),30000)
@@ -335,51 +362,192 @@ class Aplicacao:
             chat=h.obter(cid) if cid else None
             bid=chat['caderno_id'] if chat else c.navegacao()['caderno_id']
             caderno=c.obter(bid) if bid else None
-            return {'provedor':provedor_ativo(),'modelo':configuracao()[1],
-                'pedagogia':contexto_pedagogico(caderno),'mensagem':pergunta,
-                'historico':limitar_contexto(h.mensagens(cid)),
-                'fontes':self._fontes(h,b,cid,pergunta),'originais_enviados':False}
+            selection=self._selecao(h,cid)
+            mode=d.get('modo','Resolver')
+            if mode=='Resolver com IA':mode='Resolver'
+            calc=mode=='Resolver' and usa_analisador(pergunta)
+            p={'pedagogia':'','historico':[],'fontes':None,'instrucoes':'','orcamento':None} if calc else preparar_consulta(
+                pergunta or '(mensagem vazia)',modo=mode,historico=h.mensagens(cid),fontes=self._fontes(h,b,cid,pergunta),
+                caderno=caderno,provedor=selection['provedor'],local=selection['local'])
+            return {**selection,'pedagogia':p['pedagogia'],'mensagem':pergunta,'historico':p['historico'],
+                'fontes':p['fontes'],'instrucoes':p['instrucoes'],'orcamento':p['orcamento'],
+                'destino':'Cálculo simbólico neste computador, sem consulta à IA' if calc else 'Somente Ollama neste computador' if selection['local'] else 'Provedor online',
+                'originais_enviados':False}
 
     def _enviar(self,d):
-        self._livre();cid=ident(d.get('id'));pergunta=texto(d.get('texto'),30000,False)
+        cid=ident(d.get('id'));pergunta=texto(d.get('texto'),30000,False)
         modo=d.get('modo','Resolver com IA')
         if modo not in ['Resolver','Resolver com IA','Explicar','Corrigir']:raise ValueError('Modo invalido.')
+        tid=ident(d.get('requisicao',str(uuid4())))
         with self._banco() as (h,c,b):
+            existing=h.db.execute('SELECT * FROM consultas_ia WHERE id=?',(tid,)).fetchone()
+            if existing:
+                snap=json.loads(existing['snapshot'])
+                if existing['conversa_id']!=cid or snap['pergunta']!=pergunta or snap['modo']!=modo:raise ValueError('ID de consulta reutilizado com dados diferentes.')
+                return {'tarefa':tid}
+            self._livre()
             chat=self._editavel(h,c,cid);historico=h.mensagens(cid);fontes=self._fontes(h,b,cid,pergunta)
             if modo=='Resolver' and fontes is not None:raise ValueError('Escolha um modo de IA para consultar materiais.')
             caderno=c.obter(chat['caderno_id']) if chat['caderno_id'] else None
-            provedor=provedor_ativo();modelo=configuracao()[1]
-            h.adicionar(cid,'user',pergunta)
-            if not historico:h.renomear(cid,pergunta.splitlines()[0][:80])
-            h.rascunho(cid,'')
-        if len(self._tarefas)>=20:
-            antigos=[k for k,v in self._tarefas.items() if v['estado']!='executando']
-            for k in antigos[:-18]:self._tarefas.pop(k)
-        tid=str(uuid4());self._tarefas[tid]={'id':tid,'tipo':'ia','estado':'executando','conversa':cid}
-        self._revisao+=1
-        self._executor.submit(self._consultar,tid,cid,pergunta,modo,historico,fontes,caderno,provedor,modelo)
+            selection=self._selecao(h,cid)
+            calculo_local=modo=='Resolver' and usa_analisador(pergunta)
+            prepared=None if calculo_local else preparar_consulta(pergunta,'Resolver' if modo in ('Resolver com IA','Resolver') else modo,
+                historico,fontes,caderno,selection['provedor'],selection['local'])
+            snapshot={'pergunta':pergunta,'modo':modo,'historico':historico,'fontes':fontes,'caderno':caderno,
+                      'selecao':selection,'preparada':prepared,'calculo_local':calculo_local}
+            with h.db:
+                uid=h.db.execute("INSERT INTO mensagens(conversa_id,papel,texto,estado) VALUES(?,'user',?,'ok')",(cid,pergunta)).lastrowid
+                if not historico:h.db.execute('UPDATE conversas SET titulo=? WHERE id=?',(pergunta.splitlines()[0][:80],cid))
+                h.db.execute("UPDATE conversas SET rascunho='',atualizado=CURRENT_TIMESTAMP WHERE id=?",(cid,))
+                h.db.execute("INSERT INTO consultas_ia(id,conversa_id,usuario_id,snapshot,estado) VALUES(?,?,?,?,'executando')",(tid,cid,uid,json.dumps(snapshot,ensure_ascii=False)))
+        self._iniciar_consulta(tid,cid,snapshot)
         return {'tarefa':tid}
 
-    def _consultar(self,tid,cid,pergunta,modo,historico,fontes,caderno,provedor,modelo):
-        estado='ok'
+    def _iniciar_consulta(self,tid,cid,snapshot):
+        if len(self._tarefas)>=20:
+            for key in [k for k,v in self._tarefas.items() if v['estado']!='executando'][:-18]:
+                self._tarefas.pop(key);self._cancelamentos.pop(key,None)
+        self._cancelamentos[tid]=Cancelamento()
+        self._tarefas[tid]={'id':tid,'tipo':'ia','estado':'executando','conversa':cid,'parcial':'',
+            'cancelavel':snapshot['selecao']['provedor']=='ollama' and not snapshot.get('calculo_local'),
+            'provedor':snapshot['selecao']['provedor'],'modelo':snapshot['selecao']['modelo']}
+        self._revisao+=1
+        self._executor.submit(self._consultar,tid,cid,snapshot)
+
+    def _consultar(self,tid,cid,snapshot):
+        estado='ok';error='';partial='';last_write=0;metrics={}
+        pergunta,modo,historico,fontes,caderno=[snapshot[k] for k in ('pergunta','modo','historico','fontes','caderno')]
+        selection=snapshot['selecao'];token=self._cancelamentos[tid]
+        def trecho(value):
+            nonlocal partial,last_write
+            partial+=value
+            with self._lock:
+                self._tarefas[tid]['parcial']=partial
+                if time.monotonic()-last_write>=.3:
+                    with self._banco() as (h,c,b):
+                        with h.db:h.db.execute('UPDATE consultas_ia SET parcial=? WHERE id=?',(partial,tid))
+                    last_write=time.monotonic();self._revisao+=1
         try:
-            resposta=resolver(pergunta,caderno=caderno,historico=historico) if modo=='Resolver' else perguntar(
-                pergunta,modo='Resolver' if modo=='Resolver com IA' else modo,historico=historico,fontes=fontes,caderno=caderno)
-        except (ValueError,RuntimeError,ImportError) as exc:estado='erro';resposta=str(exc)
-        except Exception:estado='erro';resposta='Falha inesperada na consulta. Revise o enunciado e tente novamente.'
+            token.verificar()
+            resposta=resolver(pergunta,caderno=caderno,historico=historico,provedor=selection['provedor'],modelo=selection['modelo'],
+                local=selection['local'],cancelar=token,trecho=trecho,metricas=metrics.update,preparada=snapshot['preparada']) if modo=='Resolver' else perguntar(
+                pergunta,modo='Resolver' if modo=='Resolver com IA' else modo,historico=historico,fontes=fontes,caderno=caderno,
+                provedor=selection['provedor'],modelo=selection['modelo'],local=selection['local'],cancelar=token,
+                trecho=trecho,metricas=metrics.update,preparada=snapshot['preparada'])
+            token.verificar()
+        except ConsultaCancelada as exc:estado='cancelada';error=str(exc)
+        except RespostaIncompleta as exc:estado='incompleta';error=str(exc)
+        except (ValueError,RuntimeError,ImportError) as exc:estado='erro';error=str(exc)
+        except Exception:estado='erro';error='Falha inesperada na consulta. Revise o enunciado e tente novamente.'
+        if estado!='ok':resposta=(partial+'\n\n' if partial else '')+error
         with self._lock:
+            if token.evento.is_set() and estado=='ok':
+                estado='cancelada';error='Consulta cancelada antes de concluir.';resposta=(partial+'\n\n' if partial else '')+error
             with self._banco() as (h,c,b):
-                h.adicionar(cid,'assistant',resposta,estado,provedor if modo!='Resolver' else 'local/IA',modelo)
-                if estado=='erro' and not h.obter(cid)['rascunho']:h.rascunho(cid,pergunta)
-            self._tarefas[tid]['estado']='erro' if estado=='erro' else 'concluida'
+                with h.db:
+                    rid=h.db.execute("INSERT INTO mensagens(conversa_id,papel,texto,estado,provedor,modelo) VALUES(?,'assistant',?,?,?,?)",(cid,resposta,estado,selection['provedor'] if not snapshot.get('calculo_local') else 'local/IA',selection['modelo'] if not snapshot.get('calculo_local') else 'SymPy')).lastrowid
+                    h.db.execute('UPDATE consultas_ia SET resposta_id=?,estado=?,parcial=?,erro=?,metricas=? WHERE id=?',(rid,estado,partial,error,json.dumps(metrics),tid))
+                    if estado!='ok' and not h.obter(cid)['rascunho']:h.db.execute('UPDATE conversas SET rascunho=? WHERE id=?',(pergunta,cid))
+                    h.db.execute('UPDATE conversas SET atualizado=CURRENT_TIMESTAMP WHERE id=?',(cid,))
+            self._tarefas[tid].update(estado='concluida' if estado=='ok' else estado,metricas=metrics,parcial='')
             self._revisao+=1
+
+    def _recuperar_consultas(self):
+        with self._banco() as (h,c,b):
+            for row in h.db.execute("SELECT * FROM consultas_ia WHERE estado='executando'").fetchall():
+                snapshot=json.loads(row['snapshot']);sel=snapshot['selecao']
+                message='Consulta interrompida ao encerrar o aplicativo; resposta incompleta. Confira e tente novamente.'
+                with h.db:
+                    rid=h.db.execute("INSERT INTO mensagens(conversa_id,papel,texto,estado,provedor,modelo) VALUES(?,'assistant',?,'incompleta',?,?)",(row['conversa_id'],(row['parcial']+'\n\n' if row['parcial'] else '')+message,sel['provedor'],sel['modelo'])).lastrowid
+                    h.db.execute("UPDATE consultas_ia SET estado='incompleta',resposta_id=?,erro=? WHERE id=?",(rid,message,row['id']))
+                    h.db.execute("UPDATE conversas SET rascunho=CASE WHEN rascunho='' THEN ? ELSE rascunho END WHERE id=?",(snapshot['pergunta'],row['conversa_id']))
+
+    def _ia_cancelar(self,d):
+        tid=ident(d.get('id'));task=self._tarefas.get(tid)
+        if not task:raise ValueError('Consulta não encontrada.')
+        if task['estado']=='executando':
+            if not task.get('cancelavel'):raise ValueError('Este provedor não oferece cancelamento nesta interface.')
+            self._cancelamentos[tid].cancelar();task['cancelando']=True
+        return {'id':tid,'estado':task['estado']}
+
+    def _ia_repetir(self,d):
+        old=ident(d.get('id'));tid=ident(d.get('requisicao',str(uuid4())))
+        with self._banco() as (h,c,b):
+            row=h.db.execute('SELECT * FROM consultas_ia WHERE id=?',(old,)).fetchone()
+            if not row or row['estado'] not in ('erro','cancelada','incompleta'):raise ValueError('Repita somente uma consulta não concluída.')
+            cid=row['conversa_id'];self._editavel(h,c,cid);snap=json.loads(row['snapshot'])
+            selection=self._selecao(h,cid)
+            if selection!=snap['selecao']:raise ValueError('A configuração mudou. Confira uma nova prévia e envie a pergunta novamente.')
+            # Material removido/desmarcado não pode voltar a ser enviado via repetição.
+            selected={m['id'] for m in b.anexos(cid) if m['selecionado']}
+            if any(f['material_id'] not in selected for f in snap['fontes'] or []):raise ValueError('A seleção documental mudou. Confira uma nova prévia.')
+            existing=h.db.execute('SELECT * FROM consultas_ia WHERE id=?',(tid,)).fetchone()
+            if existing:
+                if existing['conversa_id']!=cid or existing['usuario_id']!=row['usuario_id']:raise ValueError('ID de consulta inválido.')
+                return {'tarefa':tid}
+            self._livre()
+            with h.db:
+                h.db.execute("INSERT INTO consultas_ia(id,conversa_id,usuario_id,snapshot,estado) VALUES(?,?,?,?,'executando')",(tid,cid,row['usuario_id'],row['snapshot']))
+                h.db.execute("UPDATE conversas SET rascunho='' WHERE id=? AND rascunho=?",(cid,snap['pergunta']))
+        self._iniciar_consulta(tid,cid,snap)
+        return {'tarefa':tid}
 
     def _configurar(self,d):
         self._livre();provedor=d.get('provedor')
-        if provedor not in ['gemini','openai']:raise ValueError('Provedor invalido.')
-        salvar_configuracao(texto(d.get('chave',''),500),texto(d.get('modelo'),100,False),provedor)
+        if provedor not in ['gemini','openai','ollama']:raise ValueError('Provedor invalido.')
+        scope=d.get('escopo','padrao')
+        if scope not in ('padrao','chat','herdar'):raise ValueError('Escopo inválido.')
+        model=texto(d.get('modelo',''),100,scope=='herdar')
+        local=validar_config({'modelo':model,'url':d.get('url','http://127.0.0.1:11434'),
+            'contexto':d.get('contexto',4096),'timeout':d.get('timeout',180)}) if provedor=='ollama' and scope!='herdar' else None
+        with self._banco() as (h,c,b):
+            cid=c.navegacao()['conversa_id']
+            if scope in ('chat','herdar'):
+                if not cid:raise ValueError('Crie ou abra uma conversa para configurar seu provedor.')
+                self._editavel(h,c,cid)
+            if scope=='herdar':
+                with h.db:h.db.execute('DELETE FROM chat_ia WHERE conversa_id=?',(cid,))
+            else:
+                if provedor!='ollama':
+                    args=(texto(d.get('chave',''),500),model,provedor)
+                    if scope=='padrao':salvar_configuracao(*args)
+                    else:salvar_configuracao(*args,ativar=False)
+                if scope=='padrao':self._ia_preferencias.salvar(provedor,local)
+                else:
+                    with h.db:h.db.execute('INSERT OR REPLACE INTO chat_ia(conversa_id,provedor,modelo,config) VALUES(?,?,?,?)',(cid,provedor,model,json.dumps(local or {})))
         self._revisao+=1
-        return self._config()
+        with self._banco() as (h,c,b):return self._config(h,c.navegacao()['conversa_id'])
+
+    def _ollama_diagnostico(self,d):
+        self._livre()
+        conf=validar_config({k:d.get(k,v) for k,v in self._ia_preferencias.ler()['ollama'].items()})
+        return Ollama(conf).diagnostico()
+
+    def _ollama_iniciar(self,d):
+        self._livre()
+        conf=validar_config({k:d.get(k,v) for k,v in self._ia_preferencias.ler()['ollama'].items()})
+        client=Ollama(conf)
+        try:client.metadados('version',timeout=1);return {'iniciado':False}
+        except RuntimeError:pass
+        base=self.caminho.parent/'ia-local'
+        try:runtime=Path((base/'runtime-path.txt').read_text().strip()).resolve(strict=True)
+        except OSError:raise ValueError('Runtime do piloto ausente. Inicie o aplicativo Ollama instalado neste computador; não há download automático.') from None
+        if (not runtime.is_relative_to((base/'runtimes').resolve()) or runtime.name!='ollama'
+                or runtime.parent.name!='bin' or not os.access(runtime,os.X_OK)):
+            raise ValueError('Caminho do runtime do piloto inválido.')
+        env={**os.environ,'OLLAMA_HOST':conf['url'].removeprefix('http://'),
+            'OLLAMA_MODELS':str(base/'models'),'OLLAMA_NO_CLOUD':'1','OLLAMA_NUM_PARALLEL':'1',
+            'OLLAMA_MAX_LOADED_MODELS':'1','OLLAMA_CONTEXT_LENGTH':str(conf['contexto']),'OLLAMA_KEEP_ALIVE':'2m'}
+        log=base/'servidor-integrado.log'
+        with open(os.open(log,os.O_CREAT|os.O_APPEND|os.O_WRONLY,0o600),'ab') as output:
+            process=subprocess.Popen([str(runtime),'serve'],env=env,stdout=output,stderr=output,
+                start_new_session=os.name!='nt',creationflags=subprocess.CREATE_NO_WINDOW if os.name=='nt' else 0)
+        prazo=time.monotonic()+8
+        while time.monotonic()<prazo:
+            if process.poll() is not None:raise RuntimeError('O runtime não iniciou. Confira a instalação do piloto e a porta local.')
+            try:client.metadados('version',timeout=1);return {'iniciado':True}
+            except RuntimeError:time.sleep(.2)
+        raise RuntimeError('O runtime está iniciando. Aguarde e use Testar conexão novamente.')
 
     def _salvar_preferencias(self,d):
         if d.get('tema') not in ['claro','escuro']:raise ValueError('Tema invalido.')
@@ -389,6 +557,8 @@ class Aplicacao:
         return dados
 
     def fechar(self):
-        with self._lock:self._fechado=True
-        # Tarefas ativas salvam sua resposta com conexao propria; filas interrompidas sao recuperaveis.
+        with self._lock:
+            self._fechado=True
+            for token in self._cancelamentos.values():token.cancelar()
+        # Filas interrompidas e processos encerrados são recuperados do SQLite.
         self._executor.shutdown(wait=False,cancel_futures=True)
