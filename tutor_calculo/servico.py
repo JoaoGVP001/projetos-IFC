@@ -45,12 +45,15 @@ class Aplicacao:
         self._processando=set()
         self._revisao=0
         self._fechado=False
+        from .estudo import Estudo
+        self._estudo=Estudo(self)
         with self._banco() as (h,c,b):
             Biblioteca(h,recuperar=True)
             nav=c.navegacao()
             if nav['conversa_id'] is None:
                 chats=h.listar(caderno=nav['caderno_id'])
                 if chats:c.salvar_navegacao(nav['caderno_id'],chats[0]['id'])
+        self._estudo.recuperar()
 
     @contextmanager
     def _banco(self):
@@ -95,12 +98,14 @@ class Aplicacao:
         return item
 
     def executar(self,operacao,dados):
+        from .estudo import OPERACOES
         operacoes={'estado':self._estado,'navegar':self._navegar,'chat_criar':self._chat_criar,
             'chat_acao':self._chat_acao,'rascunho':self._rascunho,'caderno_salvar':self._caderno_salvar,
             'caderno_acao':self._caderno_acao,'materiais':self._materiais,'link':self._link,
             'material_acao':self._material_acao,'material_salvar':self._material_salvar,
             'material_detalhe':self._material_detalhe,'previa':self._previa,'enviar':self._enviar,
             'configurar':self._configurar,'preferencias':self._salvar_preferencias}
+        operacoes.update({op:(lambda d, op=op:self._estudo.executar(op,d)) for op in OPERACOES})
         if not isinstance(operacao,str) or operacao not in operacoes:raise ValueError('Operacao nao permitida.')
         if not isinstance(dados,dict) or len(dados)>15:raise ValueError('Parametros invalidos.')
         with self._lock:
@@ -117,7 +122,12 @@ class Aplicacao:
                 'conversa':chat,'mensagens':h.mensagens(cid),
                 'anexos':[self._material(b,m,cid) for m in b.anexos(cid)],
                 'config':self._config(),'preferencias':self._preferencias(),
-                'ocupado':self._ocupado(),'tarefas':list(self._tarefas.values())[-20:]}
+                'ocupado':self._ocupado(),'tarefas':list(self._tarefas.values())[-20:],
+                'estudo':self._estudo_navegacao(h)}
+
+    def _estudo_navegacao(self,h):
+        from .atividades import Atividades
+        return Atividades(h).navegacao()
 
     def _navegar(self,d):
         self._livre()

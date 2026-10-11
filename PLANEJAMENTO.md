@@ -201,10 +201,20 @@ com contexto adequado. Arquivar um caderno preserva suas conversas.
 
 ## Etapa 4 — Listas, provas de pratica e simulados
 
+Atividades/tentativas entregues em 11/10/2026: editor manual offline, quatro
+formatos, rascunho/reinício, snapshot desde início, correção objetiva, revisão
+manual, histórico/comparação e geração/dicas/feedback opcionais com prévia e
+fontes explícitas. Validação: 116 testes Python, 15 frontend e dois fluxos Qt.
+Consulte docs/ATIVIDADES.md. As propostas não são atividades até revisão/salvar.
+Provas/simulados com cronômetro e flashcards seguem pendentes; não há comparação
+de domínio, corretor universal, embeddings ou modelo local nesta entrega.
+
+O planejamento abaixo registra também as extensões futuras desta etapa.
+
 Um formulario perguntara materia, assuntos, dificuldade, quantidade de questoes,
 formatos, duracao opcional e se o aluno deseja dicas durante a atividade.
 
-Proxima entrega: servico independente de geracao/correcao referenciando
+Serviço entregue para geração/correção básica; extensão futura referenciando
 `cadernos.id`. Criar tabelas versionadas para atividade, questao, tentativa e
 resposta, preservando as migracoes existentes. Primeiro entregar lista de
 pratica persistente com geracao simulada validada e correcao objetiva; depois
@@ -223,8 +233,8 @@ Dois fluxos: **Pratica** permite dicas e feedback durante a resolucao;
 **Simulado** apresenta questoes, recolhe respostas e mostra correcao ao finalizar.
 O cronometro sera opcional. Tentativas podem ser salvas e retomadas.
 
-- [ ] Gerar questoes em estrutura JSON validada, independente da apresentacao.
-- [ ] Salvar versao das questoes, alternativas, gabarito, rubrica e assunto.
+- [x] Gerar questoes em estrutura JSON validada, independente da apresentacao.
+- [x] Salvar versões, alternativas, gabarito, assunto e tentativas; rubricas avançadas seguem planejadas.
 - [ ] Validar numero de alternativas, identificadores, pontuacao e existencia de
   resposta correta. Nao apresentar atividade com estrutura invalida.
 - [ ] Separar visualizacao das questoes da exibicao do gabarito.
@@ -465,3 +475,34 @@ metadado livre), leitura visual de formulas/diagramas, mais formatos, exportacao
 e backup pela interface. OCR deste PC usa ingles por falta do pacote `por`.
 A recuperacao permanece local e independente do provedor, preparando a futura
 IA local sem instalar modelos agora. Detalhes em docs/MATERIAIS.md.
+## Entrega — atividades e tentativas (11/10/2026)
+
+Estado confirmado: SQLite v5, 88 testes Python e interface React/Qt existente.
+Sequência: modelo/migração → editor manual → prática com rascunhos → correção e
+histórico → propostas/dicas/feedback com IA → integração → validação/publicação.
+
+Decisões: SQLite v6 com backup v5 e DDL transacional; versões de conteúdo e
+snapshots de tentativas imutáveis; organização nullable para preservar dados ao
+excluir cadernos/chats. Serviços Python independentes validam exercícios,
+respostas e correção; React apenas apresenta DTOs. Nenhuma exclusão de atividade
+nesta etapa: arquivamento conserva histórico. Fontes mantêm IDs e nomes sem
+duplicar arquivos; associação não autoriza consulta. Tarefas de IA guardam a
+prévia exata, propostas e falhas fora do Git; processos interrompidos ficam
+recuperáveis, nunca simulam conclusão. Correção local usa escolha, booleano e
+decimal finito com tolerância absoluta explícita; discursivas exigem revisão.
+
+Limites: 30 exercícios por lista, 10 por geração, 2–6 alternativas, textos até
+8 mil caracteres por enunciado/resposta, até 10 fontes explícitas/6 mil caracteres
+recuperados. Sem corretor universal, provas cronometradas ou métricas de domínio.
+Riscos: autosave ao fechar, versões antigas, JSON inválido e referências removidas.
+Conclusão validada com fluxo manual offline com reinício, nova tentativa, comparação,
+edição sem alterar o passado, migração/rollback, falhas simuladas de ambos os
+provedores, temas/teclado/1000×650 e publicação sem dados pessoais.
+
+
+## Validação local da migração v6
+
+O banco real foi migrado com backup v5. As 14 tabelas anteriores tiveram o
+mesmo hash de conteúdo antes/depois; integrity_check e foreign_key_check passaram.
+Nenhum dado pessoal foi usado nas capturas ou publicado. O atalho existente
+continua apontando para iniciar_desktop.sh e a interface compilada atual.

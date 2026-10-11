@@ -4,7 +4,7 @@
 
 ```text
 React + TypeScript → bridge.ts → Ponte.request → Aplicacao
-                                                ├─ Historico / Cadernos / Biblioteca (SQLite v5)
+                                                ├─ Historico / Cadernos / Biblioteca / Atividades / Tentativas (SQLite v6)
                                                 ├─ processamento documental em subprocesso
                                                 ├─ ia.py → Gemini / OpenAI
                                                 └─ app.py → matemática local / fallback IA
@@ -76,7 +76,8 @@ extração, limites, URLs públicas e proveniência descritas em MATERIAIS.md.
 
 ## Dados e transição
 
-Não houve mudança do esquema v5. Permanecem os IDs, registros, relações FTS5,
+A migração visual manteve v5; a entrega de atividades acrescenta v6 com backup
+v5 e migração transacional. Consulte ATIVIDADES.md para tabelas e invariantes. Permanecem os IDs, registros, relações FTS5,
 arquivos e seleção documental. `interface.json` no diretório de dados conserva
 tema/lateral, com substituição atômica e permissão 0600 no Linux. O cache WebView
 fica nesse mesmo diretório, fora do Git. Não contém chaves de configuração.
@@ -110,9 +111,10 @@ O Vite em navegador não possui a ponte; a validação integrada usa o build loc
 
 ## Validação
 
-Python: 88 testes, incluindo 12 novos de serviço/ponte, concorrência, snapshots,
+Python: 116 testes, incluindo 12 de serviço/ponte e 28 de atividades/tentativas,
+concorrência, snapshots,
 falhas, importação, índice, movimentação e persistência. Os testes legados são
-adaptados para desktop_legado. Frontend: 9 testes de sanitização, matemática,
+adaptados para desktop_legado. Frontend: 15 testes de prática, sanitização, matemática,
 contrato assíncrono, menu por teclado e diálogo.
 
 `pnpm e2e` inicia Qt real com banco/arquivo temporários e Gemini simulado. O teste
@@ -129,7 +131,7 @@ Sem streaming, cancelamento, atualização automática, virtualização de hist�
 longos ou empacotamento de instalador. A tarefa já iniciada pode terminar e salvar
 após a janela fechar. OCR depende do Tesseract. A consulta documental continua
 textual; nenhuma busca vetorial ou modelo local foi adicionado.
-A próxima etapa é atividades/tentativas por caderno, reaproveitando este padrão.
+Atividades/tentativas foram entregues com este padrão; a próxima etapa são provas/simulados.
 
 Referências oficiais consultadas:
 [pywebview instalação](https://pywebview.flowrl.com/guide/installation.html),
@@ -137,3 +139,23 @@ Referências oficiais consultadas:
 [segurança](https://pywebview.flowrl.com/guide/security.html),
 [Tailwind/Vite](https://tailwindcss.com/docs/installation/using-vite) e
 [react-markdown](https://github.com/remarkjs/react-markdown).
+
+## Contratos de estudo (v6)
+
+| Operações | Efeito |
+|---|---|
+| atividades, atividade_obter | Busca/filtros/paginação por caderno, detalhe do editor |
+| atividade_salvar, atividade_acao | Validar/gravar nova versão; duplicar/mover/arquivar/restaurar |
+| estudo_navegar | Persistir área, atividade e tentativa; IDs são verificados |
+| tentativa_iniciar, tentativa_obter | Retomar/criar snapshot e obter DTO com gabarito oculto até revelar/finalizar |
+| tentativa_salvar, tentativa_navegar | Salvar resposta em andamento; posição de leitura também funciona em arquivo/histórico |
+| tentativa_revelar, tentativa_finalizar | Registrar solução usada e corrigir localmente; finalização idempotente |
+| tentativa_revisar, tentativas, tentativas_comparar | Revisão manual separada, histórico/comparação da mesma atividade |
+| estudo_previa, estudo_consultar, estudo_job, estudo_jobs | Prévia exata, confirmação, tarefa e propostas persistidas; últimas 20 consultas |
+| exercicio_chat | Criar novo chat/rascunho com contexto mínimo, sem envio automático |
+
+Frontend usa `window.cadernoMatStudyDraft` e um flush assíncrono ao navegar; o
+callback desktop salva o último campo independentemente do rascunho do chat.
+Snapshots/validação ficam em Python. Jobs interrompidos são recuperados como
+falha; o resultado de feedback e a conclusão são persistidos na mesma transação.
+Não entram credenciais ou caminhos arbitrários nos DTOs. Veja [Atividades](ATIVIDADES.md).

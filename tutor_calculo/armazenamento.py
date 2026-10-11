@@ -28,7 +28,7 @@ class Historico:
         self.db.row_factory = sqlite3.Row
         self.db.execute('PRAGMA foreign_keys=ON')
         versao = self.db.execute('PRAGMA user_version').fetchone()[0]
-        if versao > 5:
+        if versao > 6:
             self.db.close()
             raise RuntimeError('Este historico exige uma versao mais recente do CadernoMat.')
         if versao == 0:
@@ -84,6 +84,20 @@ class Historico:
                     self.db.execute('BEGIN')
                     migrar_cadernos(self.db)
                     self.db.execute('PRAGMA user_version=5')
+            except Exception:
+                self.db.close()
+                raise
+        if versao < 6:
+            if versao:
+                with closing(sqlite3.connect(str(self.caminho)+'.v5.backup')) as destino:
+                    self.db.backup(destino)
+                if os.name != 'nt': Path(str(self.caminho)+'.v5.backup').chmod(0o600)
+            from .atividades import migrar_atividades
+            try:
+                with self.db:
+                    self.db.execute('BEGIN')
+                    migrar_atividades(self.db)
+                    self.db.execute('PRAGMA user_version=6')
             except Exception:
                 self.db.close()
                 raise

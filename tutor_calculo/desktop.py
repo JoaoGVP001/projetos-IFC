@@ -29,9 +29,12 @@ def abrir(aplicacao=None,debug=False):
         def concluir():
             try:
                 if janela.events.loaded.is_set():
-                    rascunho=janela.evaluate_js('window.cadernoMatDraft || null')
-                    if isinstance(rascunho,dict) and rascunho.get('id'):
-                        app.executar('rascunho',rascunho)
+                    for global_name, operacao in [('cadernoMatDraft','rascunho'),('cadernoMatStudyDraft','tentativa_salvar')]:
+                        try:
+                            rascunho=janela.evaluate_js(f'window.{global_name} || null')
+                            if isinstance(rascunho,dict) and rascunho.get('id'):
+                                app.executar(operacao,rascunho)
+                        except Exception:pass
             except Exception:pass
             finally:
                 app.fechar()

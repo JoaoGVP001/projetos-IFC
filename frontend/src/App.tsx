@@ -7,6 +7,7 @@ import {
 } from "react";
 import {
   Sigma,
+  ClipboardList,
   BookOpen,
   MessageSquare,
   Plus,
@@ -63,6 +64,7 @@ import {
   copiar,
 } from "./ui";
 import { Markdown } from "./Markdown";
+import { Activities } from "./Activities";
 
 const preferencias: Record<string, string> = {
   completa: "Explicação completa",
@@ -94,13 +96,20 @@ export default function App() {
   const [state, setState] = useState<Estado | null>(null),
     [erro, setErro] = useState(""),
     [toast, setToast] = useState(""),
-    [view, setView] = useState<"chat" | "materiais">("chat"),
+    [view, setView] = useState<"chat" | "materiais" | "atividades">("chat"),
     [busca, setBusca] = useState(""),
     [archBooks, setArchBooks] = useState(false),
     [modal, setModal] = useState<Modal | null>(null),
     [working, setWorking] = useState(false),
     [draft, setDraft] = useState(""),
     [modo, setModo] = useState("Resolver com IA");
+  const [studySeed, setStudySeed] = useState<{
+    origem_chat?: string;
+    materiais?: string[];
+    assunto?: string;
+    nonce: number;
+  } | null>(null);
+  const firstView = useRef(true);
   const stateRef = useRef(state),
     draftRef = useRef<{ id: string; texto: string } | null>(null),
     dirty = useRef(false),
@@ -123,6 +132,10 @@ export default function App() {
     const troca = draftRef.current?.id !== cid;
     stateRef.current = s;
     setState(s);
+    if (firstView.current) {
+      firstView.current = false;
+      setView(s.estudo?.area || "chat");
+    }
     if (force || troca || !dirty.current) {
       const texto = s.conversa?.rascunho || "";
       setDraft(texto);
@@ -160,6 +173,7 @@ export default function App() {
     return () => clearTimeout(t);
   }, [busca, refresh, notify]);
   const flush = useCallback(async () => {
+    await window.cadernoMatFlushStudy?.();
     const d = draftRef.current;
     if (d && dirty.current) {
       await api("rascunho", d);
@@ -219,7 +233,9 @@ export default function App() {
   ) => {
     if (await run("navegar", { caderno, conversa, arquivadas })) {
       setBusca("");
-      setView("chat");
+      const area = view === "atividades" && !conversa ? "atividades" : "chat";
+      await api("estudo_navegar", { area, atividade: null, tentativa: null });
+      setView(area);
     }
   };
   const newChat = async () => {
@@ -227,10 +243,31 @@ export default function App() {
       caderno: stateRef.current?.navegacao.caderno_id || null,
     });
     if (ok) {
+      await api("estudo_navegar", { area: "chat" });
       setView("chat");
       setBusca("");
     }
     return ok;
+  };
+  const switchView = async (area: "chat" | "materiais" | "atividades") => {
+    try {
+      await flush();
+      await api("estudo_navegar", {
+        area,
+      });
+      setStudySeed(null);
+      setView(area);
+    } catch (e) {
+      notify((e as Error).message);
+    }
+  };
+  const createFrom = async (seed: {
+    origem_chat?: string;
+    materiais?: string[];
+    assunto?: string;
+  }) => {
+    await switchView("atividades");
+    setStudySeed({ ...seed, nonce: Date.now() });
   };
   const confirm = (
     titulo: string,
@@ -281,6 +318,11 @@ export default function App() {
           { id: chat.id, acao: "excluir" },
         ),
     },
+    {
+      label: "Criar atividade deste chat",
+      icon: ClipboardList,
+      action: () => void createFrom({ origem_chat: chat.id }),
+    },
   ];
   const bookItems = (book: Caderno) => [
     {
@@ -317,13 +359,18 @@ export default function App() {
       action: () =>
         confirm(
           "Excluir organização do caderno?",
-          `“${book.nome}” será removido. Chats passam para Geral; mensagens e documentos são preservados.`,
+          `“${book.nome}” será removido. Chats e atividades passam para Geral; mensagens, tentativas e documentos são preservados.`,
           "caderno_acao",
           { id: book.id, acao: "excluir" },
         ),
     },
   ];
   const materialItems = (m: Material) => [
+    {
+      label: "Criar atividade deste material",
+      icon: ClipboardList,
+      action: () => void createFrom({ materiais: [m.id], assunto: m.assunto }),
+    },
     {
       label: "Editar material",
       icon: Pencil,
@@ -489,11 +536,24 @@ export default function App() {
           icon={Library}
           className="library-nav"
           aria-label="Abrir materiais"
-          onClick={() => setView("materiais")}
+          onClick={() => void switchView("materiais")}
         >
           {!collapsed && (
             <>
               Materiais<span className="nav-caption">Biblioteca</span>
+            </>
+          )}
+        </Button>
+        <Button
+          variant={view === "atividades" ? "soft" : "ghost"}
+          icon={ClipboardList}
+          className="library-nav"
+          aria-label="Abrir atividades"
+          onClick={() => void switchView("atividades")}
+        >
+          {!collapsed && (
+            <>
+              Atividades<span className="nav-caption">Praticar</span>
             </>
           )}
         </Button>
@@ -632,7 +692,7 @@ export default function App() {
               variant="ghost"
               icon={MessageSquare}
               aria-label="Mostrar chat"
-              onClick={() => setView("chat")}
+              onClick={() => void switchView("chat")}
             />
           </div>
         )}
@@ -681,18 +741,26 @@ export default function App() {
         <header className="topbar">
           <div className="breadcrumb">
             <span className="breadcrumb-icon">
-              {view === "chat" ? <BookOpen size={19} /> : <Library size={19} />}
+              {view === "chat" ? (
+                <BookOpen size={19} />
+              ) : view === "atividades" ? (
+                <ClipboardList size={19} />
+              ) : (
+                <Library size={19} />
+              )}
             </span>
             <div>
               <small title={currentBook?.nome || "Geral"}>
-                {view === "chat"
+                {view !== "materiais"
                   ? currentBook?.nome || "Geral"
                   : "Sua biblioteca"}
               </small>
               <h1 title={state.conversa?.titulo}>
                 {view === "chat"
                   ? state.conversa?.titulo || "Um novo espaço para aprender"
-                  : "Materiais"}
+                  : view === "atividades"
+                    ? "Atividades"
+                    : "Materiais"}
               </h1>
             </div>
           </div>
@@ -1023,6 +1091,17 @@ export default function App() {
               </div>
             </div>
           </div>
+        ) : view === "atividades" ? (
+          <Activities
+            state={state}
+            notify={notify}
+            seed={studySeed}
+            onChat={async () => {
+              await refresh(true);
+              setStudySeed(null);
+              setView("chat");
+            }}
+          />
         ) : (
           <Materiais
             state={state}

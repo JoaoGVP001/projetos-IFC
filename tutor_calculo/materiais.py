@@ -318,7 +318,7 @@ class Biblioteca:
 
 def contexto_documental(fontes):
     # Serializacao escapa delimitadores e separa metadados do texto nao confiavel.
-    return json.dumps([{'referencia': f['referencia'], 'nome': f['nome'], 'url': f['url'],
+    return json.dumps([{'referencia': f['referencia'], 'material_id': f.get('material_id'), 'nome': f['nome'], 'url': f['url'],
                         'pagina': f['pagina'] if f['tipo']=='pdf' or 'PDF' in f.get('metodo','') else None,
                         'selecao': f.get('selecao','busca textual'),
                         'texto': f['texto']} for f in fontes], ensure_ascii=False)

@@ -68,3 +68,21 @@ As capturas usam dados temporários e uma IA simulada, sem documentos pessoais.
 Também há capturas de material, lateral recolhida e janela mínima, geradas pelo
 fluxo `pnpm e2e`. Ao alterar tokens ou componentes, confira ambos os temas,
 contraste, títulos longos, foco, diálogos e 1000 × 650 antes de publicar.
+
+## Área de atividades
+
+Reutiliza Button/Badge/Field/Menu/Dialog e o Markdown sanitizado. Listagem com
+filtros, editor em página rolável, questão central até 860 px, navegação numerada
+e resumo com contagens separadas. Resultados/dicas/manuais têm rótulos distintos.
+Estados arquivados preservam leitura e explicam restauração. Prévia de IA é
+um diálogo com contexto, pedido e trechos separados. Não há métricas fictícias.
+Tokens e classes ficam no mesmo style.css; títulos longos quebram, formulários
+usam duas colunas e grids tornam-se uma coluna na janela menor.
+
+![Prática clara](screenshots/atividades-pratica-claro.png)
+![Prática escura](screenshots/atividades-pratica-escuro.png)
+![Histórico](screenshots/atividades-historico-claro.png)
+
+`pnpm e2e:atividades` produz também editor, revisão, prévia e 1000×650 em ambos os
+temas, usando conteúdo fictício e API simulada. Ctrl/Tab, labels, foco e diálogos
+seguem os componentes existentes; o histórico admite leitura sem liberar edição.

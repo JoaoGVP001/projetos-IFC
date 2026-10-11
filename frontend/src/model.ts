@@ -53,6 +53,7 @@ export type Config = {
   provedores: Record<string, { modelo: string; configurada: boolean }>;
 };
 export type Estado = {
+  estudo: import("./activities-model").EstudoNav;
   revisao: number;
   cadernos: Caderno[];
   navegacao: {

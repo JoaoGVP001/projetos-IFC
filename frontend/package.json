@@ -33,7 +33,8 @@
     "build": "tsc --noEmit && vite build && node scripts/licencas.mjs",
     "test": "vitest run",
     "e2e": "node tests/desktop.mjs",
-    "format": "prettier --write src tests *.ts *.json *.html"
+    "format": "prettier --write src tests *.ts *.json *.html",
+    "e2e:atividades": "node tests/activities.mjs"
   },
   "packageManager": "pnpm@11.25.0",
   "engines": {

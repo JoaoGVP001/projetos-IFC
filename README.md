@@ -1,7 +1,8 @@
 # CadernoMat
 
 Um espaço desktop para estudar matemática: chats, cadernos por matéria e uma
-biblioteca de materiais que você pode consultar com Gemini ou OpenAI. Foco
+biblioteca de materiais e atividades com tentativas persistentes. Consulte
+materiais com Gemini ou OpenAI. Foco
 inicial em Preliminares, Cálculo Diferencial e Integral I e Matemática Discreta.
 
 A interface usa **React + TypeScript + Tailwind**, executada localmente pelo
@@ -69,7 +70,8 @@ Esse modo requer Tkinter. A interface nova não importa Tkinter ou Matplotlib.
   Títulos longos são abreviados; o tooltip mostra o título inteiro.
 - **+** em Cadernos cria uma matéria. O menu do caderno permite editar,
   reordenar e configurar objetivo, nível, assuntos e preferência pedagógica.
-  Excluir um caderno conserva chats e materiais, movendo os chats para Geral.
+  Excluir um caderno conserva chats, materiais e tentativas; chats e atividades
+  passam para Geral.
 - Use o botão de tema e recolha a lateral quando quiser mais espaço de leitura.
   Tema, última conversa e rascunhos ficam salvos neste computador.
 
@@ -78,9 +80,23 @@ citações, blocos de código e matemática com `$`, `$$`, `\(...\)` e `\[...\]`
 Fórmulas largas e tabelas podem rolar horizontalmente. Fórmulas inválidas têm
 alternativa textual. **Copiar** preserva o Markdown/LaTeX original.
 
-Os três cadernos iniciais são criados apenas na migração original. A mudança
-visual mantém SQLite **v5**, IDs, mensagens, rascunhos, arquivos, índices e
-seleções existentes. Veja [Cadernos](docs/CADERNOS.md).
+Os três cadernos iniciais são criados apenas na migração original. A migração para SQLite **v6** cria backup v5 e preserva IDs, mensagens, rascunhos, arquivos, índices e seleções existentes. Veja [Cadernos](docs/CADERNOS.md).
+
+## Praticar com atividades
+
+Abra **Atividades** no caderno escolhido. **Criar atividade** permite listas
+manuais offline com respostas abertas, múltipla escolha, verdadeiro/falso e
+números com tolerância absoluta. Responda, feche/reabra e continue na questão
+salva; finalize para conferir a correção objetiva. Dicas e solução revelada
+ficam registradas. Histórico permite retomar, iniciar outra tentativa e comparar.
+Editar a lista cria outra versão e preserva todas as tentativas antigas.
+
+**Gerar com IA**, dicas e feedback são opcionais: selecione as fontes, confira
+provedor/modelo e os dados da prévia e confirme a consulta. A geração entrega
+uma proposta para revisar/salvar; falhas não criam atividades nem notas zero.
+Respostas abertas exigem revisão manual ou feedback pedagógico, sem nota da IA.
+Há atalhos nos menus dos chats/materiais e ajuda em uma nova conversa isolada.
+Veja [formatos, limites e versionamento](docs/ATIVIDADES.md).
 
 ## IA e cálculo local
 
@@ -176,9 +192,10 @@ Testes de Python e fluxo real de desktop:
 .venv/bin/python -m unittest discover -s tests -v
 cd frontend
 pnpm e2e
+pnpm e2e:atividades
 ```
 
-A entrega foi validada com **88 testes Python**, **9 testes de interface** e um
+A entrega foi validada com **116 testes Python**, **15 testes de interface** e um
 fluxo completo na janela Qt, incluindo reinício, dois temas, tamanho mínimo e
 teclado. Testes usam bancos temporários e IA simulada; não consomem créditos.
 Os testes da interface anterior são opcionais sem Tkinter/display.
@@ -186,5 +203,5 @@ Os testes da interface anterior são opcionais sem Tkinter/display.
 [Arquitetura e contrato](docs/INTERFACE.md) · [Sistema de design](docs/DESIGN.md) ·
 [Continuidade](GUIA_CONTINUIDADE.md) · [Planejamento](PLANEJAMENTO.md).
 
-Próxima etapa: atividades e tentativas por caderno. Provas, simulados, embeddings,
+Atividades e tentativas estão disponíveis. Próxima etapa: provas e simulados. Provas, simulados, embeddings,
 busca semântica, novos provedores e IA local permanecem planejados.

@@ -2,6 +2,7 @@
 
 Executada apenas pelo teste; nao modifica .env nem os dados do usuario.
 """
+import json
 import os
 import sys
 import time
@@ -16,6 +17,11 @@ from tutor_calculo.servico import Aplicacao
 def consultar(pergunta,**kwargs):
     time.sleep(.4)
     if 'FALHA_SIMULADA' in pergunta:raise RuntimeError('Falha simulada de conexao. Tente novamente.')
+    if kwargs.get('modo') == 'Gerar atividade':
+        pedido=json.loads(pergunta.split('Solicitação de estudo (JSON de dados):\n')[1]); fontes=kwargs.get('fontes') or []
+        return json.dumps({'titulo':'Derivadas · proposta simulada', 'objetivo':'Treinar derivadas', 'dificuldade':pedido['dificuldade'], 'exercicios':[{'id':f'gerada-{i}', 'enunciado':f'Calcule $2+{i}$.', 'formato':'numerica', 'dificuldade':pedido['dificuldade'], 'resposta':str(2+i), 'tolerancia':'0', 'explicacao':'Some os números.', 'referencias':[{'material_id':fontes[0]['material_id'],'pagina':fontes[0]['pagina']}] if fontes else []} for i in range(pedido['quantidade'])]})
+    if kwargs.get('modo') in ('Dica de atividade','Feedback de atividade'):
+        return '### Orientação simulada\nConfira o domínio e explique seu raciocínio. Este é feedback de IA, sem nota.'
     citacao='\n\nFonte: **notas.txt** [M1].' if kwargs.get('fontes') else ''
     return r'''### Vamos construir a ideia
 
@@ -46,5 +52,8 @@ if __name__=='__main__':
     with patch('tutor_calculo.servico.configuracao',return_value=('chave-simulada','modelo-simulado')), \
          patch('tutor_calculo.servico.provedor_ativo',return_value='gemini'), \
          patch('tutor_calculo.servico.perguntar',side_effect=consultar), \
+         patch('tutor_calculo.estudo.configuracao',return_value=('chave-simulada','modelo-simulado')), \
+         patch('tutor_calculo.estudo.provedor_ativo',return_value='gemini'), \
+         patch('tutor_calculo.estudo.perguntar',side_effect=consultar), \
          patch('webview.window.Window.create_file_dialog',return_value=(str(pasta/'notas.txt'),)):
         abrir(app)

@@ -1,3 +1,20 @@
+## Atualização — atividades e tentativas (11/10/2026)
+
+Leia docs/ATIVIDADES.md. SQLite v6, backup v5 e migração transacional. Editor
+manual offline, 4 formatos, autosave/posição, versões imutáveis e histórico.
+Correção determinística, revisão manual separada, propostas/dicas/feedback com
+Gemini/OpenAI opcionais. Prévia persistente e fontes sempre explícitas. Integração
+com chats/materiais conserva IDs e arquivos. Atividades são arquivadas, sem
+exclusão definitiva. Dados pessoais permanecem fora do Git.
+
+Novos serviços: atividades.py, tentativas.py, correcao.py e estudo.py. DTOs e
+interface em frontend/src/activities-model.ts e Activities.tsx. Não adicione SQL
+ou acesso a provedores ao React. Compilar com pnpm build, abrir pelo atalho.
+Testes atuais: 116 Python, 15 frontend, pnpm e2e e pnpm e2e:atividades (Qt real,
+IA simulada). Documentação anterior abaixo registra a migração visual já entregue.
+Próxima etapa: provas/simulados; depois flashcards, qualidade matemática e
+exportação. Embeddings e IA local continuam por último.
+
 # Continuidade do CadernoMat — 11/10/2026
 
 ## Estado atual e próxima entrega
