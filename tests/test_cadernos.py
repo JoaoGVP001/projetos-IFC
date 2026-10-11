@@ -176,7 +176,7 @@ class MigracaoCadernosTest(unittest.TestCase):
             h = Historico(caminho)
             try:
                 c,b = Cadernos(h),Biblioteca(h)
-                self.assertEqual(h.db.execute('PRAGMA user_version').fetchone()[0],9)
+                self.assertEqual(h.db.execute('PRAGMA user_version').fetchone()[0],10)
                 self.assertIsNone(h.obter('antigo')['caderno_id'])
                 self.assertTrue(h.obter('antigo')['fixada'])
                 self.assertEqual(h.obter('antigo')['rascunho'],'rascunho intacto')

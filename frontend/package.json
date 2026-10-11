@@ -37,7 +37,8 @@
     "e2e:atividades": "node tests/activities.mjs",
     "e2e:local": "node tests/local.mjs",
     "e2e:semantica": "node tests/semantica.mjs",
-    "e2e:matematica": "node tests/matematica.mjs"
+    "e2e:matematica": "node tests/matematica.mjs",
+    "e2e:discreta": "node tests/discreta.mjs"
   },
   "packageManager": "pnpm@11.25.0",
   "engines": {

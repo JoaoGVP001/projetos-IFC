@@ -143,7 +143,7 @@ class PersistenciaTest(unittest.TestCase):
             self.assertFalse(db.execute("SELECT name FROM sqlite_master WHERE name='falha'").fetchone())
         self.app=Aplicacao(self.path)
         with sqlite3.connect(self.path) as db:
-            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],9)
+            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],10)
             self.assertEqual(db.execute('SELECT * FROM conversas').fetchall(),old)
             self.assertEqual(db.execute('PRAGMA foreign_key_check').fetchall(),[])
         with sqlite3.connect(str(self.path)+'.v8.backup') as db:self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],8)

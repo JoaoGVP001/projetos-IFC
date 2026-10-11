@@ -31,9 +31,10 @@ def migrar_calculos(db):
     db.execute('CREATE INDEX calculos_chat ON calculos(conversa_id, criado)')
 
 
-def processo(spec, token, timeout=TIMEOUT):
+def processo(spec, token, timeout=TIMEOUT, modulo="tutor_calculo.ferramentas_matematicas"):
+    if modulo not in ("tutor_calculo.ferramentas_matematicas", "tutor_calculo.discreta"): raise ValueError("Worker inválido.")
     token.verificar()
-    proc = subprocess.Popen([sys.executable, '-m', 'tutor_calculo.ferramentas_matematicas'],
+    proc = subprocess.Popen([sys.executable, '-m', modulo],
         stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
         cwd=Path(__file__).resolve().parents[1],
         env={**os.environ, 'OPENBLAS_NUM_THREADS':'1', 'OMP_NUM_THREADS':'1', 'MKL_NUM_THREADS':'1'},
@@ -61,6 +62,17 @@ def processo(spec, token, timeout=TIMEOUT):
 
 
 class Calculos:
+    versao = VERSAO
+    validar = staticmethod(validar_spec)
+    processar = staticmethod(processo)
+    resumir = staticmethod(resumo)
+    modelo_local = "SymPy + Matplotlib"
+
+    def descrever(self, spec):
+        return "Calcular localmente: "+spec["expressao"]+"; intervalo ["+spec["inicio"]+", "+spec["fim"]+"]; operações: "+", ".join(spec["operacoes"])+(" ; ponto: "+spec["ponto"] if spec["ponto"] else "")
+
+    def titulo(self, spec): return "f(x) = "+spec["expressao"][:70]
+
     def __init__(self, app):
         self.app = app
         self.raiz = app.caminho.parent/'calculos'
@@ -81,14 +93,14 @@ class Calculos:
                 file.unlink(missing_ok=True)
 
     def listar(self, h, cid):
-        return [dict(r) for r in h.db.execute('SELECT id,tipo,estado,mensagem_id,erro,criado FROM calculos WHERE conversa_id=? ORDER BY rowid', (cid,))]
+        return [dict(r) for r in h.db.execute('SELECT id,tipo,estado,mensagem_id,erro,criado,versao FROM calculos WHERE conversa_id=? ORDER BY rowid', (cid,))]
 
     def obter(self, h, cid):
         if not isinstance(cid, str) or len(cid)>100: raise ValueError('Identificador inválido.')
         row = h.db.execute('SELECT * FROM calculos WHERE id=?', (cid,)).fetchone()
-        if not row: raise ValueError('Cálculo não encontrado.')
+        if not row or row['versao']!=self.versao: raise ValueError('Cálculo não encontrado nesta ferramenta.')
         out = dict(row)
-        for k in ('spec','resultado','previa'): out[k] = json.loads(out[k]) if out[k] else None
+        for k in ('spec','resultado','previa','conferencia'): out[k] = json.loads(out[k]) if out[k] else None
         # DTO não revela caminho, nome interno ou hash de arquivos.
         out.pop('artefato'); out.pop('hash')
         return out
@@ -112,7 +124,7 @@ class Calculos:
         if op == 'math_consultar': return self.consultar_ia(d)
         if op == 'math_obter':
             with a._banco() as (h,c,b): r = self.obter(h, d.get('id'))
-            if r['tipo']=='calculo' and r['estado']=='concluida':
+            if r['tipo']=='calculo' and r['estado']=='concluida' and r['resultado'].get('png_disponivel', True):
                 try: r['imagem'] = 'data:image/png;base64,'+base64.b64encode(self.png(r['id'])).decode()
                 except ValueError as exc: r['imagem']=None; r['aviso_artefato']=str(exc)
             return r
@@ -123,7 +135,7 @@ class Calculos:
                 if token: token.cancelar(); a._tarefas[r['id']]['cancelando']=True
             return {'id':r['id']}
         if op != 'math_executar': raise ValueError('Operação matemática inválida.')
-        spec = validar_spec(d.get('spec'))
+        spec = self.validar(d.get('spec'))
         a._livre()
         with a._banco() as (h,c,b):
             cid=d.get('conversa');a._editavel(h,c,cid)
@@ -136,9 +148,9 @@ class Calculos:
             jid = str(uuid4())
             with h.db:
                 if not h.db.execute('SELECT 1 FROM mensagens WHERE conversa_id=? LIMIT 1',(cid,)).fetchone() and h.obter(cid)['titulo']=='Novo chat':
-                    h.db.execute('UPDATE conversas SET titulo=? WHERE id=?',('f(x) = '+spec['expressao'][:70],cid))
-                h.db.execute("INSERT INTO mensagens(conversa_id,papel,texto,estado) VALUES(?,'user',?,'ok')", (cid, 'Calcular localmente: '+spec['expressao']+'; intervalo ['+spec['inicio']+', '+spec['fim']+']; operações: '+', '.join(spec['operacoes'])+(' ; ponto: '+spec['ponto'] if spec['ponto'] else '')))
-                h.db.execute("INSERT INTO calculos(id,conversa_id,tipo,estado,spec,versao,atividade_id,atividade_versao) VALUES(?,?,'calculo','executando',?,?,?,?)", (jid,cid,json.dumps(spec,ensure_ascii=False),VERSAO,aid,av))
+                    h.db.execute('UPDATE conversas SET titulo=? WHERE id=?',(self.titulo(spec),cid))
+                h.db.execute("INSERT INTO mensagens(conversa_id,papel,texto,estado) VALUES(?,'user',?,'ok')", (cid, self.descrever(spec)))
+                h.db.execute("INSERT INTO calculos(id,conversa_id,tipo,estado,spec,versao,atividade_id,atividade_versao) VALUES(?,?,'calculo','executando',?,?,?,?)", (jid,cid,json.dumps(spec,ensure_ascii=False),self.versao,aid,av))
                 h.db.execute('UPDATE conversas SET atualizado=CURRENT_TIMESTAMP WHERE id=?',(cid,))
         self.iniciar(jid, cid, lambda: self.worker(jid,cid,spec))
         return {'id':jid}
@@ -155,7 +167,7 @@ class Calculos:
 
     def worker(self, jid, cid, spec):
         a=self.app;token=a._cancelamentos[jid];result=None;error='';state='concluida';file=None
-        try: result=processo(spec,token)
+        try: result=self.processar(spec,token)
         except ConsultaCancelada: state='cancelada';error='Cálculo cancelado; nenhum gráfico foi publicado.'
         except (ValueError,RuntimeError) as exc: state='erro';error=str(exc)
         except Exception: state='erro';error='Falha inesperada no cálculo local. Tente novamente.'
@@ -165,7 +177,7 @@ class Calculos:
                 with a._banco() as (h,c,b):
                     if not h.db.execute('SELECT 1 FROM calculos WHERE id=?',(jid,)).fetchone():return
                     png_hash='';filename=''
-                    if result is not None:
+                    if result is not None and result.get('png') is not None:
                         raw=base64.b64decode(result.pop('png'),validate=True)
                         if len(raw)>MAX_PNG or not raw.startswith(b'\x89PNG\r\n\x1a\n'):raise ValueError('Gráfico inválido.')
                         filename=jid+'.png';file=self.raiz/filename
@@ -175,9 +187,9 @@ class Calculos:
                             os.replace(tmp,file)
                         finally:Path(tmp).unlink(missing_ok=True)
                         png_hash=sha256(raw).hexdigest()
-                    text=resumo(result) if result else error
+                    text=self.resumir(result) if result else error
                     with h.db:
-                        mid=h.db.execute("INSERT INTO mensagens(conversa_id,papel,texto,estado,provedor,modelo) VALUES(?,'assistant',?,?, 'matematica','SymPy + Matplotlib')",(cid,text,'ok' if result else 'cancelada' if state=='cancelada' else 'erro')).lastrowid
+                        mid=h.db.execute("INSERT INTO mensagens(conversa_id,papel,texto,estado,provedor,modelo) VALUES(?,'assistant',?,?, 'matematica',?)",(cid,text,'ok' if result else 'cancelada' if state=='cancelada' else 'erro',self.modelo_local)).lastrowid
                         h.db.execute('UPDATE calculos SET estado=?,resultado=?,erro=?,mensagem_id=?,artefato=?,hash=? WHERE id=?',(state,json.dumps(result,ensure_ascii=False,allow_nan=False) if result else None,error,mid,filename,png_hash,jid))
                         h.db.execute('UPDATE conversas SET atualizado=CURRENT_TIMESTAMP WHERE id=?',(cid,))
             except Exception:

@@ -99,6 +99,7 @@ export type Orcamento = {
 export type Estado = {
   calculos?: {
     id: string;
+    versao?: string;
     tipo: string;
     estado: string;
     mensagem_id: number | null;

@@ -1,5 +1,6 @@
 import { BuscaSemantica } from "./BuscaSemantica";
 import { MathTools, MathCard } from "./MathTools";
+import { DiscreteTools, DiscreteCard } from "./DiscreteTools";
 import {
   useCallback,
   useEffect,
@@ -91,6 +92,7 @@ type Modal =
     }
   | { tipo: "link" }
   | { tipo: "matematica"; proposta?: string }
+  | { tipo: "discreta"; proposta?: string }
   | { tipo: "config" }
   | { tipo: "material"; item: Material }
   | { tipo: "detalhe"; id: string }
@@ -950,7 +952,13 @@ export default function App() {
                               key={j.id}
                               disabled={!editable || occupied}
                               onClick={() =>
-                                setModal({ tipo: "matematica", proposta: j.id })
+                                setModal({
+                                  tipo:
+                                    j.versao === "discreta-v1"
+                                      ? "discreta"
+                                      : "matematica",
+                                  proposta: j.id,
+                                })
                               }
                             >
                               Revisar proposta da IA
@@ -963,14 +971,23 @@ export default function App() {
                               j.estado === "concluida" &&
                               j.mensagem_id === m.id,
                           )
-                          .map((j) => (
-                            <MathCard
-                              key={j.id}
-                              id={j.id}
-                              chat={state.conversa!.id}
-                              notify={notify}
-                            />
-                          ))}
+                          .map((j) =>
+                            j.versao === "discreta-v1" ? (
+                              <DiscreteCard
+                                key={j.id}
+                                id={j.id}
+                                chat={state.conversa!.id}
+                                notify={notify}
+                              />
+                            ) : (
+                              <MathCard
+                                key={j.id}
+                                id={j.id}
+                                chat={state.conversa!.id}
+                                notify={notify}
+                              />
+                            ),
+                          )}
                       </div>
                       <button
                         className="copy-message"
@@ -1123,6 +1140,14 @@ export default function App() {
                 />
                 <div className="composer-tools">
                   <div className="composer-left">
+                    <Button
+                      variant="ghost"
+                      icon={Sigma}
+                      aria-label="Matemática Discreta"
+                      title="Ferramentas de Matemática Discreta"
+                      disabled={!editable || occupied}
+                      onClick={() => setModal({ tipo: "discreta" })}
+                    />
                     <Button
                       variant="ghost"
                       icon={ChartNoAxesCombined}
@@ -1283,18 +1308,32 @@ export default function App() {
                         ? "Organizar material"
                         : modal.tipo === "detalhe"
                           ? "Visualizar material"
-                          : modal.tipo === "matematica"
-                            ? "Cálculos e gráficos locais"
-                            : "Prévia do envio"
+                          : modal.tipo === "discreta"
+                            ? "Ferramentas de Matemática Discreta"
+                            : modal.tipo === "matematica"
+                              ? "Cálculos e gráficos locais"
+                              : "Prévia do envio"
           }
           subtitle={
             modal.tipo === "config"
               ? "Escolha IA local ou online e onde aplicar a configuração."
               : undefined
           }
-          wide={["detalhe", "previa", "matematica"].includes(modal.tipo)}
+          wide={["detalhe", "previa", "matematica", "discreta"].includes(
+            modal.tipo,
+          )}
           onClose={() => setModal(null)}
         >
+          {modal.tipo === "discreta" && state.conversa && (
+            <DiscreteTools
+              chat={state.conversa.id}
+              proposta={modal.proposta}
+              notify={notify}
+              onStarted={() => {
+                void refresh();
+              }}
+            />
+          )}
           {modal.tipo === "matematica" && state.conversa && (
             <MathTools
               chat={state.conversa.id}

@@ -10,14 +10,14 @@ export type MathSpec = {
   ponto: string;
   operacoes: string[];
 };
-export type MathJob = {
+export type MathJob<T = MathSpec> = {
   id: string;
   tipo: string;
   estado: string;
   mensagem_id: number | null;
   erro: string;
-  spec?: MathSpec;
-  resultado?: MathSpec;
+  spec?: T;
+  resultado?: T;
   previa?: {
     destino: string;
     aviso: string;
@@ -248,33 +248,39 @@ export function MathCard({
   );
 }
 
-function MathAI({
+export function MathAI<T = MathSpec>({
   chat,
   tipo,
   origem,
   notify,
   onResult,
+  prefix = "math",
+  hint = "Inclua a função, o intervalo e o ponto desejados. Confira os parâmetros da proposta antes de calcular.",
+  placeholder = "Trace f(x)=x^2-4*x+3 no intervalo [-2,6] e a tangente em x=3.",
 }: {
   chat: string;
   tipo: "proposta" | "explicacao";
   origem?: string;
   notify: (s: string) => void;
-  onResult?: (s: MathSpec) => void;
+  onResult?: (s: T, id?: string) => void;
+  prefix?: string;
+  hint?: string;
+  placeholder?: string;
 }) {
   const [pedido, setPedido] = useState("");
-  const [job, setJob] = useState<MathJob | null>(null);
+  const [job, setJob] = useState<MathJob<T> | null>(null);
   const [busy, setBusy] = useState(false);
   useEffect(() => {
     if (job?.estado !== "executando") return;
     let live = true;
     const timer = setInterval(
       () =>
-        void api<MathJob>("math_obter", { id: job.id })
+        void api<MathJob<T>>(prefix + "_obter", { id: job.id })
           .then((r) => {
             if (!live) return;
             setJob(r);
             if (r.estado === "concluida" && tipo === "proposta" && r.resultado)
-              onResult?.(r.resultado);
+              onResult?.(r.resultado, r.id);
           })
           .catch((e) => {
             if (live) notify(e.message);
@@ -290,7 +296,7 @@ function MathAI({
     setBusy(true);
     try {
       setJob(
-        await api<MathJob>("math_previa", {
+        await api<MathJob<T>>(prefix + "_previa", {
           conversa: chat,
           tipo,
           pedido,
@@ -306,7 +312,7 @@ function MathAI({
   async function consult() {
     setBusy(true);
     try {
-      setJob(await api<MathJob>("math_consultar", { id: job!.id }));
+      setJob(await api<MathJob<T>>(prefix + "_consultar", { id: job!.id }));
     } catch (e) {
       notify((e as Error).message);
     } finally {
@@ -322,10 +328,7 @@ function MathAI({
           : "Explicar resultados com IA"}
       </summary>
       {tipo === "proposta" && (
-        <Field
-          label="Pedido para IA"
-          hint="Inclua a função, o intervalo e o ponto desejados. Confira os parâmetros da proposta antes de calcular."
-        >
+        <Field label="Pedido para IA" hint={hint}>
           <textarea
             aria-label="Pedido para IA"
             value={pedido}
@@ -335,7 +338,7 @@ function MathAI({
               setPedido(e.target.value);
               setJob(null);
             }}
-            placeholder="Trace f(x)=x^2-4*x+3 no intervalo [-2,6] e a tangente em x=3."
+            placeholder={placeholder}
           />
         </Field>
       )}
@@ -377,7 +380,7 @@ function MathAI({
       {active && (
         <Button
           onClick={() =>
-            void api("math_cancelar", { id: job!.id }).catch((e) =>
+            void api(prefix + "_cancelar", { id: job!.id }).catch((e) =>
               notify(e.message),
             )
           }

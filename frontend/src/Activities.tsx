@@ -1,3 +1,4 @@
+import { DiscreteTools, DiscreteCard } from "./DiscreteTools";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Plus,
@@ -1572,12 +1573,47 @@ export function Practice({
     ),
     [status, setStatus] = useState("Tudo salvo"),
     [confirmFinish, setConfirmFinish] = useState(false),
-    [saving, setSaving] = useState(false);
+    [saving, setSaving] = useState(false),
+    [discreta, setDiscreta] = useState<{
+      conversa: string;
+      enunciado: string;
+      questao: string;
+    } | null>(null),
+    [calculosDiscretos, setCalculosDiscretos] = useState<
+      { id: string; estado: string; conversa_id: string }[]
+    >([]);
   const pending = useRef<StudyDraft | null>(null),
     dirty = useRef(false);
   const q = t.snapshot.conteudo.exercicios[t.posicao],
     final = t.estado === "finalizada",
     editable = t.editavel && !final;
+  const contextoDiscreto = {
+    atividade: t.atividade_id,
+    atividade_versao: t.versao,
+    questao: q.id,
+    tentativa: t.id,
+  };
+  const discretaScope = useRef("");
+  discretaScope.current = `${t.id}/${q.id}`;
+  const atualizarDiscreta = () => {
+    const scope = `${t.id}/${q.id}`;
+    void api<typeof calculosDiscretos>("discreta_vinculos", contextoDiscreto)
+      .then((r) => {
+        if (discretaScope.current === scope)
+          setCalculosDiscretos(Array.isArray(r) ? r : []);
+      })
+      .catch((e) => notify(e.message));
+  };
+  useEffect(() => {
+    setCalculosDiscretos([]);
+    setDiscreta(null);
+    atualizarDiscreta();
+  }, [t.id, q.id]);
+  useEffect(() => {
+    if (!discreta) return;
+    const timer = setInterval(atualizarDiscreta, 1000);
+    return () => clearInterval(timer);
+  }, [discreta?.conversa, discreta?.questao, t.id, q.id]);
   const flush = useCallback(async () => {
     const d = pending.current;
     if (!d || !dirty.current) return;
@@ -1806,6 +1842,22 @@ export function Practice({
         )}
         <div className="practice-tools">
           <Button
+            disabled={!t.editavel || busy || saving}
+            onClick={() =>
+              void api<{ conversa: string; enunciado: string }>(
+                "discreta_destino",
+                contextoDiscreto,
+              )
+                .then((r) => {
+                  if (discretaScope.current === `${t.id}/${q.id}`)
+                    setDiscreta({ ...r, questao: q.id });
+                })
+                .catch((e) => notify(e.message))
+            }
+          >
+            Ferramentas de Discreta
+          </Button>
+          <Button
             icon={Lightbulb}
             disabled={!editable || busy || saving}
             onClick={() => onAI("dica")}
@@ -1843,6 +1895,34 @@ export function Practice({
             Pedir ajuda em novo chat
           </Button>
         </div>
+        {calculosDiscretos
+          .filter((j) => j.estado === "concluida")
+          .map((j) => (
+            <DiscreteCard
+              key={j.id}
+              id={j.id}
+              chat={j.conversa_id}
+              notify={notify}
+            />
+          ))}
+        {discreta && (
+          <Dialog
+            title="Discreta vinculada à questão"
+            wide
+            onClose={() => {
+              setDiscreta(null);
+              atualizarDiscreta();
+            }}
+          >
+            <DiscreteTools
+              chat={discreta.conversa}
+              enunciado={discreta.enunciado}
+              context={{ ...contextoDiscreto, questao: discreta.questao }}
+              notify={notify}
+              onStarted={atualizarDiscreta}
+            />
+          </Dialog>
+        )}
         {(final || r.revelada) && (
           <section className="practice-solution">
             <h3>

@@ -145,8 +145,8 @@ foi migrado para v9 preservando os hashes das 25 tabelas anteriores, com backup,
 integridade/FKs e configurações conferidos. Não foram consumidos créditos
 online. Windows não foi executado neste ambiente.
 
-Continuam planejados: tabelas-verdade, conjuntos e grafos finitos; retomada direta
-pela tela de atividades (a referência versionada já existe no backend); integrais
+O complemento [Matemática Discreta](DISCRETA.md) entrega conjuntos, relações e
+tabelas-verdade, com acesso pela tela de atividades. Continuam planejados: integrais
 impróprias; mais funções/domínios; zoom; exportações SVG/PDF; páginas completas de
 caderno L4 e ilustrações opcionais L5. As páginas de caderno usarão composição
 local de texto/KaTeX/gráficos, separada de geração artística de imagens.

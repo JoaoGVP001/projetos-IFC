@@ -373,9 +373,10 @@ explicações pelos três provedores. Integrais impróprias ficam fora deste esc
   especificado, com domínio, descontinuidades, eixos e legenda corretos.
 - [x] Acrescentar derivada, ponto/linha tangente e área de integral definida,
   distinguindo resultado simbólico, aproximação numérica e não verificado.
-- [ ] Discreta: tabelas-verdade, conjuntos/diagramas e grafos finitos a partir de
+- [x] Discreta: tabelas-verdade, conjuntos/diagramas e relações finitas a partir de
   especificações limitadas. A verificação só cobre operações implementadas;
   demonstrações por indução/argumentos não recebem selo automático de prova.
+  Complemento entregue com fontes e atividades: [uso e limites](DISCRETA.md).
 - [x] Usar SymPy para cálculo e Matplotlib para PNG local. SVG/PDF ficam posteriores. Avaliar
   Plotly no frontend depois, se zoom/sliders justificarem o peso adicional.
 - [x] Mostrar ao usuário a função, intervalo, hipóteses e dados usados. Salvar

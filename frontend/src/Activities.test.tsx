@@ -1,4 +1,4 @@
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import {
   cleanup,
   fireEvent,
@@ -10,6 +10,7 @@ import { Practice } from "./Activities";
 import type { Tentativa } from "./activities-model";
 import { api } from "./bridge";
 vi.mock("./bridge", () => ({ api: vi.fn() }));
+beforeEach(() => vi.mocked(api).mockResolvedValue([] as never));
 function tentativa(formato = "aberta"): Tentativa {
   return {
     id: "t",

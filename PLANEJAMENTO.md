@@ -2,6 +2,22 @@
 
 Atualizado em 11/10/2026.
 
+## Entregue — complemento L3: Matemática Discreta
+
+Reutilizados tarefas/artefatos de Cálculo e o chat React. Entrada manual com
+prévia obrigatória, conjuntos/relações finitos e resultados exatos, definições
+e contraexemplos. Parser proposicional próprio limitado a seis variáveis,
+tabelas-verdade/equivalência e diagramas locais exportáveis. Propostas de IA
+revisáveis com fontes selecionadas/parciais e origem persistida; campos
+inexistentes/ambíguos ficam em branco. Explicações não alteram resultados.
+Vínculos a atividade/versão/questão/tentativa, comparação objetiva separada
+após solução revelada ou finalização, preservando gabaritos e notas.
+SQLite v10 com backup v9 e rollback. Páginas/PDF continuam em L4.
+[Uso, limites e validação](docs/DISCRETA.md). Aceite: 196 Python aprovados/dez
+legados ignorados, 27 React, build e quatro fluxos Qt. Ollama real com rede
+externa bloqueada (~30 s proposta/~46 s explicação), reinício e preservação das
+26 tabelas pessoais/arquivos/configurações conferidos.
+
 ## Entregue — materiais de disciplinas em PDF e Office
 
 A biblioteca existente é reutilizada para os anexos do Classroom, com associação
@@ -633,7 +649,8 @@ fallback online. Windows ainda requer aceite próprio.
 
 Aceites matemáticos, persistência/migração/rollback, frontend/Qt e modelo real
 Ollama com rede externa bloqueada; resultados e limites em docs/MATEMATICA_LOCAL.md.
-Continuam Discreta, páginas completas L4 e ilustrações L5, mais domínios, integrais
+O complemento Discreta está entregue acima. Continuam páginas completas L4 e
+ilustrações L5, mais domínios, integrais
 impróprias, integração visual com atividades e exportação SVG/PDF.
 
 Validação final L3: 185 testes Python (175 aprovados, 10 do legado ignorados),

@@ -214,7 +214,7 @@ class MigracaoSemanticaTest(unittest.TestCase):
                 self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],7)
                 self.assertIsNone(db.execute("SELECT name FROM sqlite_master WHERE name='lixo'").fetchone())
             h=Historico(path)
-            self.assertEqual(h.db.execute('PRAGMA user_version').fetchone()[0],9);self.assertEqual(h.mensagens(cid)[0]['texto'],'Mensagem anterior');h.fechar()
+            self.assertEqual(h.db.execute('PRAGMA user_version').fetchone()[0],10);self.assertEqual(h.mensagens(cid)[0]['texto'],'Mensagem anterior');h.fechar()
             with sqlite3.connect(str(path)+'.v7.backup') as db:self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],7)
 
 if __name__=='__main__':unittest.main()

@@ -56,6 +56,8 @@ class Aplicacao:
         self._estudo=Estudo(self)
         from .calculos import Calculos
         self._calculos=Calculos(self)
+        from .discreta_servico import Discreta
+        self._discreta=Discreta(self)
         with self._banco() as (h,c,b):
             Biblioteca(h,recuperar=True)
             from .semantica import IndiceSemantico
@@ -142,6 +144,8 @@ class Aplicacao:
         operacoes.update({op:(lambda d, op=op:self._estudo.executar(op,d)) for op in OPERACOES})
         from .calculos import OPERACOES as MATH_OPS
         operacoes.update({op:(lambda d, op=op:self._calculos.executar(op,d)) for op in MATH_OPS})
+        from .discreta_servico import OPERACOES as DISCRETA_OPS
+        operacoes.update({op:(lambda d,op=op:self._discreta.executar(op,d)) for op in DISCRETA_OPS})
         if not isinstance(operacao,str) or operacao not in operacoes:raise ValueError('Operacao nao permitida.')
         if not isinstance(dados,dict) or len(dados)>15:raise ValueError('Parametros invalidos.')
         with self._lock:

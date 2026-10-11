@@ -19,6 +19,15 @@ integrais próprias funcionam offline; o PNG fica salvo e pode ser exportado.
 A IA pode propor parâmetros revisáveis e explicar os resultados, com prévia do
 envio e sem alterar as verificações. [Uso, limites e testes](docs/MATEMATICA_LOCAL.md).
 
+## Matemática Discreta (L3)
+
+No chat, clique em **Matemática Discreta** (Σ), carregue um exemplo, **Conferir
+dados interpretados** e **Calcular e salvar Discreta**. Conjuntos finitos,
+propriedades de relações com contraexemplos e tabelas-verdade são calculados
+localmente. Diagramas pequenos podem ser exportados em PNG. A IA propõe dados
+revisáveis e explica resultados; atividades conservam versão/questão/tentativa,
+com comparação separada de notas. [Uso, exemplos e limites](docs/DISCRETA.md).
+
 ## Abrir no computador atual
 
 Feche a versão anterior e abra **CadernoMat** pelo atalho da área de trabalho.
@@ -88,7 +97,7 @@ citações, blocos de código e matemática com `$`, `$$`, `\(...\)` e `\[...\]`
 Fórmulas largas e tabelas podem rolar horizontalmente. Fórmulas inválidas têm
 alternativa textual. **Copiar** preserva o Markdown/LaTeX original.
 
-Os três cadernos iniciais são criados apenas na migração original. A migração atual para SQLite **v8** cria backup v7 e preserva IDs, mensagens, rascunhos, arquivos, índices e seleções existentes. Veja [Cadernos](docs/CADERNOS.md) e [IA local](docs/OLLAMA.md) e [busca híbrida](docs/BUSCA_SEMANTICA.md).
+Os três cadernos iniciais são criados apenas na migração original. A migração atual para SQLite **v10** cria backup v9 e preserva IDs, mensagens, rascunhos, arquivos, índices e seleções existentes. Veja [Cadernos](docs/CADERNOS.md) e [IA local](docs/OLLAMA.md) e [busca híbrida](docs/BUSCA_SEMANTICA.md).
 
 ## Praticar com atividades
 
@@ -226,9 +235,11 @@ pnpm e2e
 pnpm e2e:atividades
 pnpm e2e:local
 pnpm e2e:semantica
+pnpm e2e:matematica
+pnpm e2e:discreta
 ```
 
-A entrega foi validada com **157 testes Python aprovados** (10 opcionais Tk ignorados), **21 testes de interface** e um
+A entrega foi validada com **196 testes Python aprovados** (10 opcionais Tk ignorados), **27 testes de interface** e um
 fluxo completo na janela Qt, incluindo reinício, dois temas, tamanho mínimo e
 teclado. Testes usam bancos temporários e IA simulada; não consomem créditos.
 Os testes da interface anterior são opcionais sem Tkinter/display.
@@ -238,8 +249,9 @@ Os testes da interface anterior são opcionais sem Tkinter/display.
 [Plano de IA local, gráficos e páginas de caderno](docs/IA_LOCAL.md) ·
 [Piloto local executado](docs/PILOTO_LOCAL.md).
 
-Atividades, tentativas, Ollama e busca híbrida local estão disponíveis. Provas, simulados,
-gráficos, verificação matemática e visão permanecem planejados. A trilha
+Atividades, tentativas, Ollama, busca híbrida local, gráficos e verificações
+limitadas de Cálculo/Discreta estão disponíveis. Provas cronometradas, páginas de
+caderno/PDF, visão e verificações fora desse escopo permanecem planejadas. A trilha
 local foi detalhada para um PC Windows com 16 GB RAM e RTX 3060 de 8/12 GB VRAM;
 um piloto independente foi depois executado no notebook Linux. O computador
 de casa ainda precisa ser testado.

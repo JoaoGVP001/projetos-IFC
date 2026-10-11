@@ -1,3 +1,22 @@
+## Entrega atual — Matemática Discreta L3 (11/10/2026)
+
+Leia [docs/DISCRETA.md](docs/DISCRETA.md). SQLite v10 com backup v9 acrescenta
+questão/tentativa/proposta e comparação separada em calculos. Motor discreta.py
+com parser próprio e worker encerrável; discreta_servico.py reutiliza Calculos,
+artefatos e provedores. DiscreteTools.tsx exige prévia manual, salva/exporta
+resultados e integra fontes/atividades. Não usar eval/exec nem substituir provas
+por checagem finita. Propostas copiam somente campos explícitos do pedido ou
+fontes incluídas; referência da proposta preserva os materiais consultados.
+Comparar gabarito só após revelar/finalizar; jamais sobrescrever notas/snapshots.
+
+Aceite: 196 Python aprovados/10 legados ignorados, 27 React, build e fluxos Qt
+Discreta/Cálculo/atividades/chat. Ollama real em namespace sem rede externa,
+proposta ~30 s e explicação ~46 s, resultado e PNG preservados ao reiniciar.
+Migração pessoal preservou as 26 tabelas e arquivos/configurações, incluindo os
+seis materiais/678 trechos do Classroom. Relatórios pessoais fora do Git.
+Próxima etapa L4: páginas de estudo com composição local e PDF paginado.
+Windows ainda precisa de teste real. Atalho CadernoMat permanece o mesmo.
+
 ## Entrega atual — matemática local L3 (11/10/2026)
 
 Leia docs/MATEMATICA_LOCAL.md. SQLite v9 com backup v8; calculos.py gerencia

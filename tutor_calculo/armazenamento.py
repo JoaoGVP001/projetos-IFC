@@ -28,7 +28,7 @@ class Historico:
         self.db.row_factory = sqlite3.Row
         self.db.execute('PRAGMA foreign_keys=ON')
         versao = self.db.execute('PRAGMA user_version').fetchone()[0]
-        if versao > 9:
+        if versao > 10:
             self.db.close()
             raise RuntimeError('Este historico exige uma versao mais recente do CadernoMat.')
         if versao == 0:
@@ -140,6 +140,20 @@ class Historico:
                     self.db.execute('BEGIN')
                     migrar_calculos(self.db)
                     self.db.execute('PRAGMA user_version=9')
+            except Exception:
+                self.db.close()
+                raise
+        if versao < 10:
+            if versao:
+                with closing(sqlite3.connect(str(self.caminho)+'.v9.backup')) as destino:
+                    self.db.backup(destino)
+                if os.name != 'nt': Path(str(self.caminho)+'.v9.backup').chmod(0o600)
+            from .discreta_servico import migrar_discreta
+            try:
+                with self.db:
+                    self.db.execute('BEGIN')
+                    migrar_discreta(self.db)
+                    self.db.execute('PRAGMA user_version=10')
             except Exception:
                 self.db.close()
                 raise

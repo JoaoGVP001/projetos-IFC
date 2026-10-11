@@ -42,7 +42,7 @@ class Ponte:
             elif operacao=='exemplo':
                 from .app import EXEMPLO
                 resultado=EXEMPLO
-            elif operacao=='math_exportar':
+            elif operacao in ('math_exportar','discreta_exportar'):
                 if self._window is None:raise ValueError('Janela não disponível.')
                 raw=self._app._calculos.png(ident(dados.get('id')))
                 import webview

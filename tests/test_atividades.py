@@ -39,7 +39,7 @@ class EstudoTest(unittest.TestCase):
             db.execute('DROP TRIGGER IF EXISTS semantica_texto_alterado')
             db.execute('DROP TABLE IF EXISTS calculos');db.execute('PRAGMA user_version=5')
         self.h=Historico(self.path)
-        self.assertEqual(self.h.db.execute('PRAGMA user_version').fetchone()[0],9)
+        self.assertEqual(self.h.db.execute('PRAGMA user_version').fetchone()[0],10)
         self.assertEqual(self.h.obter(cid)['rascunho'],'rascunho'); self.assertEqual(self.h.mensagens(cid)[0]['texto'],'preservar')
         with sqlite3.connect(str(self.path)+'.v5.backup') as db: self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],5)
     def test_rollback_ddl(self):
