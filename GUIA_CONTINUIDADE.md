@@ -1,3 +1,18 @@
+## Planejamento atual — IA local no Windows (11/10/2026)
+
+Leia [docs/IA_LOCAL.md](docs/IA_LOCAL.md) antes da próxima implementação desta
+trilha. PC de casa: Windows, 16 GB RAM e RTX 3060 com 8 ou 12 GB VRAM ainda a
+confirmar. Conservar React/pywebview, SQLite v6, cadernos, materiais e tentativas.
+Integrar Ollama por API local; começar com diagnóstico/piloto e chat completo,
+reusar RAG textual, adicionar embeddings depois, então gráficos/páginas de
+caderno e, por último, visão/ilustrações opcionais. Sem fork no MVP ou troca
+automática para nuvem. O documento registra candidatos, fontes e critérios.
+
+Somente documentação foi alterada nesta revisão. Não há runtime/modelo local
+instalado ou integração nova. Windows/WebView2 ainda precisa de validação real.
+Provas/simulados continuam no backlog. Os registros de entregas abaixo indicam
+o que já funciona; o plano local substitui sua antiga posição obrigatória final.
+
 ## Atualização — atividades e tentativas (11/10/2026)
 
 Leia docs/ATIVIDADES.md. SQLite v6, backup v5 e migração transacional. Editor
@@ -12,8 +27,8 @@ interface em frontend/src/activities-model.ts e Activities.tsx. Não adicione SQ
 ou acesso a provedores ao React. Compilar com pnpm build, abrir pelo atalho.
 Testes atuais: 116 Python, 15 frontend, pnpm e2e e pnpm e2e:atividades (Qt real,
 IA simulada). Documentação anterior abaixo registra a migração visual já entregue.
-Próxima etapa: provas/simulados; depois flashcards, qualidade matemática e
-exportação. Embeddings e IA local continuam por último.
+Backlog de produto: provas/simulados, flashcards, qualidade matemática e
+exportação. A nova trilha de IA local é detalhada no início deste guia.
 
 # Continuidade do CadernoMat — 11/10/2026
 

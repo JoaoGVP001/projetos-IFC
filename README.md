@@ -201,7 +201,10 @@ teclado. Testes usam bancos temporários e IA simulada; não consomem créditos.
 Os testes da interface anterior são opcionais sem Tkinter/display.
 
 [Arquitetura e contrato](docs/INTERFACE.md) · [Sistema de design](docs/DESIGN.md) ·
-[Continuidade](GUIA_CONTINUIDADE.md) · [Planejamento](PLANEJAMENTO.md).
+[Continuidade](GUIA_CONTINUIDADE.md) · [Planejamento](PLANEJAMENTO.md) ·
+[Plano de IA local, gráficos e páginas de caderno](docs/IA_LOCAL.md).
 
-Atividades e tentativas estão disponíveis. Próxima etapa: provas e simulados. Provas, simulados, embeddings,
-busca semântica, novos provedores e IA local permanecem planejados.
+Atividades e tentativas estão disponíveis. Provas, simulados, embeddings,
+busca semântica, novos provedores e IA local permanecem planejados. A trilha
+local foi detalhada para um PC Windows com 16 GB RAM e RTX 3060 de 8/12 GB VRAM;
+nenhum modelo ou runtime foi instalado nesta revisão de documentação.

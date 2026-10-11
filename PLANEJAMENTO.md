@@ -2,6 +2,26 @@
 
 Atualizado em 11/10/2026.
 
+## Revisão — IA local no PC de casa (11/10/2026)
+
+Plano detalhado em [IA local, gráficos e páginas de estudo](docs/IA_LOCAL.md).
+Destino informado: **Windows, 16 GB RAM e RTX 3060 de 8 ou 12 GB VRAM**;
+capacidade exata, CPU, driver e disco serão confirmados no PC de casa. Esse
+hardware não é o notebook de desenvolvimento inventariado anteriormente.
+
+Decisão: conservar o CadernoMat e integrar Ollama como serviço local, sem fork
+do motor no MVP. A trilha proposta é diagnóstico/piloto → chat local persistente
+e cancelável → RAG textual existente e depois embeddings → cálculos/gráficos →
+páginas exportáveis com aparência de caderno → visão e ilustrações opcionais.
+Gemini/OpenAI continuam escolhas explícitas, sem fallback automático para nuvem.
+Modelos candidatos e repositórios pesquisados constam no documento; nenhum
+modelo foi baixado, instalado ou avaliado nesta revisão de planejamento.
+
+A solicitação atual detalha a preparação da IA local como próxima trilha possível.
+Provas/simulados continuam no backlog, e não será refeito o que já funciona.
+Esta revisão substitui a antiga exigência de esperar toda a etapa 6 para iniciar
+o piloto local. Gráficos e exportação exigem suas próprias validações.
+
 ## Entrega — interface React desktop
 
 Analise: SQLite v5 e servicos de cadernos/materiais/IA ja estao separados;
@@ -129,9 +149,10 @@ contexto recente enviado a Gemini/OpenAI. Cadernos, biblioteca e RAG textual
 estao implementados. Provas, simulados e acompanhamento de desempenho sao os
 proximos passos; cancelamento/streaming do chat ainda permanecem pendentes.
 
-Este planejamento inclui a evolucao principal e uma etapa final de IA local e
-interface com multiplos modelos, inspirada nos artigos analisados. As funcionalidades abaixo
-serao implementadas em entregas separadas, com criterios verificaveis.
+Este planejamento inclui a evolucao principal e uma trilha de IA local e
+interface com multiplos modelos, detalhada em docs/IA_LOCAL.md a pedido do
+usuario. As funcionalidades abaixo serao implementadas em entregas separadas,
+com criterios verificaveis. A revisao no inicio registra a prioridade atual.
 
 ## Experiencia planejada
 
@@ -278,13 +299,13 @@ coerentes; calculo local e sugestao de IA sao identificados na resposta.
 Conclusao: exportacao legivel e restauracao em banco separado preservam dados;
 instalacao limpa abre sem caminhos especificos da maquina de desenvolvimento.
 
-## Etapa 7 — IA local e interface unificada (apos as etapas 1–6)
+## Etapa 7 — IA local e interface unificada
 
-Esta etapa sera implementada por ultimo. Nao antecipar instalacao de modelos,
-comparacao simultanea ou novas integracoes enquanto chat, cadernos, atividades,
-qualidade matematica, materiais e exportacao nao estiverem funcionando.
-Preparar interfaces extensivas nas etapas anteriores nao significa implementar
-estes recursos antes da sua vez.
+Revisao de 11/10/2026: chat, cadernos, materiais e atividades ja estao entregues.
+O novo recorte para Windows/RTX 3060 esta em [docs/IA_LOCAL.md](docs/IA_LOCAL.md).
+O piloto e o chat local podem ser desenvolvidos sobre essa base; qualidade
+matematica, graficos e exportacao permanecem entregas com criterios proprios.
+Comparacao simultanea, difusao e novas plataformas completas ficam posteriores.
 
 ### 7.1 — Provedores na mesma conversa
 
@@ -301,10 +322,15 @@ contexto coerente, sem apagar mensagens nem mudar as preferencias da materia.
 
 ### 7.2 — Experimento com modelo local adequado ao computador
 
-O inventario de 10/10/2026 identificou i5-13420H, cerca de 8 GB de RAM e RTX
-3050 Laptop de 6 GB. O primeiro artigo usa um modelo de 27 bilhoes de parametros
-em uma GPU de 16 GB; seus resultados nao devem ser prometidos neste computador.
-Verificar recursos disponiveis novamente antes dos testes.
+O inventario de 10/10/2026 descrevia o notebook de desenvolvimento com i5-13420H,
+cerca de 8 GB RAM e RTX 3050 Laptop de 6 GB. O alvo agora informado e outro PC:
+Windows, 16 GB RAM e RTX 3060 de 8 ou 12 GB VRAM. Confirmar no PC de casa. O
+primeiro artigo usa modelo de 27B em GPU de 16 GB; seu desempenho nao e uma
+previsao para nenhum desses computadores.
+
+Comecar com Qwen3.5-4B Q4_K_M; depois comparar Qwen3-8B no perfil 8 GB ou
+Qwen3.5-9B no perfil 12 GB, somente apos medir memoria/qualidade. As escolhas
+sao candidatas e precisam de revalidacao na data de implementacao.
 
 - [ ] Avaliar Ollama como primeiro runtime; considerar llama.cpp ou LM Studio
   se houver necessidade concreta de desempenho ou compatibilidade.
@@ -398,10 +424,11 @@ continua opcional. Nao trocar de provedor automaticamente ao atingir cota.
 
 ## Ordem de implementacao e testes
 
-Fundacao, chat e cadernos ja foram entregues, com materiais antecipados a pedido
-do usuario. Continuar por atividades (4), qualidade matematica (5), exportacao
-e acabamento restantes (6). A etapa de IA local e
-interface unificada vem apenas depois das entregas principais.
+Fundacao, chat, cadernos, materiais e atividades foram entregues. Continuam
+provas/simulados (4), qualidade matematica (5), exportacao e acabamento (6).
+A revisao de 11/10/2026 detalha o piloto/chat local como uma trilha especifica
+sobre a base existente. Seguir L0–L5 de docs/IA_LOCAL.md para suas dependencias,
+sem chamar o planejamento de integracao ja implementada.
 Evitar construir geracao de provas antes de existir historico persistente.
 Nao estabelecer prazos fixos antes de validar o primeiro fluxo de chat.
 
