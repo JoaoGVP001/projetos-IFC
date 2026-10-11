@@ -168,6 +168,15 @@ Inclui banco, originais, índices, preferências visuais e cache da WebView.
 Chats e materiais salvos podem ser acessados offline. Consultas online e
 importação de links exigem conexão. Veja [Materiais](docs/MATERIAIS.md).
 
+## Piloto experimental de IA local
+
+No notebook Linux preparado, o atalho **IA Local - Testes** ou
+`./iniciar_ia_local.sh` abre um chat de terminal com Ollama e Qwen3.5-4B.
+Inferência offline, métricas, limitações e reprodução estão em
+[Piloto local](docs/PILOTO_LOCAL.md). Modelos e dados ficam fora do Git.
+A integração local à interface gráfica ainda está planejada; o provedor do
+CadernoMat e seus chats existentes continuam preservados.
+
 ## Desenvolver, compilar e testar
 
 Para alterar a interface, use Node 24 e pnpm 11:
@@ -202,9 +211,11 @@ Os testes da interface anterior são opcionais sem Tkinter/display.
 
 [Arquitetura e contrato](docs/INTERFACE.md) · [Sistema de design](docs/DESIGN.md) ·
 [Continuidade](GUIA_CONTINUIDADE.md) · [Planejamento](PLANEJAMENTO.md) ·
-[Plano de IA local, gráficos e páginas de caderno](docs/IA_LOCAL.md).
+[Plano de IA local, gráficos e páginas de caderno](docs/IA_LOCAL.md) ·
+[Piloto local executado](docs/PILOTO_LOCAL.md).
 
 Atividades e tentativas estão disponíveis. Provas, simulados, embeddings,
-busca semântica, novos provedores e IA local permanecem planejados. A trilha
+busca semântica e novos provedores na interface permanecem planejados. A trilha
 local foi detalhada para um PC Windows com 16 GB RAM e RTX 3060 de 8/12 GB VRAM;
-nenhum modelo ou runtime foi instalado nesta revisão de documentação.
+um piloto independente foi depois executado no notebook Linux. O computador
+de casa ainda precisa ser testado.

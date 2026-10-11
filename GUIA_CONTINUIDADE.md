@@ -1,3 +1,17 @@
+## Piloto atual — IA local no notebook (11/10/2026)
+
+Leia [docs/PILOTO_LOCAL.md](docs/PILOTO_LOCAL.md). Ollama 0.40.3 e Qwen3.5-4B
+Q4_K_M instalados fora do Git neste Ubuntu/RTX 3050 Laptop 6 GB/RAM classe 8 GB.
+Duas rodadas offline reais: 10/14 baseline e 15/18 no perfil revisado. Chat de
+terminal utilizável pelo atalho separado IA Local - Testes. Código em
+piloto_local.py, launcher iniciar_ia_local.sh e scripts/benchmark_offline_linux.sh.
+13 novos testes; 119 aprovados na suíte, 10 opcionais Tk ignorados.
+
+Nenhuma mudança no banco pessoal ou na seleção Gemini/OpenAI. Ainda não existe
+provedor local na interface React: implementar L1, não apresentar o piloto como
+integração gráfica. Erro lógico e falhas de formato documentados; priorizar
+consistência/verificação. O plano e o diagnóstico Windows permanecem abaixo.
+
 ## Planejamento atual — IA local no Windows (11/10/2026)
 
 Leia [docs/IA_LOCAL.md](docs/IA_LOCAL.md) antes da próxima implementação desta

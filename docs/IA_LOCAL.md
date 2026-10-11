@@ -1,7 +1,10 @@
 # CadernoMat — plano de IA local, gráficos e páginas de estudo
 
-Planejamento elaborado em **11/10/2026**. Estado: **proposto; nenhuma instalação,
-download de modelo, fork ou integração local foi executada nesta revisão**.
+Planejamento elaborado em **11/10/2026**. A revisão inicial foi somente de
+documentação. Depois, a pedido do usuário fora de casa, foi executado um
+[piloto real no notebook](PILOTO_LOCAL.md): Ollama/Qwen3.5-4B, medições e teste
+offline. A integração gráfica L1 e o teste no PC Windows continuam pendentes;
+nenhum fork foi necessário.
 
 Este documento detalha a etapa de IA local do [planejamento geral](../PLANEJAMENTO.md).
 A solicitação atual abre uma trilha específica para preparar o computador de
@@ -486,7 +489,15 @@ isolamento, limpeza/reindexação e exportação. Executar os testes existentes 
 Python/frontend e os dois fluxos Qt ao mudar esses contratos. Windows requer
 validação real com WebView2 antes de prometer compatibilidade final.
 
-## 10. Primeira tarefa pronta para implementação
+## 10. Piloto inicial executado e próxima implementação
+
+O PC de casa permanece indisponível. O piloto L0 foi antecipado no notebook
+Ubuntu com i5-13420H, RAM de classe 8 GB e RTX 3050 Laptop 6 GB. São plataformas
+diferentes; esse piloto não confirma a configuração ou desempenho do Windows.
+Resultado: baseline 10/14; perfil revisado 15/18 no critério estrito, incluindo
+erro real de lógica e duas falhas de formato. Inferência isolada da rede externa
+confirmada. Runtime/modelos, logs e chats experimentais ficam fora do Git.
+Consulte [relatório e reprodução](PILOTO_LOCAL.md).
 
 **L0 + L1, com texto e RAG textual existente.** Entregar diagnóstico, contrato de
 provedores, configuração Ollama e uma conversa local completa, persistente e
@@ -494,8 +505,7 @@ cancelável. Usar o 4B como candidato do piloto; escolher o modelo padrão depoi
 do relatório no PC de casa. Gráficos, página exportável e ilustrações têm suas
 próprias entregas e critérios acima.
 
-Esta revisão modifica somente documentação. Não houve testes de GPU, comparação
-de qualidade dos candidatos, download ou integração de runtime. O aplicativo
-continua no comportamento da entrega de atividades; todos os itens L0–L5 estão
-planejados, não concluídos. Revalidar modelos, versões, licenças e recursos na
-data de implementação.
+O piloto de terminal não muda o provedor do aplicativo, nem o banco pessoal.
+Ainda não houve comparação entre modelos, embeddings, gráficos ou geração de
+imagens. L0 do PC de casa e L1–L5 continuam planejados. Revalidar modelos,
+versões, licenças e recursos na data de cada implementação.

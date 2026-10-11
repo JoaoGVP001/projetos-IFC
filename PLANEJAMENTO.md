@@ -2,6 +2,20 @@
 
 Atualizado em 11/10/2026.
 
+## Piloto executado — IA local no notebook (11/10/2026)
+
+A pedido do usuário sem acesso ao PC de casa, L0 foi iniciado no notebook:
+Ubuntu, i5-13420H, RAM de classe 8 GB e RTX 3050 Laptop 6 GB. Ollama 0.40.3
+instalado na pasta do usuário, modelo Qwen3.5-4B Q4_K_M e duas rodadas reais em
+namespace sem rede externa. Baseline 10/14; perfil revisado 15/18, com um erro
+de lógica e duas falhas de formato. Mediana quente de cerca de 36 tokens/s.
+Não confundir esse resultado experimental com certificação de matemática.
+
+[Relatório e reprodução](docs/PILOTO_LOCAL.md). Piloto independente de terminal,
+atalho separado, arquivos fora do Git e nenhum envio às APIs online. Banco e
+configuração pessoal preservados. A integração à interface React (L1) é a
+próxima entrega desta trilha; Windows/RTX 3060 ainda precisa de diagnóstico real.
+
 ## Revisão — IA local no PC de casa (11/10/2026)
 
 Plano detalhado em [IA local, gráficos e páginas de estudo](docs/IA_LOCAL.md).
@@ -15,7 +29,8 @@ e cancelável → RAG textual existente e depois embeddings → cálculos/gráfi
 páginas exportáveis com aparência de caderno → visão e ilustrações opcionais.
 Gemini/OpenAI continuam escolhas explícitas, sem fallback automático para nuvem.
 Modelos candidatos e repositórios pesquisados constam no documento; nenhum
-modelo foi baixado, instalado ou avaliado nesta revisão de planejamento.
+modelo foi baixado, instalado ou avaliado na revisão inicial de planejamento.
+O piloto posterior no notebook está registrado na seção acima.
 
 A solicitação atual detalha a preparação da IA local como próxima trilha possível.
 Provas/simulados continuam no backlog, e não será refeito o que já funciona.
