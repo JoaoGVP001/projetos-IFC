@@ -1,3 +1,4 @@
+import { BuscaSemantica } from "./BuscaSemantica";
 import {
   useCallback,
   useEffect,
@@ -1612,6 +1613,7 @@ function Materiais({
       dias: 0,
       caderno: "todos",
       so_chat: false,
+      modo: "texto",
       pagina: 0,
     }),
     [list, setList] = useState<ListaMateriais | null>(null),
@@ -1665,6 +1667,12 @@ function Materiais({
           </Button>
         </div>
       </div>
+      <BuscaSemantica
+        revisao={state.revisao}
+        occupied={occupied}
+        run={run}
+        notify={notify}
+      />
       <div className="search material-search">
         <Search size={19} />
         <input
@@ -1675,6 +1683,14 @@ function Materiais({
         />
       </div>
       <div className="filters">
+        <select
+          aria-label="Modo de busca nos materiais"
+          value={filters.modo}
+          onChange={(e) => filter("modo", e.target.value)}
+        >
+          <option value="texto">Palavra / nome</option>
+          <option value="hibrida">Palavra e significado local</option>
+        </select>
         <select
           aria-label="Filtrar por caderno"
           value={filters.caderno || "geral"}
@@ -1752,6 +1768,12 @@ function Materiais({
           Do caderno atual
         </button>
       </div>
+      {list?.recuperacao?.metodo && (
+        <p className="semantic-notice" role="status">
+          {list.recuperacao.metodo}
+          {list.recuperacao.aviso ? ` · ${list.recuperacao.aviso}` : ""}
+        </p>
+      )}
       <div className="material-scroll">
         {list?.itens.length ? (
           <div className="material-grid">
@@ -1802,6 +1824,19 @@ function Materiais({
                     {m.aviso}
                   </p>
                 )}
+                {m.ocorrencias?.map((hit, i) => (
+                  <p className="semantic-hit" key={i}>
+                    <strong>
+                      {hit.selecao}
+                      {m.tipo === "pdf" || m.metodo.includes("PDF")
+                        ? ` · página ${hit.pagina}`
+                        : ""}
+                    </strong>
+                    <br />
+                    {hit.texto.slice(0, 280)}
+                    {hit.texto.length > 280 ? "…" : ""}
+                  </p>
+                ))}
                 <div className="material-subjects">
                   {m.cadernos.length ? (
                     m.cadernos.map((id) => (
@@ -2047,6 +2082,11 @@ function SendPreview({
         <p className="hint">Nenhum par completo recente.</p>
       )}
       <h3>Trechos documentais selecionados</h3>
+      {p.recuperacao?.metodo && (
+        <p role="status">
+          Recuperação: {p.recuperacao.metodo}. {p.recuperacao.aviso}
+        </p>
+      )}
       {p.fontes?.length ? (
         p.fontes.map((f) => (
           <section key={f.referencia}>

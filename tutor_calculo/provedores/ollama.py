@@ -43,7 +43,7 @@ class Ollama:
     def __init__(self, config): self.config = validar_config(config)
 
     def _abrir(self, endpoint, dados=None, cancelar=None, timeout=10):
-        if endpoint not in ('version', 'tags', 'ps', 'show', 'chat'):
+        if endpoint not in ('version', 'tags', 'ps', 'show', 'chat', 'embed'):
             raise ValueError('Operação local não permitida.')
         u = urlsplit(self.config['url'])
         connection = http.client.HTTPConnection('127.0.0.1', u.port, timeout=min(timeout, 5))
@@ -113,14 +113,14 @@ class Ollama:
                 'carregado': any(m.get('name') == self.config['modelo'] for m in carregados),
                 'local': True, 'visao_implementada': False}
 
-    def modelo(self,cancelar=None):
+    def modelo(self,cancelar=None,capacidade='completion'):
         installed = next((m for m in self.metadados('tags',cancelar=cancelar).get('models', []) if m.get('name') == self.config['modelo']), None)
         if not installed: raise RuntimeError('O modelo selecionado não está instalado. Escolha uma tag na lista local.')
         info = self.metadados('show', {'model': self.config['modelo'], 'verbose': False},cancelar)
         if any(d.get('remote_host') or d.get('remote_model') for d in (installed, info)):
             raise RuntimeError('Este modelo usa processamento cloud e foi bloqueado. Escolha pesos locais.')
         capabilities = info.get('capabilities', [])
-        if 'completion' not in capabilities: raise RuntimeError('O modelo não informou capacidade de texto na API de metadados.')
+        if capacidade not in capabilities: raise RuntimeError('O modelo não informou a capacidade solicitada na API de metadados: '+capacidade)
         return {'capacidades': capabilities, 'digest': installed.get('digest', '')}
 
     def consultar(self, mensagens, saida, cancelar=None, trecho=None, formato=None):

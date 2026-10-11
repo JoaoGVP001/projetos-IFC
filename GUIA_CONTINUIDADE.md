@@ -1,3 +1,18 @@
+## Entrega atual — busca híbrida local L2 (11/10/2026)
+
+Leia [docs/BUSCA_SEMANTICA.md](docs/BUSCA_SEMANTICA.md). Novo semantica.py usa
+Qwen3-Embedding 0.6B pela API nativa local, CPU/lotes de quatro. SQLite v8 cria
+backup v7 e quatro tabelas separando preparação/publicação. Indexar/retomar é
+explícito, cancelável, incremental; não autoriza documentos automaticamente.
+Busca híbrida usa FTS + cosseno exato + RRF com IDs filtrados antes de comparar.
+Preservar hashes, extrator/perfil, tag/digest e dimensão; mudança exige reindexar.
+FTS permanece disponível com aviso em falhas. Exclusão/reprocessamento limpa
+vetores. React expõe modo de busca, status/progresso, filtros e estratégia na
+prévia de chat/estudo. Não adicionar acesso direto ao runtime/SQL no navegador.
+Resumos de conversas continuam opcionais para depois; transcrição é preservada.
+Próxima entrega técnica: L3, cálculos verificáveis e gráficos, conservando parser
+restrito e execução custosa encerrável. Windows ainda precisa de teste real.
+
 ## Entrega atual — Ollama integrado (11/10/2026)
 
 Leia [docs/OLLAMA.md](docs/OLLAMA.md). SQLite v7 com backup v6, chat_ia e

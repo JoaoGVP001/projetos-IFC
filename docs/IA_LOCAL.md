@@ -325,24 +325,28 @@ por cada servidor devem ser adaptados explicitamente.
 
 ### L2 — Consulta documental local e memória com recuperação
 
-- [ ] Primeiro reutilizar o RAG **textual já entregue**, incluindo OCR existente,
+Núcleo entregue em 11/10/2026: [uso, validação e limites](BUSCA_SEMANTICA.md).
+Índice exato Qwen3-Embedding 0.6B em CPU, FTS+RRF, publicação atômica e recuperação
+por IDs explicitamente autorizados. Resumos opcionais continuam posteriores.
+
+- [x] Primeiro reutilizar o RAG **textual já entregue**, incluindo OCR existente,
   IDs de material/página, prévia e seleção explícita. Nada de reenviar PDFs
   inteiros por padrão ou alegar leitura onde a extração falhou.
-- [ ] Separar vincular material ao caderno de autorizar sua consulta pela IA.
+- [x] Separar vincular material ao caderno de autorizar sua consulta pela IA.
   Oferecer “buscar na biblioteca deste caderno”, com escolha explícita de escopo.
-- [ ] Acrescentar embeddings **locais** depois de medir a busca textual. Candidato:
+- [x] Acrescentar embeddings **locais** depois de medir a busca textual. Candidato:
   Qwen3-Embedding-0.6B, publicado em cerca de 639 MB; testar português e fórmulas
   antes de adotá-lo. Evitar o tag `latest`, que pode selecionar um modelo maior.
-- [ ] Começar com índice vetorial local simples de precisão exata, adequado ao
+- [x] Começar com índice vetorial local simples de precisão exata, adequado ao
   acervo pessoal; medir antes de adicionar FAISS/Qdrant ou serviços extras.
   Manter FTS5 disponível quando o índice semântico não estiver pronto.
-- [ ] Busca híbrida por palavra/significado, filtrada por IDs autorizados **antes**
+- [x] Busca híbrida por palavra/significado, filtrada por IDs autorizados **antes**
   de formar candidatos; recuperação final respeita contexto, diversidade de
   páginas e relevância. Uma semelhança alta não comprova uma afirmação.
-- [ ] Registrar por vetor material/trecho/hash, extrator e versão, modelo/digest,
+- [x] Registrar por vetor material/trecho/hash, extrator e versão, modelo/digest,
   dimensão e normalização. Mudança de modelo/dimensão exige reindexação, sem
   misturar espaços vetoriais incompatíveis.
-- [ ] Indexação em segundo plano, incremental, cancelável e retomável. Publicar
+- [x] Indexação em segundo plano, incremental, cancelável e retomável. Publicar
   índice completo atomicamente; exclusão de material limpa vetores e FTS.
 - [ ] Contexto recente e resumos opcionais de conversa persistidos separadamente
   das fontes; resumir não altera nem apaga a transcrição original.

@@ -103,6 +103,7 @@ export type Job = {
   previa: {
     local?: boolean;
     orcamento?: import("./model").Orcamento | null;
+    recuperacao?: import("./model").Recuperacao;
     tipo: string;
     provedor: string;
     modelo: string;

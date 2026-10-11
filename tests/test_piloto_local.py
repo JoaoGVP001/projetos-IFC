@@ -4,11 +4,22 @@ from pathlib import Path
 import tempfile
 import threading
 import unittest
+from unittest.mock import patch
 
-from tutor_calculo.piloto_local import ClienteLocal, avaliar, esquema, esquema_atividade, expressao_curta, fontes_ficticias
+from tutor_calculo.piloto_local import ClienteLocal, avaliar, esquema, esquema_atividade, expressao_curta, fontes_ficticias, isolamento
 
 
 class PilotoTest(unittest.TestCase):
+    def test_isolamento_com_proc_restrito_e_rede_de_origem(self):
+        def links(path):
+            if str(path)=='/proc/self/ns/net':return Path('net:[222]')
+            raise PermissionError('proc restrito')
+        with patch.object(Path,'readlink',links), patch.dict('os.environ',{'CADERNOMAT_NET_ORIGINAL':'net:[111]'}), \
+             patch('tutor_calculo.piloto_local.socket.create_connection',side_effect=OSError('sem rota')):
+            self.assertEqual(isolamento(),{'namespace_separado':True,'conexao_externa_bloqueada':True})
+        with patch.object(Path,'readlink',links), patch.dict('os.environ',{'CADERNOMAT_NET_ORIGINAL':'net:[222]'}):
+            self.assertEqual(isolamento(),{'namespace_separado':False,'conexao_externa_bloqueada':False})
+
     def test_destino_somente_loopback_sem_credenciais(self):
         for url in ['https://127.0.0.1:11434', 'http://localhost:11434', 'http://example.com:11434',
                     'http://user:secret@127.0.0.1:11434', 'http://@127.0.0.1:11434',

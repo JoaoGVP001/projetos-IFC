@@ -18,7 +18,8 @@
    independente por conversa e permanece apos reiniciar.
 6. Digite a pergunta, confira **Previa do envio** e envie em Resolver com IA,
    Explicar ou Corrigir. Para perguntar sobre um assunto, use palavras que
-   aparecem nos materiais: a recuperacao atual e textual.
+   aparecem nos materiais no modo textual, ou ative a busca híbrida local por significado.
+   Veja [indexação e recuperação semântica](BUSCA_SEMANTICA.md).
 
 A aba reune arquivos e links de todos os chats, inclusive arquivados. Excluir
 um chat preserva a biblioteca e o nome de origem; o vinculo direto deixa de
@@ -128,10 +129,8 @@ Modulos:
 - `biblioteca_ui.py`: biblioteca e visualizacao.
 - `ia.py`: adaptacao do contexto documental aos provedores existentes.
 
-A base atual e **RAG textual**, nao treinamento de uma rede neural. O contrato
-`recuperar()` retorna trechos com ID do material, pagina, ordem, texto e
-referencia, independente do provedor. Embeddings locais, busca semantica/hibrida,
-versionamento do modelo de embeddings e relacoes entre materiais entram depois.
-O adaptador [Ollama](OLLAMA.md) agora consome esse mesmo contexto textual,
-com orçamento local e seleção explícita. Modelos permanecem fora do Git;
-visão e embeddings ainda não foram implementados.
+A base atual é **RAG textual/híbrido**, sem treinar uma rede neural. O contrato
+conserva trechos, IDs, páginas e referências, independente de Gemini/OpenAI/Ollama.
+[Embeddings locais](BUSCA_SEMANTICA.md) acrescentam busca por significado, cache
+versionado e indexação incremental na migração v8. Visão e relações gráficas entre
+materiais ainda são futuras. A extração/OCR e seus limites permanecem iguais.

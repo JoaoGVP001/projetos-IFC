@@ -1,9 +1,10 @@
 # IA local integrada — L1
 
-Entrega de 11/10/2026. O Ollama agora participa dos chats e serviços de estudo
+Entrega L1 de 11/10/2026. A etapa posterior [L2](BUSCA_SEMANTICA.md) acrescenta
+busca híbrida e SQLite v8; os registros v7 abaixo documentam a entrega original. O Ollama agora participa dos chats e serviços de estudo
 na interface React do CadernoMat. O piloto de terminal continua separado.
 O notebook Ubuntu/RTX 3050 Laptop 6 GB foi validado; Windows ainda requer aceite
-no computador de casa. Não há embeddings, visão, gráficos ou imagens nesta fase.
+no computador de casa. Não houve embeddings, visão, gráficos ou imagens na fase L1.
 
 ## Usar
 

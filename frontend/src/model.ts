@@ -48,6 +48,7 @@ export type Material = {
   anexado: boolean;
   selecionado: boolean;
   processando: boolean;
+  ocorrencias?: { pagina: number; texto: string; selecao: string }[];
 };
 export type Config = {
   provedor: string;
@@ -130,6 +131,7 @@ export type Filtros = {
   dias: number;
   caderno: string | null;
   so_chat: boolean;
+  modo?: "texto" | "hibrida";
   pagina: number;
 };
 export type ListaMateriais = {
@@ -137,6 +139,7 @@ export type ListaMateriais = {
   total: number;
   pagina: number;
   materias: string[];
+  recuperacao?: Recuperacao;
 };
 export type Detalhe = {
   material: Material;
@@ -164,5 +167,32 @@ export type Previa = {
   instrucoes?: string;
   orcamento?: Orcamento | null;
   destino?: string;
+  recuperacao?: Recuperacao;
   local?: Config["local"];
+};
+
+export type Recuperacao = {
+  metodo?: string;
+  aviso?: string;
+  escopo?: string;
+  indexados?: number;
+};
+export type StatusSemantica = {
+  habilitada: number;
+  url: string;
+  modelo: string;
+  digest: string;
+  dimensao: number;
+  perfil: string;
+  total: number;
+  indexados: number;
+  pendentes: number;
+  cpu: boolean;
+  limite: number;
+  trabalho: null | {
+    estado: string;
+    feitos: number;
+    total: number;
+    erro: string;
+  };
 };

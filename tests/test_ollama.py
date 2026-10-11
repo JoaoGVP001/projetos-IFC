@@ -122,6 +122,19 @@ class FluxoLocalTest(unittest.TestCase):
         self.op('configurar',provedor='ollama',modelo='teste:4b',url=self.runtime.config['url'],escopo='chat',contexto=2048,timeout=60)
         self.app.fechar();self.app._executor.shutdown(wait=True);self.app=Aplicacao(self.path)
         self.assertEqual(self.op('estado')['config']['local']['contexto'],2048);self.assertEqual(self.op('estado')['conversa']['id'],self.cid)
+    def test_previa_resolver_com_ia_corresponde_ao_envio(self):
+        from tutor_calculo.app import EXEMPLO
+        p=self.op('previa',id=self.cid,texto=EXEMPLO,modo='Resolver com IA')
+        self.assertIn('Somente Ollama',p['destino']);self.assertIsNotNone(p['orcamento'])
+        task=self.op('enviar',id=self.cid,texto=EXEMPLO,modo='Resolver com IA')['tarefa']
+        self.wait(lambda s:not s['ocupado'])
+        with self.app._banco() as (h,c,b):
+            row=h.db.execute('SELECT snapshot FROM consultas_ia WHERE id=?',(task,)).fetchone()
+            snap=json.loads(row[0]);self.assertFalse(snap['calculo_local'])
+            self.assertEqual(snap['preparada']['instrucoes'],p['instrucoes'])
+        symbolic=self.op('previa',id=self.cid,texto=EXEMPLO,modo='Resolver')
+        self.assertIn('sem consulta à IA',symbolic['destino'])
+
     def test_cancelar_repetir_sem_duplicar_usuario_ou_aproveitar_parcial(self):
         self.runtime.hold=True;tid=self.send()
         self.wait(lambda s:bool(s['tarefas'][-1].get('parcial')));self.op('ia_cancelar',id=tid)
@@ -187,6 +200,9 @@ class MigracaoLocalTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path=Path(tmp)/'h.sqlite3';h=Historico(path);cid=h.criar();h.adicionar(cid,'user','Intacto');h.rascunho(cid,'Rascunho');h.fechar()
             with sqlite3.connect(path) as db:
+
+                for table in ('semantica_config','semantica_vetores','semantica_preparo','semantica_trabalho'):db.execute('DROP TABLE '+table)
+                db.execute('DROP TRIGGER semantica_texto_alterado')
                 db.execute('DROP TABLE consultas_ia');db.execute('DROP TABLE chat_ia');db.execute('PRAGMA user_version=6')
             def fail(db):db.execute('CREATE TABLE temporaria(id)');raise RuntimeError('Falha simulada')
             with patch('tutor_calculo.preferencias_ia.migrar_ia',side_effect=fail),self.assertRaises(RuntimeError):Historico(path)

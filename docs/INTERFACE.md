@@ -4,7 +4,7 @@
 
 ```text
 React + TypeScript → bridge.ts → Ponte.request → Aplicacao
-                                                ├─ Historico / Cadernos / Biblioteca / Atividades / Tentativas (SQLite v7)
+                                                ├─ Historico / Cadernos / Biblioteca / Atividades / Tentativas (SQLite v8)
                                                 ├─ processamento documental em subprocesso
                                                 ├─ ia.py → Gemini / OpenAI / provedores.ollama
                                                 └─ app.py → matemática local / fallback IA
@@ -33,6 +33,12 @@ que lê e salva o último rascunho e então destrói a janela; avaliar JavaScrip
 dentro do callback síncrono do Qt bloquearia a thread gráfica.
 
 ## Contrato da ponte
+
+L2 acrescenta `semantica_status`, `semantica_indexar`, `semantica_cancelar` e
+`semantica_ativar`. `materiais` aceita `modo=texto|hibrida` mantendo os filtros.
+Prévia de chat/estudo recebe `recuperacao` (estratégia e aviso); cards podem ter
+`ocorrencias` (texto/página/estratégia). O React não vê blobs, hashes ou caminhos.
+[Contrato e persistência da busca](BUSCA_SEMANTICA.md).
 
 Existe uma única função pública: `request(operacao, dados)`.
 Respostas: `{ok: true, data: ...}` ou `{ok: false, error: "mensagem"}`.
@@ -81,7 +87,8 @@ extração, limites, URLs públicas e proveniência descritas em MATERIAIS.md.
 
 A migração visual manteve v5; a entrega de atividades acrescenta v6 com backup
 v5 e migração transacional. A integração local acrescenta v7 com backup v6,
-preferências por chat e consultas persistidas. Consulte [Ollama](OLLAMA.md) e
+preferências por chat e consultas persistidas. L2 acrescenta v8 com backup v7
+e índice semântico local publicado atomicamente. Consulte [Ollama](OLLAMA.md) e
 ATIVIDADES.md para tabelas e invariantes. Permanecem os IDs, registros, relações FTS5,
 arquivos e seleção documental. `interface.json` no diretório de dados conserva
 tema/lateral, com substituição atômica e permissão 0600 no Linux. O cache WebView
@@ -132,10 +139,11 @@ somente dados sintéticos. Exige Linux gráfico, Qt e ambiente Python preparado.
 
 ## Limites e próxima etapa
 
-Sem streaming, cancelamento, atualização automática, virtualização de históricos
-longos ou empacotamento de instalador. A tarefa já iniciada pode terminar e salvar
+Streaming/cancelamento local e indexação cancelável foram entregues em L1/L2.
+Atualização automática, virtualização de históricos longos e instalador seguem pendentes. A tarefa já iniciada pode terminar e salvar
 após a janela fechar. OCR depende do Tesseract. A consulta documental continua
-textual; nenhuma busca vetorial ou modelo local foi adicionado.
+textual na migração original. Ollama e busca híbrida foram acrescentados depois,
+conforme docs/OLLAMA.md e docs/BUSCA_SEMANTICA.md.
 Atividades/tentativas foram entregues com este padrão; a próxima etapa são provas/simulados.
 
 Referências oficiais consultadas:

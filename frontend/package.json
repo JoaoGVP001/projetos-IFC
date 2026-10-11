@@ -35,7 +35,8 @@
     "e2e": "node tests/desktop.mjs",
     "format": "prettier --write src tests *.ts *.json *.html",
     "e2e:atividades": "node tests/activities.mjs",
-    "e2e:local": "node tests/local.mjs"
+    "e2e:local": "node tests/local.mjs",
+    "e2e:semantica": "node tests/semantica.mjs"
   },
   "packageManager": "pnpm@11.25.0",
   "engines": {

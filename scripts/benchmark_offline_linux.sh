@@ -3,6 +3,7 @@
 set -euo pipefail
 piloto_repo="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 if [[ "${1:-}" != '--namespace' ]]; then
+    export CADERNOMAT_NET_ORIGINAL="$(readlink /proc/self/ns/net)"
     exec unshare --user --map-root-user --net "$piloto_repo/scripts/benchmark_offline_linux.sh" --namespace "$@"
 fi
 shift

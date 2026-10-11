@@ -2,12 +2,12 @@
 
 Um espaço desktop para estudar matemática: chats, cadernos por matéria e uma
 biblioteca de materiais e atividades com tentativas persistentes. Consulte
-materiais com Gemini ou OpenAI. Foco
+materiais com Ollama, Gemini ou OpenAI. Foco
 inicial em Preliminares, Cálculo Diferencial e Integral I e Matemática Discreta.
 
 A interface usa **React + TypeScript + Tailwind**, executada localmente pelo
 **pywebview**. Python continua responsável por SQLite, matemática, extração,
-OCR e recuperação textual. Markdown e fórmulas são apresentados com KaTeX.
+OCR e recuperação textual/híbrida local. Markdown e fórmulas são apresentados com KaTeX.
 
 ![Conversa no tema claro](docs/screenshots/chat-claro.png)
 
@@ -80,7 +80,7 @@ citações, blocos de código e matemática com `$`, `$$`, `\(...\)` e `\[...\]`
 Fórmulas largas e tabelas podem rolar horizontalmente. Fórmulas inválidas têm
 alternativa textual. **Copiar** preserva o Markdown/LaTeX original.
 
-Os três cadernos iniciais são criados apenas na migração original. A migração atual para SQLite **v7** cria backup v6 e preserva IDs, mensagens, rascunhos, arquivos, índices e seleções existentes. Veja [Cadernos](docs/CADERNOS.md) e [IA local](docs/OLLAMA.md).
+Os três cadernos iniciais são criados apenas na migração original. A migração atual para SQLite **v8** cria backup v7 e preserva IDs, mensagens, rascunhos, arquivos, índices e seleções existentes. Veja [Cadernos](docs/CADERNOS.md) e [IA local](docs/OLLAMA.md) e [busca híbrida](docs/BUSCA_SEMANTICA.md).
 
 ## Praticar com atividades
 
@@ -148,6 +148,10 @@ Alterações de organização ficam bloqueadas durante a consulta.
 
 ## Materiais e memória documental
 
+A biblioteca oferece busca por palavra/significado com embeddings locais, indexação
+incremental e retomada. Veja [ativar e usar](docs/BUSCA_SEMANTICA.md). A seleção
+de fontes para chats/atividades continua explícita.
+
 Anexe pelo clipe ou adicione um link. **Materiais** reúne os arquivos e links,
 com busca por nome, conteúdo, assunto e etiquetas, filtros e paginação de 30
 itens. É possível visualizar texto/original, editar, associar a vários cadernos,
@@ -161,7 +165,7 @@ a disponibilidade de idioma é informada pela extração.
 
 Importar ou pertencer a um caderno **não seleciona fontes para a IA**. Marque
 **Consultar neste chat**, confira a prévia e pergunte em um modo de IA. A busca
-recupera trechos por palavras; os originais binários ficam no computador.
+recupera trechos por palavras e, quando ativada, por significado; os originais binários ficam no computador.
 Citações indicam referência e página quando disponível. Desmarcar um material
 não apaga informações de respostas antigas do histórico.
 
@@ -210,9 +214,11 @@ Testes de Python e fluxo real de desktop:
 cd frontend
 pnpm e2e
 pnpm e2e:atividades
+pnpm e2e:local
+pnpm e2e:semantica
 ```
 
-A entrega foi validada com **116 testes Python**, **15 testes de interface** e um
+A entrega foi validada com **157 testes Python aprovados** (10 opcionais Tk ignorados), **21 testes de interface** e um
 fluxo completo na janela Qt, incluindo reinício, dois temas, tamanho mínimo e
 teclado. Testes usam bancos temporários e IA simulada; não consomem créditos.
 Os testes da interface anterior são opcionais sem Tkinter/display.
@@ -222,8 +228,8 @@ Os testes da interface anterior são opcionais sem Tkinter/display.
 [Plano de IA local, gráficos e páginas de caderno](docs/IA_LOCAL.md) ·
 [Piloto local executado](docs/PILOTO_LOCAL.md).
 
-Atividades, tentativas e Ollama estão disponíveis. Provas, simulados, embeddings,
-busca semântica, gráficos e visão permanecem planejados. A trilha
+Atividades, tentativas, Ollama e busca híbrida local estão disponíveis. Provas, simulados,
+gráficos, verificação matemática e visão permanecem planejados. A trilha
 local foi detalhada para um PC Windows com 16 GB RAM e RTX 3060 de 8/12 GB VRAM;
 um piloto independente foi depois executado no notebook Linux. O computador
 de casa ainda precisa ser testado.

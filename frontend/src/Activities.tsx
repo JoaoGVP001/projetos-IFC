@@ -2226,6 +2226,11 @@ function JobPreview({ job }: { job: Job }) {
       </details>
       <details open>
         <summary>Trechos documentais autorizados ({p.fontes.length})</summary>
+        {p.recuperacao?.metodo && (
+          <p role="status">
+            Recuperação: {p.recuperacao.metodo}. {p.recuperacao.aviso}
+          </p>
+        )}
         {p.fontes.map((f) => (
           <article key={f.referencia}>
             <strong>

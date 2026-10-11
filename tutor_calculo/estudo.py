@@ -110,7 +110,8 @@ class Estudo:
         selection=self.selecao(h,origem_chat)
         if selection['provedor']=='ollama' and tipo=='geracao' and count>3:
             raise ValueError('No perfil local, gere de 1 a 3 exercícios por consulta.')
-        trechos, mats = recuperar_fontes(h, d.get('materiais', []), consulta, tipo == 'geracao')
+        recuperacao={}
+        trechos, mats = recuperar_fontes(h, d.get('materiais', []), consulta, tipo == 'geracao',recuperacao)
         prompt=tarefa+'\n\nSolicitação de estudo (JSON de dados):\n'+json.dumps(pedido,ensure_ascii=False)
         prepared=preparar_consulta(prompt,{'geracao':'Gerar atividade','dica':'Dica de atividade','feedback':'Feedback de atividade'}[tipo],
             fontes=trechos if mats else None,caderno=book,provedor=selection['provedor'],local=selection['local'])
@@ -118,7 +119,7 @@ class Estudo:
         prev = {'tipo': tipo, 'provedor': selection['provedor'], 'modelo': selection['modelo'], 'selecao':selection,
                 'preparada':prepared,'orcamento':prepared['orcamento'],'local':bool(selection['local']),'caderno': bid,
                 'pedagogia': contexto_pedagogico(book), 'caderno_dados': book, 'pedido': pedido, 'tarefa': tarefa,
-                'fontes': trechos, 'materiais': mats, 'origem_chat': origem_chat if tipo == 'geracao' else None,
+                'fontes': trechos, 'recuperacao':recuperacao,'materiais': mats, 'origem_chat': origem_chat if tipo == 'geracao' else None,
                 'origem_titulo': h.obter(origem_chat)['titulo'] if origem_chat and tipo == 'geracao' else '',
                 'originais_enviados': False, 'aviso': ('Não há trechos suficientes de todas as fontes selecionadas. A consulta não comprova conteúdo ausente.'
                 if mats and {f['id'] for f in mats} - {f['material_id'] for f in trechos} else '')}

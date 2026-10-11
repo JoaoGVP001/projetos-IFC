@@ -2010,3 +2010,61 @@ small,
     padding: var(--space-4);
   }
 }
+
+.semantic-panel {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin: 12px 0;
+  font-size: 0.83rem;
+  background: var(--surface);
+}
+.semantic-panel summary {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  cursor: pointer;
+  font-weight: 600;
+  flex-wrap: wrap;
+}
+.semantic-panel summary span {
+  margin-left: auto;
+  font-weight: 400;
+  color: var(--muted);
+}
+.semantic-panel p {
+  margin: 10px 0;
+  line-height: 1.5;
+}
+.semantic-actions {
+  display: flex;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 12px 0;
+}
+.semantic-actions label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 220px;
+}
+.semantic-actions input {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px;
+  background: var(--surface);
+  color: var(--ink);
+}
+.semantic-hit,
+.semantic-notice {
+  font-size: 0.8rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  color: var(--muted);
+  margin: 10px 0;
+}
+.semantic-hit strong {
+  color: var(--ink);
+}

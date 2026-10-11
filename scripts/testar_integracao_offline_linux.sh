@@ -3,6 +3,7 @@
 set -euo pipefail
 integracao_repo="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 if [[ "${1:-}" != '--namespace' ]]; then
+    export CADERNOMAT_NET_ORIGINAL="$(readlink /proc/self/ns/net)"
     exec unshare --user --map-current-user --keep-caps --net "$integracao_repo/scripts/testar_integracao_offline_linux.sh" --namespace "$@"
 fi
 shift
@@ -24,6 +25,14 @@ for ((integracao_tentativa=0; integracao_tentativa<30; integracao_tentativa++));
     if curl --noproxy '*' -fsS --max-time 1 http://127.0.0.1:11434/api/version >/dev/null 2>&1; then break; fi
     sleep 1
 done
+if [[ "${1:-}" == '--semantica' ]]; then
+    export CADERNOMAT_REAL_SEMANTICA=1
+    cd -- "$integracao_repo/frontend"
+    node tests/semantica.mjs
+    cd -- "$integracao_repo"
+    .venv/bin/python tests/aceite_semantica_local.py
+    exit
+fi
 export CADERNOMAT_REAL_LOCAL=1
 if [[ "${1:-}" != '--so-estudo' ]]; then
     cd -- "$integracao_repo/frontend"

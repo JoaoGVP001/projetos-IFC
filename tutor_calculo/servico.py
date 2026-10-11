@@ -48,6 +48,7 @@ class Aplicacao:
         self._tarefas={}
         self._cancelamentos={}
         self._ia_preferencias=PreferenciasIA(self.caminho.parent)
+        self._indice_cancelamento=None
         self._processando=set()
         self._revisao=0
         self._fechado=False
@@ -55,6 +56,8 @@ class Aplicacao:
         self._estudo=Estudo(self)
         with self._banco() as (h,c,b):
             Biblioteca(h,recuperar=True)
+            from .semantica import IndiceSemantico
+            IndiceSemantico(h).recuperar_interrupcao()
             nav=c.navegacao()
             if nav['conversa_id'] is None:
                 chats=h.listar(caderno=nav['caderno_id'])
@@ -69,7 +72,7 @@ class Aplicacao:
         finally:h.fechar()
 
     def _ocupado(self):
-        return any(t['tipo']=='ia' and t['estado']=='executando' for t in self._tarefas.values())
+        return any(t['tipo'] in ('ia','indice') and t['estado']=='executando' for t in self._tarefas.values())
 
     def _livre(self):
         if self._ocupado():raise ValueError('Aguarde a consulta antes de alterar a organizacao.')
@@ -130,7 +133,9 @@ class Aplicacao:
             'material_detalhe':self._material_detalhe,'previa':self._previa,'enviar':self._enviar,
             'configurar':self._configurar,'preferencias':self._salvar_preferencias,
             'ollama_diagnostico':self._ollama_diagnostico,'ollama_iniciar':self._ollama_iniciar,'ia_cancelar':self._ia_cancelar,
-            'ia_repetir':self._ia_repetir}
+            'ia_repetir':self._ia_repetir,'semantica_status':self._semantica_status,
+            'semantica_indexar':self._semantica_indexar,'semantica_cancelar':self._semantica_cancelar,
+            'semantica_ativar':self._semantica_ativar}
         operacoes.update({op:(lambda d, op=op:self._estudo.executar(op,d)) for op in OPERACOES})
         if not isinstance(operacao,str) or operacao not in operacoes:raise ValueError('Operacao nao permitida.')
         if not isinstance(dados,dict) or len(dados)>15:raise ValueError('Parametros invalidos.')
@@ -240,12 +245,27 @@ class Aplicacao:
         if type(pagina) is not int or not 0<=pagina<=100000 or dias not in [0,7,30,90]:raise ValueError('Filtro invalido.')
         with self._banco() as (h,c,b):
             cid=c.navegacao()['conversa_id']
+            modo=d.get('modo','texto')
+            if modo not in ('texto','hibrida'):raise ValueError('Modo de busca inválido.')
+            busca=texto(d.get('busca',''),300)
             registros=[] if booleano(d.get('so_chat',False)) and not cid else b.listar(
-                texto(d.get('busca',''),300),texto(d.get('tipo',''),20),texto(d.get('materia',''),100),
+                busca if modo=='texto' else '',texto(d.get('tipo',''),20),texto(d.get('materia',''),100),
                 dias,cid if d.get('so_chat') else None,TODOS_CADERNOS if caderno=='todos' else caderno)
+            report={}
+            ocorrencias={}
+            if modo=='hibrida' and busca.strip():
+                from .semantica import IndiceSemantico
+                hits=IndiceSemantico(h).candidatos([m['id'] for m in registros],busca,report)
+                for hit in hits:
+                    ocorrencias.setdefault(hit['material_id'],[]).append({k:hit[k] for k in ('pagina','texto','selecao')})
+                nomes=b.listar(busca,texto(d.get('tipo',''),20),texto(d.get('materia',''),100),dias,
+                    cid if d.get('so_chat') else None,TODOS_CADERNOS if caderno=='todos' else caderno)
+                ranked=list(ocorrencias)+[m['id'] for m in nomes if m['id'] not in ocorrencias]
+                byid={m['id']:m for m in registros}
+                registros=[byid[mid] for mid in ranked if mid in byid]
             pagina=min(pagina,max(0,(len(registros)-1)//30))
-            return {'itens':[self._material(b,m,cid) for m in registros[pagina*30:(pagina+1)*30]],
-                    'total':len(registros),'pagina':pagina,'materias':b.materias()}
+            return {'itens':[{**self._material(b,m,cid),'ocorrencias':ocorrencias.get(m['id'],[])[:2]} for m in registros[pagina*30:(pagina+1)*30]],
+                    'total':len(registros),'pagina':pagina,'materias':b.materias(),'recuperacao':report}
 
     def _garantir_chat(self,h,c):
         nav=c.navegacao();cid=nav['conversa_id']
@@ -348,13 +368,13 @@ class Aplicacao:
             except Exception:retorno['aviso_previa']='Previa original indisponivel. Confira o arquivo ou pagina.'
             return retorno
 
-    def _fontes(self,h,b,cid,pergunta):
+    def _fontes(self,h,b,cid,pergunta,detalhes=None):
         if not any(m['selecionado'] for m in b.anexos(cid)):return None
         if len(pergunta.split())<4:
             anteriores=[m['texto'] for m in h.mensagens(cid) if m['papel']=='user']
             if anteriores:pergunta+=' '+anteriores[-1][:400]
         from .recuperacao import recuperar_chat
-        return recuperar_chat(b,cid,pergunta)
+        return recuperar_chat(b,cid,pergunta,detalhes)
 
     def _previa(self,d):
         cid=ident(d.get('id'),True);pergunta=texto(d.get('texto',''),30000)
@@ -364,13 +384,14 @@ class Aplicacao:
             caderno=c.obter(bid) if bid else None
             selection=self._selecao(h,cid)
             mode=d.get('modo','Resolver')
-            if mode=='Resolver com IA':mode='Resolver'
             calc=mode=='Resolver' and usa_analisador(pergunta)
+            if mode=='Resolver com IA':mode='Resolver'
+            recuperacao={}
             p={'pedagogia':'','historico':[],'fontes':None,'instrucoes':'','orcamento':None} if calc else preparar_consulta(
-                pergunta or '(mensagem vazia)',modo=mode,historico=h.mensagens(cid),fontes=self._fontes(h,b,cid,pergunta),
+                pergunta or '(mensagem vazia)',modo=mode,historico=h.mensagens(cid),fontes=self._fontes(h,b,cid,pergunta,recuperacao),
                 caderno=caderno,provedor=selection['provedor'],local=selection['local'])
             return {**selection,'pedagogia':p['pedagogia'],'mensagem':pergunta,'historico':p['historico'],
-                'fontes':p['fontes'],'instrucoes':p['instrucoes'],'orcamento':p['orcamento'],
+                'fontes':p['fontes'],'recuperacao':recuperacao,'instrucoes':p['instrucoes'],'orcamento':p['orcamento'],
                 'destino':'Cálculo simbólico neste computador, sem consulta à IA' if calc else 'Somente Ollama neste computador' if selection['local'] else 'Provedor online',
                 'originais_enviados':False}
 
@@ -386,14 +407,14 @@ class Aplicacao:
                 if existing['conversa_id']!=cid or snap['pergunta']!=pergunta or snap['modo']!=modo:raise ValueError('ID de consulta reutilizado com dados diferentes.')
                 return {'tarefa':tid}
             self._livre()
-            chat=self._editavel(h,c,cid);historico=h.mensagens(cid);fontes=self._fontes(h,b,cid,pergunta)
+            chat=self._editavel(h,c,cid);historico=h.mensagens(cid);recuperacao={};fontes=self._fontes(h,b,cid,pergunta,recuperacao)
             if modo=='Resolver' and fontes is not None:raise ValueError('Escolha um modo de IA para consultar materiais.')
             caderno=c.obter(chat['caderno_id']) if chat['caderno_id'] else None
             selection=self._selecao(h,cid)
             calculo_local=modo=='Resolver' and usa_analisador(pergunta)
             prepared=None if calculo_local else preparar_consulta(pergunta,'Resolver' if modo in ('Resolver com IA','Resolver') else modo,
                 historico,fontes,caderno,selection['provedor'],selection['local'])
-            snapshot={'pergunta':pergunta,'modo':modo,'historico':historico,'fontes':fontes,'caderno':caderno,
+            snapshot={'recuperacao':recuperacao,'pergunta':pergunta,'modo':modo,'historico':historico,'fontes':fontes,'caderno':caderno,
                       'selecao':selection,'preparada':prepared,'calculo_local':calculo_local}
             with h.db:
                 uid=h.db.execute("INSERT INTO mensagens(conversa_id,papel,texto,estado) VALUES(?,'user',?,'ok')",(cid,pergunta)).lastrowid
@@ -549,6 +570,52 @@ class Aplicacao:
             except RuntimeError:time.sleep(.2)
         raise RuntimeError('O runtime está iniciando. Aguarde e use Testar conexão novamente.')
 
+    def _semantica_status(self,d):
+        from .semantica import IndiceSemantico
+        with self._banco() as (h,c,b):return IndiceSemantico(h).status()
+
+    def _semantica_ativar(self,d):
+        self._livre();value=booleano(d.get('valor'))
+        with self._banco() as (h,c,b):
+            with h.db:h.db.execute('UPDATE semantica_config SET habilitada=? WHERE id=1',(int(value),))
+        self._revisao+=1
+        return self._semantica_status({})
+
+    def _semantica_indexar(self,d):
+        from .semantica import IndiceSemantico
+        self._livre()
+        if self._processando:raise ValueError('Aguarde a extração dos materiais antes de indexar.')
+        if d.get('confirmado') is not True:raise ValueError('Confirme a indexação local dos textos da biblioteca.')
+        with self._banco() as (h,c,b):
+            index=IndiceSemantico(h)
+            url=texto(d.get('url',index.config()['url']),200,False)
+            tid=index.iniciar(url)
+        self._indice_cancelamento=Cancelamento()
+        self._tarefas[tid]={'id':tid,'tipo':'indice','estado':'executando','conversa':None,'feitos':0,'total':0}
+        self._revisao+=1
+        self._executor.submit(self._indexar_semantica,tid,self._indice_cancelamento)
+        return {'tarefa':tid}
+
+    def _indexar_semantica(self,tid,token):
+        from .semantica import IndiceSemantico
+        def progresso(done,total):
+            with self._lock:
+                self._tarefas[tid].update(feitos=done,total=total);self._revisao+=1
+        estado='concluido';error=''
+        try:
+            with self._banco() as (h,c,b):IndiceSemantico(h).indexar(tid,token,progresso)
+        except ConsultaCancelada:estado='cancelado';error='Indexação cancelada. A preparação foi preservada; use Indexar / retomar.'
+        except (ValueError,RuntimeError) as exc:estado='erro';error=str(exc)
+        except Exception:estado='erro';error='Falha na indexação local. A busca textual continua disponível.'
+        with self._lock:
+            with self._banco() as (h,c,b):
+                with h.db:h.db.execute('UPDATE semantica_trabalho SET estado=?,erro=?,atualizado=CURRENT_TIMESTAMP WHERE execucao=?',(estado,error,tid))
+            self._tarefas[tid].update(estado=estado,erro=error);self._revisao+=1
+
+    def _semantica_cancelar(self,d):
+        if self._indice_cancelamento:self._indice_cancelamento.cancelar()
+        return self._semantica_status({})
+
     def _salvar_preferencias(self,d):
         if d.get('tema') not in ['claro','escuro']:raise ValueError('Tema invalido.')
         dados={'tema':d['tema'],'recolhida':booleano(d.get('recolhida',False))}
@@ -560,5 +627,6 @@ class Aplicacao:
         with self._lock:
             self._fechado=True
             for token in self._cancelamentos.values():token.cancelar()
+            if self._indice_cancelamento:self._indice_cancelamento.cancelar()
         # Filas interrompidas e processos encerrados são recuperados do SQLite.
         self._executor.shutdown(wait=False,cancel_futures=True)

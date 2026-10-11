@@ -6,6 +6,8 @@ import argparse
 import ast
 from datetime import datetime, timezone
 import json
+import os
+import re
 from pathlib import Path
 import socket
 import subprocess
@@ -248,8 +250,15 @@ class Monitor:
 
 
 def isolamento():
-    current = Path("/proc/self/ns/net").readlink() if Path("/proc/self/ns/net").exists() else None
-    original = Path("/proc/1/ns/net").readlink() if Path("/proc/1/ns/net").exists() else None
+    # /proc/1/ns/net pode ficar ilegível dentro de um user namespace.
+    # O script captura a identidade da rede de origem antes do unshare.
+    try: current = Path("/proc/self/ns/net").readlink()
+    except OSError: current = None
+    saved = os.environ.get("CADERNOMAT_NET_ORIGINAL", "")
+    if re.fullmatch(r"net:\[\d+\]", saved): original = Path(saved)
+    else:
+        try: original = Path("/proc/1/ns/net").readlink()
+        except OSError: original = None
     blocked = False
     if current and original and current != original:
         try:

@@ -2,6 +2,28 @@
 
 Atualizado em 11/10/2026.
 
+## Entregue — núcleo L2: busca híbrida local
+
+Reutilizar texto/OCR e IDs de trechos existentes. Adicionar Qwen3-Embedding
+0.6B pela API local de Ollama, em CPU e lotes pequenos, sem dependência de
+serviços vetoriais. SQLite v8 com backup v7: vetores normalizados, hash de texto,
+extrator, perfil, modelo/digest e dimensão; índice de preparação separado para
+publicação atômica. Indexação explícita, incremental, cancelável e retomável.
+
+Oferecer busca por palavra/significado na biblioteca, respeitando filtros de
+caderno/chat. Nos chats e no estudo, consultar exclusivamente IDs autorizados,
+com prévia da estratégia e fallback textual informado quando o índice/runtime
+não estiver disponível. Manter seleção documental separada da associação a
+cadernos. Exclusão/reprocessamento invalidam também vetores. Medir recuperação
+em português e fórmulas e validar reinício, cancelamento e migração antes de
+publicar. Resumos de conversas continuam opcionais para uma entrega posterior.
+
+Aceite Qt com pesos reais e rede externa bloqueada: indexação explícita, pesquisa,
+filtros, seleção e reinício. Piloto português: híbrida top1 10/12 versus FTS 5/12;
+PDF real extraído com fonte na página 8, remoção e reinício verificados.
+[Entrega e limites](docs/BUSCA_SEMANTICA.md). Próxima etapa: L3, matemática
+verificável e gráficos; manter avaliação de recuperação separada de correção matemática.
+
 ## Entregue — L1: Ollama na interface
 
 O runtime já testado foi integrado ao chat React: configuração sem chave, diagnóstico

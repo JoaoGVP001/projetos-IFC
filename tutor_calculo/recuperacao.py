@@ -1,9 +1,27 @@
-"""Contrato de recuperação textual e orçamento; futura busca semântica aqui."""
+"""Recuperação textual/híbrida por escopo e orçamento independente de provedor."""
 import math
 
 
-def recuperar_chat(biblioteca, conversa, consulta):
-    return biblioteca.recuperar(conversa, consulta)
+def selecionar_trechos(rows, limite=6000):
+    result=[];size=0;pages={}
+    for row in rows:
+        item=dict(row);key=(item['material_id'],item['pagina'])
+        if pages.get(key,0)>=2 or len(result)>=6 or size+len(item['texto'])>limite:continue
+        item['referencia']=f'M{len(result)+1}'
+        item.setdefault('selecao','busca textual')
+        pages[key]=pages.get(key,0)+1;size+=len(item['texto']);result.append(item)
+    return result
+
+
+def recuperar_chat(biblioteca, conversa, consulta, detalhes=None):
+    from .semantica import IndiceSemantico
+    index=IndiceSemantico(biblioteca.historico)
+    if not index.config()['habilitada']:
+        if detalhes is not None:detalhes.update(metodo='busca textual',aviso='',escopo='Materiais selecionados neste chat')
+        return biblioteca.recuperar(conversa,consulta)
+    ids=[m['id'] for m in biblioteca.anexos(conversa) if m['selecionado'] and m['estado'] in ('pronto','parcial')]
+    rows=index.candidatos(ids,consulta,detalhes)
+    return selecionar_trechos(rows) if rows else biblioteca.recuperar(conversa,consulta)
 
 
 def estimar_tokens(texto):
@@ -50,7 +68,7 @@ def orcamento_local(config, instrucoes, pergunta, historico, fontes):
                           'trechos_omitidos': len(fontes or [])-len(selected or []), 'trechos_abreviados': abbreviations}}
 
 
-def recuperar_estudo(h, ids, consulta, amostra=False):
+def recuperar_estudo(h, ids, consulta, amostra=False, detalhes=None):
     from .atividades import Atividades
     from .materiais import consulta_fts
     fontes = Atividades(h).fontes(ids)
@@ -60,6 +78,11 @@ def recuperar_estudo(h, ids, consulta, amostra=False):
     rows = h.db.execute(f'''SELECT t.*,m.nome,m.url,m.tipo,m.metodo FROM trechos_fts JOIN trechos t ON t.id=trechos_fts.rowid
         JOIN materiais m ON m.id=t.material_id WHERE trechos_fts MATCH ? AND m.id IN ({parametros}) ORDER BY bm25(trechos_fts),t.id LIMIT 30''', (q, *ids)).fetchall() if q else []
     estrategia = 'busca textual'
+    from .semantica import IndiceSemantico
+    index=IndiceSemantico(h)
+    if index.config()['habilitada']:
+        rows=index.candidatos(ids,consulta,detalhes)
+    elif detalhes is not None:detalhes.update(metodo='busca textual',aviso='',escopo='Materiais selecionados para o estudo')
     if not rows and amostra:
         rows = h.db.execute(f'''SELECT t.*,m.nome,m.url,m.tipo,m.metodo FROM trechos t JOIN materiais m ON m.id=t.material_id
             WHERE m.id IN ({parametros}) AND t.ordem=0 ORDER BY t.pagina,t.id LIMIT 30''', ids).fetchall()
@@ -69,7 +92,7 @@ def recuperar_estudo(h, ids, consulta, amostra=False):
         f = dict(row); chave = (f['material_id'], f['pagina'])
         if por_pagina.get(chave, 0) >= 2: continue
         if tamanho+len(f['texto']) > 6000 or len(trechos) >= 6: continue
-        f['referencia'] = f'M{len(trechos)+1}'; f['selecao'] = estrategia
+        f['referencia'] = f'M{len(trechos)+1}'; f.setdefault('selecao', estrategia)
         if f['tipo'] != 'pdf' and 'PDF' not in f.get('metodo', ''): f['pagina'] = None
         por_pagina[chave] = por_pagina.get(chave, 0)+1; tamanho += len(f['texto']); trechos.append(f)
     return trechos, fontes
