@@ -2,6 +2,10 @@ Para continuar em outra máquina, leia primeiro o
 [resumo completo e transferência para o PC de casa](docs/TRANSFERENCIA_PC_CASA.md).
 Ele consolida as entregas; as seções abaixo preservam o histórico de cada fase.
 
+Próxima etapa proposta, ainda não implementada: organização local fiel e
+assistência da IA por referências, com qualidade matemática e desempenho.
+[Prompt detalhado](docs/planejamentos/PROMPT_FIDELIDADE_E_QUALIDADE.md).
+
 ## Entrega atual — calibração por tarefa (12/10/2026)
 
 Leia docs/CALIBRACAO_IA_LOCAL.md. avaliacao_local.py usa a fachada/orçamento real,

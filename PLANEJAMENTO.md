@@ -2,6 +2,15 @@
 
 Atualizado em 12/10/2026.
 
+## Próxima entrega proposta — organização fiel e qualidade
+
+Plano detalhado em [Prompt da próxima etapa](docs/planejamentos/PROMPT_FIDELIDADE_E_QUALIDADE.md).
+Entregar primeiro organização local que preserve texto/ordem/fórmulas/recursos,
+depois assistência opcional por IDs de blocos, evitando regeneração da resolução.
+Avaliar precisão, escapes, orçamento e desempenho por tarefa; GPU administrativa
+em trilha separada, sem bloquear CPU. Conservar RAG, atividades, versões e dados.
+Essa etapa ainda não está implementada; a calibração abaixo é sua evidência de partida.
+
 ## Entregue — calibração por tarefa no notebook
 
 Continuar a estabilidade publicada em 1bcbaba: avaliação reproduzível pela mesma
