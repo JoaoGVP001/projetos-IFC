@@ -39,6 +39,23 @@ class Ponte:
                         if sys.platform=='win32':os.startfile(caminho)
                         else:subprocess.Popen(['open' if sys.platform=='darwin' else 'xdg-open',str(caminho)],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
                 resultado=None
+            elif operacao=='consulta_original':
+                from .fontes_consulta import fonte
+                from hashlib import sha256
+                with self._app._lock,self._app._banco() as (h,c,b):
+                    f=fonte(h,dados.get('mensagem'),dados.get('referencia'))
+                    if not f['original_disponivel']:raise ValueError('Original removido ou alterado. O trecho histórico continua disponível.')
+                    material=b.obter(f['material_id'])
+                    if material['url']:webbrowser.open(normalizar_url(material['url']))
+                    else:
+                        path=b.raiz/material['caminho']
+                        if path.is_symlink():raise ValueError('Original inválido.')
+                        path=b.caminho_original(material['id'])
+                        if not path or not path.is_file() or path.stat().st_size>20*1024*1024:raise ValueError('Original ausente ou inválido.')
+                        if sha256(path.read_bytes()).hexdigest()!=material['chave'].removeprefix('sha256:'):raise ValueError('Arquivo original alterado.')
+                        # Usa a abertura restrita existente; formatos executáveis continuam recusados.
+                        return self.request('abrir_original',{'id':material['id']})
+                resultado=None
             elif operacao=='exemplo':
                 from .app import EXEMPLO
                 resultado=EXEMPLO

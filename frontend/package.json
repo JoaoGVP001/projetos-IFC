@@ -40,7 +40,8 @@
     "e2e:matematica": "node tests/matematica.mjs",
     "e2e:discreta": "node tests/discreta.mjs",
     "e2e:paginas": "node tests/paginas.mjs",
-    "e2e:estabilidade": "node tests/estabilidade.mjs"
+    "e2e:estabilidade": "node tests/estabilidade.mjs",
+    "e2e:estudo": "node tests/estudo.mjs"
   },
   "packageManager": "pnpm@11.25.0",
   "engines": {

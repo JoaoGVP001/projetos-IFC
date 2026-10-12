@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { ChartNoAxesCombined, Download, Sparkles } from "lucide-react";
 import { api } from "./bridge";
 import { Button, Field, Badge, Loading } from "./ui";
+import type { StudyOrigin } from "./ConsultedSources";
 
 export type MathSpec = {
   expressao: string;
@@ -19,6 +20,7 @@ export type MathJob<T = MathSpec> = {
   spec?: T;
   resultado?: T;
   previa?: {
+    origem_estudo?: { mensagem: number; aviso: string };
     destino: string;
     aviso: string;
     preparada: { pergunta: string; instrucoes: string; orcamento?: unknown };
@@ -40,8 +42,10 @@ export function MathTools({
   onStarted,
   notify,
   proposta,
+  estudo,
 }: {
   proposta?: string;
+  estudo?: StudyOrigin;
   chat: string;
   onStarted: () => void;
   notify: (s: string) => void;
@@ -68,7 +72,11 @@ export function MathTools({
   async function start() {
     setBusy(true);
     try {
-      await api("math_executar", { conversa: chat, spec });
+      await api("math_executar", {
+        conversa: chat,
+        spec,
+        origem_mensagem: estudo?.mensagem,
+      });
       onStarted();
     } catch (e) {
       notify((e as Error).message);
@@ -78,6 +86,12 @@ export function MathTools({
   }
   return (
     <section className="math-tools">
+      {estudo && (
+        <p className="notice">
+          Conferência ligada à resposta {estudo.mensagem}. Preencha os
+          parâmetros: a operação não verifica toda a explicação.
+        </p>
+      )}
       <p className="muted">
         Cálculos neste computador, sem IA ou internet. O gráfico e os resultados
         ficam salvos no chat.
@@ -86,6 +100,7 @@ export function MathTools({
         chat={chat}
         tipo="proposta"
         notify={notify}
+        pedidoInicial={estudo?.pedido}
         onResult={(r) => setSpec(r)}
       />
       <form
@@ -220,6 +235,12 @@ export function MathCard({
       aria-label="Gráfico calculado localmente"
     >
       <Badge>Gráfico por amostragem numérica · {id.slice(0, 8)}</Badge>
+      {job?.previa?.origem_estudo && (
+        <p>
+          Ligado à resposta {job.previa.origem_estudo.mensagem}.{" "}
+          {job.previa.origem_estudo.aviso}
+        </p>
+      )}
       {!job ? (
         <Loading>Carregando gráfico salvo…</Loading>
       ) : job.imagem ? (
@@ -257,6 +278,7 @@ export function MathAI<T = MathSpec>({
   prefix = "math",
   hint = "Inclua a função, o intervalo e o ponto desejados. Confira os parâmetros da proposta antes de calcular.",
   placeholder = "Trace f(x)=x^2-4*x+3 no intervalo [-2,6] e a tangente em x=3.",
+  pedidoInicial = "",
 }: {
   chat: string;
   tipo: "proposta" | "explicacao";
@@ -266,8 +288,9 @@ export function MathAI<T = MathSpec>({
   prefix?: string;
   hint?: string;
   placeholder?: string;
+  pedidoInicial?: string;
 }) {
-  const [pedido, setPedido] = useState("");
+  const [pedido, setPedido] = useState(pedidoInicial);
   const [job, setJob] = useState<MathJob<T> | null>(null);
   const [busy, setBusy] = useState(false);
   useEffect(() => {

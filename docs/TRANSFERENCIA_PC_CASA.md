@@ -45,6 +45,7 @@ Cálculo I. O destino no Windows pode ser uma pasta chamada `caderno-mat`.
 | L3: Matemática Discreta | Entregue para conjuntos/relações finitos e lógica proposicional |
 | L4: páginas de estudo | Entregue, com versões, PDF e PNG por folha |
 | Organização fiel | Entregue, com seções integrais, rótulos por IDs e checkpoint recuperável |
+| Estudo com fontes conferíveis | Entregue, com modo Consultar materiais, snapshots/páginas e operações locais vinculadas |
 | Estabilidade local | Entregue após o diagnóstico da resposta cortada |
 | Windows/RTX 3060 | Instalação preparada no código; aceite real ainda pendente |
 | L5: visão e ilustrações amplas | Planejada; há somente ilustração conceitual local de indução |

@@ -139,6 +139,8 @@ class Calculos:
         a._livre()
         with a._banco() as (h,c,b):
             cid=d.get('conversa');a._editavel(h,c,cid)
+            from .fontes_consulta import origem_ferramenta
+            origem=origem_ferramenta(h,cid,d.get('origem_mensagem'))
             # A referência a atividade é opcional e nunca altera versão/gabarito.
             aid = d.get('atividade'); av = d.get('atividade_versao')
             if aid is not None:
@@ -150,7 +152,7 @@ class Calculos:
                 if not h.db.execute('SELECT 1 FROM mensagens WHERE conversa_id=? LIMIT 1',(cid,)).fetchone() and h.obter(cid)['titulo']=='Novo chat':
                     h.db.execute('UPDATE conversas SET titulo=? WHERE id=?',(self.titulo(spec),cid))
                 h.db.execute("INSERT INTO mensagens(conversa_id,papel,texto,estado) VALUES(?,'user',?,'ok')", (cid, self.descrever(spec)))
-                h.db.execute("INSERT INTO calculos(id,conversa_id,tipo,estado,spec,versao,atividade_id,atividade_versao) VALUES(?,?,'calculo','executando',?,?,?,?)", (jid,cid,json.dumps(spec,ensure_ascii=False),self.versao,aid,av))
+                h.db.execute("INSERT INTO calculos(id,conversa_id,tipo,estado,spec,versao,atividade_id,atividade_versao,previa) VALUES(?,?,'calculo','executando',?,?,?,?,?)", (jid,cid,json.dumps(spec,ensure_ascii=False),self.versao,aid,av,json.dumps(origem,ensure_ascii=False)))
                 h.db.execute('UPDATE conversas SET atualizado=CURRENT_TIMESTAMP WHERE id=?',(cid,))
         self.iniciar(jid, cid, lambda: self.worker(jid,cid,spec))
         return {'id':jid}

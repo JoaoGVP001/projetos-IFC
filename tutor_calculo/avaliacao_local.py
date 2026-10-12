@@ -75,6 +75,9 @@ CASOS = {
 }
 
 
+from .referencia_estudo import casos as casos_referencia
+CASOS.update(casos_referencia())
+
 def formato(caso):
     if caso == 'atividade':
         from .provedores.esquemas import atividade

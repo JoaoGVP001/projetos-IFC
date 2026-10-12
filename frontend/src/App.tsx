@@ -9,6 +9,7 @@ import {
   type AjustePrevia,
 } from "./LocalStudy";
 import { Pages } from "./Pages";
+import { ConsultedSources, type StudyOrigin } from "./ConsultedSources";
 import { PageChatPreview } from "./StudyDocument";
 import {
   useCallback,
@@ -84,7 +85,13 @@ const preferencias: Record<string, string> = {
   dicas: "Dicas progressivas",
   correcao: "Correção orientada",
 };
-const modos = ["Resolver com IA", "Explicar", "Corrigir", "Resolver"];
+const modos = [
+  "Resolver com IA",
+  "Explicar",
+  "Corrigir",
+  "Consultar materiais",
+  "Resolver",
+];
 const bytes = (n: number) =>
   n >= 1048576
     ? `${(n / 1048576).toFixed(1)} MB`
@@ -102,8 +109,8 @@ type Modal =
   | { tipo: "ajuste"; dados: AjustePrevia }
   | { tipo: "inducao" }
   | { tipo: "link" }
-  | { tipo: "matematica"; proposta?: string }
-  | { tipo: "discreta"; proposta?: string }
+  | { tipo: "matematica"; proposta?: string; estudo?: StudyOrigin }
+  | { tipo: "discreta"; proposta?: string; estudo?: StudyOrigin }
   | { tipo: "pagina"; id: string }
   | { tipo: "config" }
   | { tipo: "material"; item: Material }
@@ -130,12 +137,14 @@ export default function App() {
     nonce: number;
   } | null>(null);
   const [pageSeed, setPageSeed] = useState<string | null>(null);
+  const [sendPreview, setSendPreview] = useState<Previa | null>(null);
   const firstView = useRef(true);
   const pendingSend = useRef<{
     id: string;
     texto: string;
     modo: string;
     requisicao: string;
+    previa_token?: string;
   } | null>(null);
   const stateRef = useRef(state),
     draftRef = useRef<{ id: string; texto: string } | null>(null),
@@ -477,13 +486,20 @@ export default function App() {
       : null;
     window.cadernoMatDraft = draftRef.current;
   };
-  const send = async () => {
+  const send = async (token?: string) => {
     if (!editable || occupied || !draft.trim()) return;
     setWorking(true);
     busyRef.current = true;
     try {
       await flush();
       const cid = state!.conversa!.id;
+      if (!token && state!.anexos.some((m) => m.selecionado)) {
+        setSendPreview(
+          await api<Previa>("previa", { id: cid, texto: draft, modo }),
+        );
+        setModal({ tipo: "previa" });
+        return;
+      }
       if (
         !pendingSend.current ||
         pendingSend.current.id !== cid ||
@@ -495,9 +511,13 @@ export default function App() {
           texto: draft,
           modo,
           requisicao: crypto.randomUUID(),
+          previa_token: token,
         };
+      if (token) pendingSend.current.previa_token = token;
       await api("enviar", pendingSend.current);
       pendingSend.current = null;
+      setSendPreview(null);
+      setModal(null);
       changeDraft("");
       dirty.current = false;
       await refresh(true);
@@ -1041,6 +1061,14 @@ export default function App() {
                       </div>
                       <ResponseStatus m={m} />
                       {m.consulta_id && (
+                        <ConsultedSources
+                          mensagem={m.id}
+                          editable={editable && !occupied}
+                          notify={notify}
+                          onCheck={(tipo, estudo) => setModal({ tipo, estudo })}
+                        />
+                      )}
+                      {m.consulta_id && (
                         <div className="response-actions">
                           {["curta", "continuar"].map((acao) => (
                             <Button
@@ -1324,7 +1352,7 @@ export default function App() {
                     icon={Send}
                     aria-label="Enviar mensagem"
                     disabled={!editable || occupied || !draft.trim()}
-                    onClick={send}
+                    onClick={() => void send()}
                   >
                     {state.ocupado ? "Processando" : "Enviar"}
                   </Button>
@@ -1461,7 +1489,10 @@ export default function App() {
             "discreta",
             "pagina",
           ].includes(modal.tipo)}
-          onClose={() => setModal(null)}
+          onClose={() => {
+            setModal(null);
+            setSendPreview(null);
+          }}
         >
           {modal.tipo === "ajuste" && (
             <Adjustment
@@ -1506,6 +1537,7 @@ export default function App() {
             <DiscreteTools
               chat={state.conversa.id}
               proposta={modal.proposta}
+              estudo={modal.estudo}
               notify={notify}
               onStarted={() => {
                 void refresh();
@@ -1516,6 +1548,7 @@ export default function App() {
             <MathTools
               chat={state.conversa.id}
               proposta={modal.proposta}
+              estudo={modal.estudo}
               notify={notify}
               onStarted={() => {
                 setModal(null);
@@ -1588,12 +1621,24 @@ export default function App() {
             <Preview id={modal.id} notify={notify} />
           )}
           {modal.tipo === "previa" && (
-            <SendPreview
-              id={state.conversa?.id || null}
-              texto={draft}
-              modo={modo}
-              notify={notify}
-            />
+            <>
+              <SendPreview
+                id={state.conversa?.id || null}
+                texto={draft}
+                modo={modo}
+                notify={notify}
+                initial={sendPreview}
+              />
+              {sendPreview?.token && (
+                <Button
+                  variant="primary"
+                  disabled={working}
+                  onClick={() => void send(sendPreview.token)}
+                >
+                  Enviar com estas fontes
+                </Button>
+              )}
+            </>
           )}
         </Dialog>
       )}
@@ -2319,19 +2364,25 @@ function SendPreview({
   texto,
   modo,
   notify,
+  initial,
 }: {
   id: string | null;
   texto: string;
   modo: string;
   notify: (s: string) => void;
+  initial?: Previa | null;
 }) {
-  const [p, setP] = useState<Previa | null>(null),
+  const [p, setP] = useState<Previa | null>(initial || null),
     [error, setError] = useState("");
   useEffect(() => {
+    if (initial) {
+      setP(initial);
+      return;
+    }
     api<Previa>("previa", { id, texto, modo })
       .then(setP)
       .catch((e) => setError(e.message));
-  }, [id, texto, modo]);
+  }, [id, texto, modo, initial]);
   if (error) return <p role="alert">{error}</p>;
   if (!p) return <Loading />;
   return (

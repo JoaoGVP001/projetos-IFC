@@ -2375,6 +2375,33 @@ small,
   border: 1px solid var(--border);
   border-radius: 12px;
 }
+
+.consulted-sources {
+  margin-block: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.consulted-sources summary {
+  cursor: pointer;
+}
+.consulted-sources pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 320px;
+  overflow: auto;
+  padding: var(--space-3);
+  background: var(--surface);
+}
+.consulted-sources section {
+  padding-block: var(--space-3);
+  border-bottom: 1px solid var(--border);
+}
+.source-original {
+  max-width: 100%;
+  max-height: 600px;
+  object-fit: contain;
+}
 .page-ai label {
   display: block;
   margin: 12px 0;
@@ -2399,12 +2426,46 @@ small,
   white-space: pre-wrap;
 }
 
-.response-warning { border-left: 3px solid var(--warning); padding: 12px; background: var(--hover); color: var(--ink); margin: 12px 0; }
-.response-warning p { margin: 6px 0; }
-.response-metrics { font-size: 12px; color: var(--muted); margin: 10px 0; }
-.response-actions { display:flex; flex-wrap:wrap; gap:8px; }
-.induction-figure img { max-width:100%; height:auto; }
-.induction-figure { margin:12px 0; }
-.induction-figure figcaption { font-size:12px; color:var(--text-muted); }
+.response-warning {
+  border-left: 3px solid var(--warning);
+  padding: 12px;
+  background: var(--hover);
+  color: var(--ink);
+  margin: 12px 0;
+}
+.response-warning p {
+  margin: 6px 0;
+}
+.response-metrics {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 10px 0;
+}
+.response-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.induction-figure img {
+  max-width: 100%;
+  height: auto;
+}
+.induction-figure {
+  margin: 12px 0;
+}
+.induction-figure figcaption {
+  font-size: 12px;
+  color: var(--text-muted);
+}
 
-.source-preview { white-space:pre-wrap; overflow-wrap:anywhere; max-height:240px; overflow:auto; font-size:12px; padding:12px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm); }
+.source-preview {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 240px;
+  overflow: auto;
+  font-size: 12px;
+  padding: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}

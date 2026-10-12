@@ -4,6 +4,7 @@ import { Button, Field, Badge, Loading } from "./ui";
 import { MathAI } from "./MathTools";
 import { Markdown } from "./Markdown";
 import { Download } from "lucide-react";
+import type { StudyOrigin } from "./ConsultedSources";
 
 export type DiscreteSpec = {
   tipo: "conjuntos" | "relacoes" | "logica";
@@ -74,6 +75,7 @@ export function DiscreteTools({
   proposta,
   context,
   enunciado,
+  estudo,
 }: {
   chat: string;
   notify: (s: string) => void;
@@ -81,6 +83,7 @@ export function DiscreteTools({
   proposta?: string;
   context?: DiscreteContext;
   enunciado?: string;
+  estudo?: StudyOrigin;
 }) {
   const revision = useRef(0);
   const [proposalId, setProposalId] = useState<string | undefined>(proposta);
@@ -174,6 +177,7 @@ export function DiscreteTools({
         spec,
         ...context,
         proposta: proposalId,
+        origem_mensagem: estudo?.mensagem,
       });
       setJob({ id: r.id, estado: "executando", erro: "", tipo: "calculo" });
       onStarted();
@@ -201,6 +205,7 @@ export function DiscreteTools({
         chat={chat}
         tipo="proposta"
         notify={notify}
+        pedidoInicial={estudo?.pedido}
         onResult={(s, id) => {
           apply(s);
           setProposalId(id);

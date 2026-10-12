@@ -207,6 +207,7 @@ export type Detalhe = {
   aviso_previa: string;
 };
 export type Previa = {
+  token?: string;
   provedor: string;
   modelo: string;
   pedagogia: string;

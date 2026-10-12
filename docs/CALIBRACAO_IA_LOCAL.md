@@ -1,5 +1,10 @@
 # Calibração da IA local por tarefa
 
+O catálogo de referência agora possui trinta casos adicionais (10 Cálculo,
+10 Discreta, 10 documentais), com rubricas independentes e prefixos `ref_*`.
+Cinco consultas novas e a falha de OCR no modo Explicar, comparada ao modo
+Consultar materiais, estão registradas em [Estudo confiável](ESTUDO_CONFIAVEL.md).
+
 Atualização posterior: o avaliador inclui `rotulos`, `sem_tentativa` e
 `ocr_duvidoso`. A página fiel é montada localmente a partir dos IDs, sem
 redigitação matemática pelo modelo. Resultados das nove consultas novas e

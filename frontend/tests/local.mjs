@@ -219,6 +219,10 @@ try {
   assert.ok((await texto()).includes("Somente Ollama neste computador"));
   await fecharDialogo();
   await click("Enviar mensagem");
+  await wait(() =>
+    evaluate('document.body.innerText.includes("Enviar com estas fontes")'),
+  );
+  await click("Enviar com estas fontes");
   await wait(
     async () =>
       !(await estado()).ocupado && (await estado()).mensagens.length === 2,
@@ -237,6 +241,10 @@ try {
     "Explique a ideia de derivada com exemplos, em aproximadamente 200 palavras. Depois proponha dois exercícios de prática.",
   );
   await click("Enviar mensagem");
+  await wait(() =>
+    evaluate('document.body.innerText.includes("Enviar com estas fontes")'),
+  );
+  await click("Enviar com estas fontes");
   await wait(() =>
     evaluate(
       "!!document.querySelector('[aria-label=\"Resposta em geração\"] .markdown')",

@@ -1,5 +1,10 @@
 # Materiais e memoria documental
 
+Atualização 12/10: fontes de respostas podem ser conferidas pelo snapshot,
+com página original e avisos de alteração/remoção. Envios com materiais na
+interface usam prévia revalidada; **Consultar materiais** limita a tarefa ao
+conteúdo fornecido. [Uso e limitações](ESTUDO_CONFIAVEL.md).
+
 ## Usar no aplicativo
 
 1. Abra um chat e use **Anexar arquivos** (clipe) ou **Adicionar link**. A aba **Materiais** tambem

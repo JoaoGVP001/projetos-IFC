@@ -3,6 +3,7 @@ from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from pathlib import Path
 from threading import RLock
+from copy import deepcopy
 import base64
 import io
 import json
@@ -47,6 +48,7 @@ class Aplicacao:
         self._executor=ThreadPoolExecutor(max_workers=3,thread_name_prefix='cadernomat')
         self._tarefas={}
         self._cancelamentos={}
+        self._previas_estudo={}
         self._ia_preferencias=PreferenciasIA(self.caminho.parent)
         self._indice_cancelamento=None
         self._processando=set()
@@ -141,6 +143,8 @@ class Aplicacao:
             'caderno_acao':self._caderno_acao,'materiais':self._materiais,'link':self._link,
             'material_acao':self._material_acao,'material_salvar':self._material_salvar,
             'material_detalhe':self._material_detalhe,'previa':self._previa,'enviar':self._enviar,
+            'consulta_fontes':self._consulta_fontes,
+            'consulta_pagina':self._consulta_pagina,
             'configurar':self._configurar,'preferencias':self._salvar_preferencias,
             'ollama_diagnostico':self._ollama_diagnostico,'ollama_iniciar':self._ollama_iniciar,'ia_cancelar':self._ia_cancelar,
             'ia_ajuste_previa':self._ajuste_previa,'ia_ajuste_enviar':self._ajuste_enviar,'ia_repetir':self._ia_repetir,'semantica_status':self._semantica_status,
@@ -405,7 +409,25 @@ class Aplicacao:
             anteriores=[m['texto'] for m in h.mensagens(cid) if m['papel']=='user']
             if anteriores:pergunta+=' '+anteriores[-1][:400]
         from .recuperacao import recuperar_chat
-        return recuperar_chat(b,cid,pergunta,detalhes)
+        from .fontes_consulta import congelar
+        return congelar(h,recuperar_chat(b,cid,pergunta,detalhes))
+
+    def _consulta_fontes(self,d):
+        from .fontes_consulta import recuperar
+        with self._banco() as (h,c,b):return recuperar(h,d.get('mensagem'))
+
+    def _consulta_pagina(self,d):
+        from .fontes_consulta import fonte
+        from hashlib import sha256
+        with self._banco() as (h,c,b):
+            f=fonte(h,d.get('mensagem'),d.get('referencia'))
+            if not f['original_disponivel'] or f['tipo'] not in ('pdf','imagem'):raise ValueError('Prévia original indisponível; confira o trecho salvo.')
+            m=b.obter(f['material_id']);path=b.raiz/m['caminho']
+            if path.is_symlink():raise ValueError('Original inválido.')
+            path=b.caminho_original(m['id'])
+            if not path or not path.is_file() or path.stat().st_size>20*1024*1024 or sha256(path.read_bytes()).hexdigest()!=m['chave'].removeprefix('sha256:'):raise ValueError('Original ausente ou alterado.')
+        result=self._material_detalhe({'id':f['material_id'],'pagina':f.get('pagina') or 1})
+        return {'imagem':result['imagem'],'aviso_previa':result['aviso_previa'],'pagina':f.get('pagina') or 1}
 
     def _previa(self,d):
         self._livre()
@@ -416,13 +438,23 @@ class Aplicacao:
             caderno=c.obter(bid) if bid else None
             selection=self._selecao(h,cid)
             mode=d.get('modo','Resolver')
+            if mode=='Consultar materiais' and not any(m['selecionado'] for m in b.anexos(cid)):raise ValueError('Marque um material para consultar neste chat.')
             calc=mode=='Resolver' and usa_analisador(pergunta)
             if mode=='Resolver com IA':mode='Resolver'
             recuperacao={}
             p={'pedagogia':'','historico':[],'fontes':None,'instrucoes':'','orcamento':None} if calc else preparar_consulta(
                 pergunta or '(mensagem vazia)',modo=mode,historico=h.mensagens(cid),fontes=self._fontes(h,b,cid,pergunta,recuperacao),
                 caderno=caderno,provedor=selection['provedor'],local=selection['local'])
-            return {**selection,'pedagogia':p['pedagogia'],'mensagem':pergunta,'historico':p['historico'],
+            from .fontes_consulta import selar_envio,digest
+            selar_envio(p)
+            token=str(uuid4())
+            self._previas_estudo[token]={'id':cid,'texto':pergunta,'modo':d.get('modo','Resolver'),
+                'preparada':p,'selecao':selection,'recuperacao':recuperacao,
+                'vinculo':digest({'caderno':caderno,'historico':h.mensagens(cid),'selecionados':sorted(m['id'] for m in b.anexos(cid) if m['selecionado'])}),
+                'tempo':time.monotonic()}
+            self._previas_estudo[token]=deepcopy(self._previas_estudo[token])
+            for old in list(self._previas_estudo)[:-20]:self._previas_estudo.pop(old)
+            return {**selection,'token':token,'pedagogia':p['pedagogia'],'mensagem':pergunta,'historico':p['historico'],
                 'fontes':p['fontes'],'recuperacao':recuperacao,'instrucoes':p['instrucoes'],'orcamento':p['orcamento'],
                 'destino':'Cálculo simbólico neste computador, sem consulta à IA' if calc else 'Somente Ollama neste computador' if selection['local'] else 'Provedor online',
                 'originais_enviados':False}
@@ -430,7 +462,7 @@ class Aplicacao:
     def _enviar(self,d):
         cid=ident(d.get('id'));pergunta=texto(d.get('texto'),30000,False)
         modo=d.get('modo','Resolver com IA')
-        if modo not in ['Resolver','Resolver com IA','Explicar','Corrigir']:raise ValueError('Modo invalido.')
+        if modo not in ['Resolver','Resolver com IA','Explicar','Corrigir','Consultar materiais']:raise ValueError('Modo invalido.')
         tid=ident(d.get('requisicao',str(uuid4())))
         with self._banco() as (h,c,b):
             existing=h.db.execute('SELECT * FROM consultas_ia WHERE id=?',(tid,)).fetchone()
@@ -439,14 +471,29 @@ class Aplicacao:
                 if existing['conversa_id']!=cid or snap['pergunta']!=pergunta or snap['modo']!=modo:raise ValueError('ID de consulta reutilizado com dados diferentes.')
                 return {'tarefa':tid}
             self._livre()
-            chat=self._editavel(h,c,cid);historico=h.mensagens(cid);recuperacao={};fontes=self._fontes(h,b,cid,pergunta,recuperacao)
-            if modo=='Resolver' and fontes is not None:raise ValueError('Escolha um modo de IA para consultar materiais.')
+            chat=self._editavel(h,c,cid);historico=h.mensagens(cid);recuperacao={}
+            if modo=='Consultar materiais' and not any(m['selecionado'] for m in b.anexos(cid)):raise ValueError('Marque um material para consultar neste chat.')
+            fontes=None if d.get('previa_token') is not None else self._fontes(h,b,cid,pergunta,recuperacao)
+            if modo=='Resolver' and any(m['selecionado'] for m in b.anexos(cid)):raise ValueError('Escolha um modo de IA para consultar materiais.')
             caderno=c.obter(chat['caderno_id']) if chat['caderno_id'] else None
             selection=self._selecao(h,cid)
             calculo_local=modo=='Resolver' and usa_analisador(pergunta)
-            prepared=None if calculo_local else preparar_consulta(pergunta,'Resolver' if modo in ('Resolver com IA','Resolver') else modo,
-                historico,fontes,caderno,selection['provedor'],selection['local'])
-            snapshot={'recuperacao':recuperacao,'pergunta':pergunta,'modo':modo,'historico':historico,'fontes':fontes,'caderno':caderno,
+            prepared=None
+            from .fontes_consulta import revalidar,selar_envio,digest
+            preview=d.get('previa_token')
+            if preview is not None:
+                if not isinstance(preview,str) or len(preview)>100:raise ValueError('Token de prévia inválido.')
+                old=self._previas_estudo.get(preview)
+                if not old or time.monotonic()-old['tempo']>600:raise ValueError('Prévia expirada. Confira outra prévia.')
+                current=digest({'caderno':caderno,'historico':historico,'selecionados':sorted(m['id'] for m in b.anexos(cid) if m['selecionado'])})
+                if any(old[k]!=v for k,v in [('id',cid),('texto',pergunta),('modo',modo),('selecao',selection),('vinculo',current)]):
+                    raise ValueError('Pergunta, histórico, fontes ou configuração mudou. Confira uma nova prévia.')
+                revalidar(h,b,cid,old['preparada']['fontes']);prepared=old['preparada'];recuperacao=old['recuperacao']
+            elif not calculo_local:
+                prepared=preparar_consulta(pergunta,'Resolver' if modo in ('Resolver com IA','Resolver') else modo,
+                    historico,fontes,caderno,selection['provedor'],selection['local'])
+            if prepared:selar_envio(prepared)
+            snapshot={'recuperacao':recuperacao,'pergunta':pergunta,'modo':modo,'historico':historico,'fontes':prepared['fontes'] if prepared else fontes,'caderno':caderno,
                       'selecao':selection,'preparada':prepared,'calculo_local':calculo_local}
             with h.db:
                 uid=h.db.execute("INSERT INTO mensagens(conversa_id,papel,texto,estado) VALUES(?,'user',?,'ok')",(cid,pergunta)).lastrowid
@@ -544,6 +591,8 @@ class Aplicacao:
             # Material removido/desmarcado não pode voltar a ser enviado via repetição.
             selected={m['id'] for m in b.anexos(cid) if m['selecionado']}
             if any(f['material_id'] not in selected for f in snap['fontes'] or []):raise ValueError('A seleção documental mudou. Confira uma nova prévia.')
+            from .fontes_consulta import revalidar
+            revalidar(h,b,cid,(snap.get('preparada') or {}).get('fontes',snap['fontes']))
             existing=h.db.execute('SELECT * FROM consultas_ia WHERE id=?',(tid,)).fetchone()
             if existing:
                 if existing['conversa_id']!=cid or existing['usuario_id']!=row['usuario_id']:raise ValueError('ID de consulta inválido.')

@@ -122,7 +122,12 @@ class PaginasServico:
                     if len(m['texto'])>15000:raise ValueError('Mensagem acima do limite de uma seção. Copie os trechos desejados manualmente.')
                     content['secoes'][0].update(titulo='Mensagem de origem',texto=m['texto'],origem='ia' if m['papel']=='assistant' else 'usuario')
                     origins=[{'tipo':'mensagem','id':mid,'titulo':m['titulo'],'provedor':m['provedor'],'modelo':m['modelo']}]
-                r=pages.criar(bid,content,origins)
+                references=[]
+                if mid is not None and h.db.execute('SELECT 1 FROM consultas_ia WHERE resposta_id=?',(mid,)).fetchone():
+                    from .fontes_consulta import recuperar
+                    for f in recuperar(h,mid)['fontes']:
+                        references.append({'nome':f['nome'],'material_id':f['material_id'],'pagina':f.get('pagina') if f['tipo'] in ('pdf','pptx') else None,'unidade':'slide' if f['tipo']=='pptx' else 'página','aviso':f.get('aviso',''),'origem':f.get('origem_titulo',''),'snapshot':f,'url':f.get('url','')})
+                r=pages.criar(bid,content,origins,references)
                 if mid is not None:
                     math=h.db.execute("SELECT id,versao FROM calculos WHERE mensagem_id=? AND tipo='calculo' AND estado='concluida'",(mid,)).fetchone()
                     if math:

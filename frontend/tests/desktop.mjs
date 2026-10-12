@@ -213,6 +213,10 @@ try {
   await captura("previa-claro.png");
   await fecharDialogo();
   await click("Enviar mensagem");
+  await wait(() =>
+    evaluate('document.body.innerText.includes("Enviar com estas fontes")'),
+  );
+  await click("Enviar com estas fontes");
   await wait(async () => {
     const s = await estado();
     return !s.ocupado && s.mensagens.length === 2;
@@ -357,6 +361,10 @@ try {
   assert.equal(s.preferencias.tema, "escuro");
   await fill("Mensagem", "FALHA_SIMULADA");
   await click("Enviar mensagem");
+  await wait(() =>
+    evaluate('document.body.innerText.includes("Enviar com estas fontes")'),
+  );
+  await click("Enviar com estas fontes");
   await wait(async () => {
     const s = await estado();
     return !s.ocupado && s.mensagens.at(-1)?.estado === "erro";

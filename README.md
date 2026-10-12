@@ -44,6 +44,11 @@ Para avaliar tarefas com dados fictícios e relatório privado, veja
 
 ## Páginas de estudo e PDF/PNG (L4)
 
+**Estudo com fontes:** marque materiais e escolha **Consultar materiais** para
+respostas limitadas aos trechos. O envio documental mostra uma prévia validada;
+na resposta, **Conferir fontes e operações** abre o snapshot, a página original
+e ferramentas locais com vínculo à consulta. [Uso, testes e limites](docs/ESTUDO_CONFIAVEL.md).
+
 Abra **Páginas de estudo → Nova página**, edite seções Markdown/LaTeX e insira
 resultados locais. **Salvar versão** conserva uma versão independente do
 rascunho. Em **Versões, exportação e biblioteca**, gere PDF e um PNG por folha,

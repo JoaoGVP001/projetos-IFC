@@ -623,6 +623,24 @@ Validacao: 39 testes automatizados e fluxo de janela com cancelamento e
 confirmacao da exclusao. Streaming, cancelamento da consulta e repeticao de
 envio ainda permanecem pendentes nesta etapa.
 
+## Entrega — estudo confiável (12/10/2026)
+
+Primeira entrega das fases 1/2: fontes conferíveis por resposta com trecho
+exatamente enviado, assinaturas de origem/extração e prévia revalidada; ações
+para conferir operações pelas ferramentas existentes, sem certificação global.
+Reusar consultas/snapshots JSON v11, preservar biblioteca/vetores e ampliar
+rubricas de avaliação por tarefa. Validar dados fictícios, remoção/reprocessamento,
+orçamento/cancelamento/reinício, Qt e páginas/PDF; provedores online simulados.
+Páginas avançadas, simulados, backup/Windows e visão seguem nas fases posteriores.
+
+Entregue modo Consultar materiais, prévia com confirmação/vínculo revalidado,
+painel histórico sem nova busca, abertura/página original verificada por hash,
+operações locais vinculadas e referências congeladas em páginas. Sem DDL,
+treinamento ou reindexação pessoal. Catálogo de 30 casos (10/10/10), cinco
+consultas reais offline; falha de OCR no modo Explicar mantida como evidência.
+268 testes Python (258 aprovados/10 opcionais ignorados), 42 React, build,
+aceites Qt de estudo, desktop e Ollama/RAG. Ver docs/ESTUDO_CONFIAVEL.md.
+
 ## Entrega — fidelidade e qualidade (12/10/2026)
 
 Prioridade: organização local de seções inteiras, sem reescrita ou corte de
