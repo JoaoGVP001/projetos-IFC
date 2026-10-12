@@ -12,9 +12,10 @@ import tempfile
 import time
 from uuid import uuid4
 from .paginas import Paginas,nova,validar
+from .organizacao import snapshot,plano_local,montar,prompt_ids,hash_dados,ESQUEMA_IDS,CONTRATO
 from .provedores.contratos import Cancelamento,ConsultaCancelada
 
-OPERACOES=('paginas','pagina_criar','pagina_obter','pagina_rascunho','pagina_salvar','pagina_acao','pagina_versao','pagina_navegar','pagina_fontes','pagina_calculo','pagina_questao','pagina_exportar','pagina_job','pagina_jobs','pagina_cancelar','pagina_previa','pagina_consultar','pagina_aceitar','pagina_material')
+OPERACOES=('paginas','pagina_criar','pagina_obter','pagina_rascunho','pagina_salvar','pagina_acao','pagina_versao','pagina_navegar','pagina_fontes','pagina_calculo','pagina_questao','pagina_exportar','pagina_job','pagina_jobs','pagina_cancelar','pagina_previa','pagina_consultar','pagina_aceitar','pagina_material','pagina_organizar')
 
 
 def formulas_marcadas(texto):
@@ -98,6 +99,7 @@ class PaginasServico:
         a=self.app
         if op=='pagina_exportar':return self.exportar(d)
         if op=='pagina_previa':return self.previa(d)
+        if op=='pagina_organizar':return self.organizar(d)
         if op=='pagina_consultar':return self.consultar(d)
         if op=='pagina_cancelar':
             token=a._cancelamentos.get(d.get('id'))
@@ -118,7 +120,7 @@ class PaginasServico:
                     if not m or m['caderno_id']!=bid:raise ValueError('Escolha uma mensagem deste caderno.')
                     content['titulo']='Estudo: '+m['titulo'][:150];
                     if len(m['texto'])>15000:raise ValueError('Mensagem acima do limite de uma seção. Copie os trechos desejados manualmente.')
-                    content['secoes'][0].update(titulo='Mensagem de origem',texto=m['texto'],origem='ia' if m['provedor'] in ('ollama','openai','gemini') else 'usuario')
+                    content['secoes'][0].update(titulo='Mensagem de origem',texto=m['texto'],origem='ia' if m['papel']=='assistant' else 'usuario')
                     origins=[{'tipo':'mensagem','id':mid,'titulo':m['titulo'],'provedor':m['provedor'],'modelo':m['modelo']}]
                 r=pages.criar(bid,content,origins)
                 if mid is not None:
@@ -154,8 +156,19 @@ class PaginasServico:
                 r=pages.criar(activity['caderno_id'],content,[{'tipo':'tentativa','id':t['id'],'titulo':content['titulo'],'atividade':t['atividade_id'],'versao':t['versao'],'questao':q['id']}])
             elif op=='pagina_aceitar':
                 j=self.job(h,d.get('trabalho'));row=pages.editavel(pid)
+                if j['tipo'] in ('organizacao','rotulos'):
+                    if j['estado']!='concluida' or j['pagina_id']!=pid:raise ValueError('Organização indisponível ou já aplicada.')
+                    if 'conteudo' in d:raise ValueError('A organização fiel não aceita texto editado pela proposta. Use o editor após aplicar.')
+                    self.revalidar_fiel(h,pages,j)
+                    # Remonta a partir do plano validado; não confia no conteúdo retornado pela UI.
+                    proposal=montar(j['previa']['plano'],j['previa'],'ia' if j['tipo']=='rotulos' else 'local')
+                    r=pages.aplicar_fiel(pid,proposal,row['revisao'],j['id'])
+                    a._revisao+=1;return r
                 if j['tipo']!='proposta' or j['estado']!='concluida' or j['pagina_id']!=pid:raise ValueError('Proposta indisponível.')
                 if row['revisao']!=j['previa']['revisao']:raise ValueError('O rascunho mudou. Gere outra proposta para preservar sua edição.')
+                if a._selecao(h)!=j['previa']['selecao']:raise ValueError('O provedor mudou. Prepare outra proposta.')
+                from .atividades import Atividades
+                Atividades(h).fontes(list({f['material_id'] for f in j['previa']['fontes']}))
                 proposal=validar(d.get('conteudo',j['resultado']),j['previa']['recursos'])
                 r=pages.rascunho(pid,proposal,row['revisao'])
                 references=j['previa']['fontes']
@@ -164,6 +177,59 @@ class PaginasServico:
             elif op=='pagina_material':return self.material(h,pages,b,d)
             else:raise ValueError('Operação de página inválida.')
         a._revisao+=1;return r
+    def assinaturas(self,h,pages,row):
+        """Congelados da página; inexistências prévias não impedem usar cópia local."""
+        content=json.loads(row['rascunho']);resources={};sources=[]
+        for rid in sorted({s['recurso'] for s in content['secoes'] if s.get('recurso')}):
+            pages.recurso(rid) # Confere bytes da imagem, não só a linha SQLite.
+            record=h.db.execute('SELECT * FROM pagina_recursos WHERE id=?',(rid,)).fetchone()
+            resources[rid]=hash_dados(dict(record))
+        for o in json.loads(row['origens']):
+            table={'mensagem':'mensagens','calculo':'calculos','tentativa':'tentativas'}.get(o.get('tipo'))
+            if table:sources.append((table,o['id']))
+        sources.extend(('materiais',r['material_id']) for r in json.loads(row['referencias']) if r.get('material_id'))
+        origin=[]
+        for table,sid in sources:
+            r=h.db.execute('SELECT * FROM '+table+' WHERE id=?',(sid,)).fetchone()
+            origin.append({'tabela':table,'id':sid,'hash':hash_dados(dict(r)) if r else None})
+        return {'recursos':resources,'fontes_registradas':origin,
+                'hash_metadados':hash_dados({k:row[k] for k in ('caderno_id','origens','referencias')})}
+    def revalidar_fiel(self,h,pages,j):
+        p=j['previa'];row=pages.editavel(j['pagina_id'])
+        if p.get('contrato')!=CONTRATO:raise ValueError('Contrato de organização inválido.')
+        if row['revisao']!=p['revisao'] or hash_dados(json.loads(row['rascunho']))!=p['hash_original']:
+            raise ValueError('O rascunho mudou. Prepare outra organização para preservar sua edição.')
+        current=self.assinaturas(h,pages,row)
+        if any(current[k]!=p[k] for k in ('recursos','fontes_registradas','hash_metadados')):
+            raise ValueError('Uma origem, referência ou recurso mudou/foi removido. Confira uma nova prévia.')
+        if j['tipo']=='rotulos' and self.app._selecao(h)!=p['selecao']:
+            raise ValueError('Provedor ou modelo mudou. Confira uma nova prévia.')
+        return row
+    def organizar(self,d):
+        modo=d.get('modo','local')
+        if modo not in ('local','ia'):raise ValueError('Modo de organização inválido.')
+        a=self.app
+        if modo=='ia':a._livre()
+        with a._banco() as (h,c,b):
+            pages=Paginas(h);row=pages.editavel(d.get('id'))
+            p=snapshot(json.loads(row['rascunho']),d.get('secoes'))
+            p.update(self.assinaturas(h,pages,row));p['revisao']=row['revisao']
+            p.update(originais_enviados=False,historico_enviado=False,
+                     destino='Organização neste computador · sem IA ou envio de dados')
+            result=None;kind='organizacao';state='concluida'
+            if modo=='local':
+                p['plano']=plano_local(p);result=montar(p['plano'],p,'local')
+            else:
+                from .ia import preparar_consulta
+                sel=a._selecao(h);prompt=prompt_ids(p)
+                p.update(selecao=sel,preparada=preparar_consulta(prompt,modo='Rotular blocos',provedor=sel['provedor'],local=sel['local']),
+                         destino='Somente Ollama neste computador' if sel['provedor']=='ollama' else 'Provedor online: '+sel['provedor'],
+                         amostra_maxima=240,fontes=[])
+                kind='rotulos';state='previa'
+            jid=str(uuid4())
+            with h.db:h.db.execute('INSERT INTO pagina_jobs(id,pagina_id,versao,tipo,estado,previa,resultado) VALUES(?,?,?,?,?,?,?)',
+                (jid,row['id'],row['versao'],kind,state,json.dumps(p,ensure_ascii=False),json.dumps(result,ensure_ascii=False) if result else None))
+            a._revisao+=1;return self.job(h,jid)
     def exportar(self,d):
         a=self.app
         if any(t['tipo']=='exportacao' and t['estado']=='executando' for t in a._tarefas.values()):raise ValueError('Aguarde ou cancele a exportação anterior.')
@@ -226,7 +292,8 @@ class PaginasServico:
         a=self.app;a._livre()
         with a._banco() as (h,c,b):
             j=self.job(h,d.get('id'));p=j['previa'];row=Paginas(h).editavel(j['pagina_id'])
-            if j['tipo']!='proposta' or j['estado']!='previa':raise ValueError('Prepare uma nova proposta.')
+            if j['tipo'] not in ('proposta','rotulos') or j['estado']!='previa':raise ValueError('Prepare uma nova proposta.')
+            if j['tipo']=='rotulos':self.revalidar_fiel(h,Paginas(h),j)
             if a._selecao(h)!=p['selecao'] or row['revisao']!=p['revisao']:raise ValueError('Provedor ou conteúdo mudou. Confira uma nova prévia.')
             from .atividades import Atividades
             Atividades(h).fontes(list({f['material_id'] for f in p['fontes']}))
@@ -237,16 +304,19 @@ class PaginasServico:
         from .ia import perguntar
         token=self.app._cancelamentos[j['id']];prev=j['previa'];sel=prev['selecao'];state='concluida';error='';result=None
         try:
-            raw=perguntar(prev['preparada']['pergunta'],modo='Organizar página',provedor=sel['provedor'],modelo=sel['modelo'],local=sel['local'],cancelar=token,preparada=prev['preparada'],formato=ESQUEMA if sel['provedor']=='ollama' else None);token.verificar()
+            faithful=j['tipo']=='rotulos'
+            raw=perguntar(prev['preparada']['pergunta'],modo='Rotular blocos' if faithful else 'Organizar página',provedor=sel['provedor'],modelo=sel['modelo'],local=sel['local'],cancelar=token,preparada=prev['preparada'],formato=(ESQUEMA_IDS if faithful else ESQUEMA) if sel['provedor']=='ollama' else None);token.verificar()
             if not isinstance(raw,str) or len(raw)>20000:raise ValueError('Proposta acima do limite.')
             raw=json.loads(raw.strip().removeprefix('```json').removeprefix('```').removesuffix('```').strip())
-            result=validar_proposta(raw,prev)
+            if faithful:
+                result=montar(raw,prev,'ia');prev['plano']=raw
+            else:result=validar_proposta(raw,prev)
         except ConsultaCancelada:state='cancelada';error='Consulta cancelada. O rascunho não mudou.'
         except (ValueError,RuntimeError) as e:state='erro';error=str(e)[:800]
         except Exception:state='erro';error='Proposta inválida ou indisponível. O rascunho não mudou.'
         with self.app._lock:
             if token.evento.is_set():state='cancelada';result=None;error='Consulta cancelada.'
-            with self.app._banco() as (h,c,b),h.db:h.db.execute('UPDATE pagina_jobs SET estado=?,erro=?,resultado=? WHERE id=?',(state,error,json.dumps(result,ensure_ascii=False) if result else None,j['id']))
+            with self.app._banco() as (h,c,b),h.db:h.db.execute('UPDATE pagina_jobs SET estado=?,erro=?,resultado=?,previa=? WHERE id=?',(state,error,json.dumps(result,ensure_ascii=False) if result else None,json.dumps(prev,ensure_ascii=False),j['id']))
             self.app._tarefas[j['id']].update(estado=state,erro=error);self.app._revisao+=1
     def material(self,h,pages,b,d):
         pid=d.get('id');v=d.get('versao');doc=pages.versao(pid,v)

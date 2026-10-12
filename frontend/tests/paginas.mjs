@@ -238,20 +238,40 @@ try {
     })
   ).itens[0];
   assert.equal(material.selecionado, false);
-  await evaluate('document.querySelector(".page-ai").open=true;true');
   await evaluate(
-    'document.querySelector(".page-ai input[type=checkbox]").click();true',
+    'document.querySelector(".page-ai:not(.page-faithful)").open=true;true',
+  );
+  await evaluate(
+    'document.querySelector(".page-ai:not(.page-faithful) input[type=checkbox]").click();true',
   );
   const beforeProposal = await rpc("pagina_obter", { id: pid });
   await writeFile(resolve(pasta, "formula-invalida"), "1");
   await click("Preparar proposta de página");
   await click("Pedir organização à IA");
-  await wait(() => evaluate('document.body.innerText.includes("notação de fórmulas selecionadas")'));
-  assert.deepEqual((await rpc("pagina_obter", { id: pid })).rascunho, beforeProposal.rascunho);
+  await wait(() =>
+    evaluate(
+      'document.body.innerText.includes("notação de fórmulas selecionadas")',
+    ),
+  );
+  assert.deepEqual(
+    (await rpc("pagina_obter", { id: pid })).rascunho,
+    beforeProposal.rascunho,
+  );
   assert.equal((await rpc("pagina_obter", { id: pid })).versao, 1);
-  assert.equal(await evaluate('Array.from(document.querySelectorAll("button")).some(b=>b.textContent.includes("Aplicar proposta ao rascunho"))'), false);
-  await evaluate('document.querySelector(".page-ai [role=alert]").scrollIntoView({block:"center"});true');
-  assert.ok(await evaluate('(()=>{const r=document.querySelector(".page-ai [role=alert]").getBoundingClientRect();return r.top>=0&&r.bottom<=window.innerHeight})()'));
+  assert.equal(
+    await evaluate(
+      'Array.from(document.querySelectorAll("button")).some(b=>b.textContent.includes("Aplicar proposta ao rascunho"))',
+    ),
+    false,
+  );
+  await evaluate(
+    'document.querySelector(".page-ai:not(.page-faithful) [role=alert]").scrollIntoView({block:"center"});true',
+  );
+  assert.ok(
+    await evaluate(
+      '(()=>{const r=document.querySelector(".page-ai:not(.page-faithful) [role=alert]").getBoundingClientRect();return r.top>=0&&r.bottom<=window.innerHeight})()',
+    ),
+  );
   await captura("paginas-formula-preservada.png");
   await unlink(resolve(pasta, "formula-invalida"));
   await click("Preparar proposta de página");
@@ -332,6 +352,172 @@ try {
       `!document.querySelector("dialog") && !!document.querySelector('[aria-label="Título da página"]')`,
     ),
   );
+  // Mensagem -> organização fiel local -> IA por IDs -> exportação e reinício.
+  const faithfulPid = (await estado()).pagina;
+  await fill(
+    "Conteúdo da seção 1",
+    "Para todo inteiro $n\\ge 1$: $1+2+\\cdots+n=\\frac{n(n+1)}{2}$.\n\nFixe k arbitrário, use P(k), prove P(k+1) e conclua para todo n >= 1.\n\n$$\\begin{aligned}S_{k+1}&=S_k+(k+1)\\\\&=\\frac{(k+1)(k+2)}{2}\\end{aligned}$$",
+  );
+  await click("Salvar versão");
+  const induction = await rpc("inducao_executar", {
+    conversa: (await estado()).conversa.id,
+    spec: { inicio: 1, proposicao: "Soma dos naturais" },
+  });
+  await wait(
+    async () =>
+      (await rpc("inducao_obter", { id: induction.id })).estado === "concluida",
+  );
+  await rpc("pagina_calculo", { id: faithfulPid, calculo: induction.id });
+  await fechar();
+  await iniciar();
+  await wait(() => evaluate('!!document.querySelector(".page-faithful")'));
+  await wait(
+    async () =>
+      (await rpc("pagina_obter", { id: faithfulPid })).rascunho.secoes
+        .length === 2,
+  );
+  const faithfulOriginal = await rpc("pagina_obter", { id: faithfulPid });
+  await evaluate('document.querySelector(".page-faithful").open=true;true');
+  await click("Preservar seção 1");
+  await click("Preservar seção 2");
+  await click("Preparar organização local");
+  await wait(() =>
+    evaluate(
+      '!!document.querySelector(".page-faithful .study-sheet img") && !!document.querySelector(".page-faithful .katex")',
+    ),
+  );
+  assert.deepEqual(
+    (await rpc("pagina_obter", { id: faithfulPid })).rascunho,
+    faithfulOriginal.rascunho,
+  );
+  const faithfulJob = (await rpc("pagina_jobs", { id: faithfulPid })).find(
+    (j) => j.tipo === "organizacao" && j.estado === "concluida",
+  );
+  await evaluate(
+    'Array.from(document.querySelectorAll(".page-faithful summary")).find(s=>s.textContent.includes("Texto preservado integral")).parentElement.open=true;true',
+  );
+  assert.deepEqual(
+    await evaluate(
+      'JSON.parse(Array.from(document.querySelectorAll(".page-faithful summary")).find(s=>s.textContent.includes("Texto preservado integral")).parentElement.querySelector("pre").textContent)',
+    ),
+    faithfulJob.resultado,
+  );
+  await cmd("Emulation.setDeviceMetricsOverride", {
+    width: 1000,
+    height: 650,
+    deviceScaleFactor: 1,
+    mobile: false,
+  });
+  await evaluate(
+    'document.querySelector(".page-faithful").scrollIntoView({block:"start"});true',
+  );
+  await captura("fidelidade-previa-escuro.png");
+  await click("Aplicar organização preservando o original");
+  await wait(
+    async () =>
+      (await rpc("pagina_obter", { id: faithfulPid })).versao ===
+      faithfulOriginal.versao + 1,
+  );
+  const faithfulApplied = await rpc("pagina_obter", { id: faithfulPid });
+  assert.deepEqual(
+    (
+      await rpc("pagina_versao", {
+        id: faithfulPid,
+        versao: faithfulApplied.versao,
+      })
+    ).conteudo,
+    faithfulOriginal.rascunho,
+  );
+  assert.deepEqual(
+    faithfulApplied.render.recursos,
+    faithfulOriginal.render.recursos,
+  );
+  await evaluate('document.querySelector(".page-faithful").open=true;true');
+  await click("Preservar seção 1");
+  await writeFile(resolve(pasta, "ids-invalidos"), "1");
+  await click("Preparar rótulos com IA");
+  await click("Pedir rótulos à IA");
+  await wait(() =>
+    evaluate(
+      'document.querySelector(".page-faithful [role=alert]")?.textContent.includes("ordem obrigatória")',
+    ),
+  );
+  assert.deepEqual(
+    (await rpc("pagina_obter", { id: faithfulPid })).rascunho,
+    faithfulApplied.rascunho,
+  );
+  await evaluate(
+    'document.querySelector(".page-faithful [role=alert]").scrollIntoView({block:"center"});true',
+  );
+  assert.ok(
+    await evaluate(
+      '(()=>{const r=document.querySelector(".page-faithful [role=alert]").getBoundingClientRect();return r.top>=0&&r.bottom<=window.innerHeight})()',
+    ),
+  );
+  await unlink(resolve(pasta, "ids-invalidos"));
+  await click("Preparar rótulos com IA");
+  await click("Pedir rótulos à IA");
+  await wait(() =>
+    evaluate(
+      'document.querySelector(".page-faithful .study-sheet")?.textContent.includes("sugerido pela IA")',
+    ),
+  );
+  await click("Aplicar organização preservando o original");
+  await wait(
+    async () =>
+      (await rpc("pagina_obter", { id: faithfulPid })).rascunho.secoes[0]
+        .rotulo_origem === "ia",
+  );
+  await click("Salvar versão");
+  const faithfulFinal = await rpc("pagina_obter", { id: faithfulPid });
+  await evaluate(
+    'Array.from(document.querySelectorAll("summary")).find(x=>x.textContent==="Versões, exportação e biblioteca").parentElement.open=true;true',
+  );
+  await click("Gerar PDF e PNG");
+  await wait(async () =>
+    (await rpc("pagina_jobs", { id: faithfulPid })).some(
+      (j) => j.tipo === "exportacao" && j.estado === "concluida",
+    ),
+  );
+  await click("Salvar PDF no computador");
+  // Guarda as folhas afetadas para inspeção visual, antes de limpar a fixture.
+  await click("Salvar folhas PNG");
+  const { readdir, copyFile } = await import("node:fs/promises");
+  const exportJob = (await rpc("pagina_jobs", { id: faithfulPid })).find(
+    (j) =>
+      j.tipo === "exportacao" &&
+      j.versao === faithfulFinal.versao &&
+      j.estado === "concluida",
+  );
+  const pngDir = resolve(pasta, "pngs", "pagina-" + exportJob.id.slice(0, 8));
+  await wait(async () => Boolean(await readdir(pngDir).catch(() => null)));
+  for (const name of await readdir(pngDir))
+    if (name.endsWith(".png"))
+      await copyFile(
+        resolve(pngDir, name),
+        resolve(capturas, "fidelidade-" + name),
+      );
+  await copyFile(
+    resolve(pasta, "copia.pdf"),
+    resolve(capturas, "fidelidade-aceite.pdf"),
+  );
+  await fechar();
+  await iniciar();
+  assert.deepEqual(
+    (await rpc("pagina_obter", { id: faithfulPid })).rascunho,
+    faithfulFinal.rascunho,
+  );
+  await cmd("Emulation.setDeviceMetricsOverride", {
+    width: 1000,
+    height: 650,
+    deviceScaleFactor: 1,
+    mobile: false,
+  });
+  await click("Visualizar folhas");
+  await wait(() => evaluate('!!document.querySelector(".study-sheet img")'));
+  await click("Usar tema claro");
+  await captura("fidelidade-reinicio-claro.png");
+  assert.ok(await evaluate("document.documentElement.scrollWidth<=1000"));
   assert.deepEqual(errosPagina, []);
   console.log(
     "E2E páginas OK: editor, versão, prévia KaTeX, PDF/PNG reais, biblioteca sem seleção, proposta revisável, fechamento imediato, reinício, tema, janela mínima e prévia no chat.",

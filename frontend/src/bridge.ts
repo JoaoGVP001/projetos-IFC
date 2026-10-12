@@ -1,6 +1,8 @@
 declare global {
   interface Window {
     pywebview?: {
+      platform?: string;
+      _QWebChannel?: unknown;
       api: {
         request: (
           op: string,
@@ -13,7 +15,15 @@ declare global {
 }
 let fila: Promise<unknown> = Promise.resolve();
 async function conectar() {
-  if (window.pywebview?.api) return;
+  const ponte = window.pywebview;
+  // No Qt, _createApi precede o canal e o evento pywebviewready. A API já
+  // existe, mas chamá-la nessa janela aciona um retry interno de apenas 100ms.
+  // Confere o canal também para não perder um evento emitido antes deste módulo.
+  if (
+    typeof ponte?.api?.request === "function" &&
+    (ponte.platform !== "qtwebengine" || ponte._QWebChannel)
+  )
+    return;
   await new Promise<void>((resolve, reject) => {
     const timer = setTimeout(() => {
       window.removeEventListener("pywebviewready", pronto);

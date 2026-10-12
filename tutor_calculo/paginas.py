@@ -32,12 +32,16 @@ def validar(d,recursos=()):
     if not isinstance(ss,list) or not 1<=len(ss)<=MAX_SECOES:raise ValueError('Use de uma a quarenta seções.')
     ids=set();length=0
     for raw in ss:
-        if not isinstance(raw,dict) or set(raw)-{'id','titulo','texto','origem','recurso'}:raise ValueError('Seção inválida.')
+        if not isinstance(raw,dict) or set(raw)-{'id','titulo','texto','origem','recurso','rotulo','rotulo_origem'}:raise ValueError('Seção inválida.')
         sid=identificador(raw.get('id'))
         if not re.fullmatch(r'[a-zA-Z0-9_-]{1,64}',sid) or sid in ids:raise ValueError('IDs de seção inválidos ou repetidos.')
         ids.add(sid);s={'id':sid,'titulo':texto(raw.get('titulo',''),180),'texto':texto(raw.get('texto',''),15000),'origem':raw.get('origem','usuario')}
         s['texto']=raw.get('texto','') # Preserva recuos e quebras do Markdown após validar tipo/limite.
         if s['origem'] not in ('usuario','ia','ferramenta'):raise ValueError('Origem da seção inválida.')
+        if 'rotulo' in raw or 'rotulo_origem' in raw:
+            from .organizacao import ROTULOS
+            if raw.get('rotulo') not in ROTULOS or raw.get('rotulo_origem') not in ('local','ia'):raise ValueError('Rótulo de organização inválido.')
+            s.update(rotulo=raw['rotulo'],rotulo_origem=raw['rotulo_origem'])
         rid=raw.get('recurso')
         if rid:
             if rid not in recursos:raise ValueError('Resultado matemático não autorizado nesta página.')
@@ -131,6 +135,18 @@ class Paginas:
         doc=json.loads(row['documento'])
         for rid in doc['recursos']:doc['recursos'][rid]['imagem']=self.recurso(rid)['imagem']
         return doc
+    def aplicar_fiel(self,pid,content,revision,jid):
+        """Checkpoint do original + novo rascunho + job em uma transação."""
+        row=self.editavel(pid)
+        if row['revisao']!=revision:raise ValueError('A página mudou. Prepare outra organização.')
+        content=validar(content,self.ids_recursos(pid))
+        doc=self.render(row,imagem=False);doc['versao']=row['versao']+1
+        encoded=json.dumps(doc,ensure_ascii=False,sort_keys=True)
+        with self.db:
+            self.db.execute('INSERT INTO pagina_versoes(pagina_id,versao,documento,hash) VALUES(?,?,?,?)',(pid,doc['versao'],encoded,sha256(encoded.encode()).hexdigest()))
+            self.db.execute('UPDATE paginas_estudo SET versao=?,rascunho=?,revisao=revisao+1,atualizado=CURRENT_TIMESTAMP WHERE id=?',(doc['versao'],json.dumps(content,ensure_ascii=False),pid))
+            self.db.execute("UPDATE pagina_jobs SET estado='aplicada' WHERE id=?",(jid,))
+        return self.obter(pid)
     def listar(self,d):
         bid=d.get('caderno');Cadernos(self.h).obter(bid) if bid else None
         search=texto(d.get('busca',''),300).casefold();archive=d.get('arquivadas',False)

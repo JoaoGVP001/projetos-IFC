@@ -35,3 +35,25 @@ it("aguarda a ponte estar pronta em vez de simular dados", async () => {
   window.dispatchEvent(new Event("pywebviewready"));
   expect(await pedido).toEqual({ revisao: 1 });
 });
+it("Qt com API criada ainda espera o canal e o evento de prontidão", async () => {
+  const request = vi.fn(async () => ({ ok: true, data: "pronto" }));
+  window.pywebview = { platform: "qtwebengine", api: { request } };
+  const { api } = await import("./bridge");
+  const p = api("estado");
+  await new Promise((r) => setTimeout(r, 5));
+  expect(request).not.toHaveBeenCalled();
+  window.pywebview._QWebChannel = {};
+  window.dispatchEvent(new Event("pywebviewready"));
+  expect(await p).toBe("pronto");
+  expect(request).toHaveBeenCalledTimes(1);
+});
+it("Qt cujo evento já ocorreu conecta imediatamente pelo canal existente", async () => {
+  const request = vi.fn(async () => ({ ok: true, data: "pronto" }));
+  window.pywebview = {
+    platform: "qtwebengine",
+    _QWebChannel: {},
+    api: { request },
+  };
+  const { api } = await import("./bridge");
+  expect(await api("estado")).toBe("pronto");
+});

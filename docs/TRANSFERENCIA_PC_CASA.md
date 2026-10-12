@@ -5,6 +5,10 @@ os dados locais existentes, os limites conhecidos e o primeiro trabalho no
 Windows. Os documentos mais antigos registram o estado de suas respectivas
 entregas; uma indicação antiga de “próxima etapa” pode já ter sido atendida.
 
+Atualização posterior: [Fidelidade e qualidade](FIDELIDADE_QUALIDADE.md) acrescenta
+organização local de seções sem reescrita, rótulos por IDs com IA e checkpoint
+antes de aplicar. Continua SQLite v11; não requer instalação adicional.
+
 ## 1. Identidade e objetivo
 
 O projeto começou como **Tutor de Cálculo I**, com uma interface Tkinter para
@@ -40,6 +44,7 @@ Cálculo I. O destino no Windows pode ser uma pasta chamada `caderno-mat`.
 | L3: cálculos e gráficos | Entregue para o subconjunto documentado de Cálculo |
 | L3: Matemática Discreta | Entregue para conjuntos/relações finitos e lógica proposicional |
 | L4: páginas de estudo | Entregue, com versões, PDF e PNG por folha |
+| Organização fiel | Entregue, com seções integrais, rótulos por IDs e checkpoint recuperável |
 | Estabilidade local | Entregue após o diagnóstico da resposta cortada |
 | Windows/RTX 3060 | Instalação preparada no código; aceite real ainda pendente |
 | L5: visão e ilustrações amplas | Planejada; há somente ilustração conceitual local de indução |

@@ -8,6 +8,8 @@ export type PageContent = {
     texto: string;
     origem: "usuario" | "ia" | "ferramenta";
     recurso?: string;
+    rotulo?: string;
+    rotulo_origem?: "local" | "ia";
   }[];
 };
 export type PageResource = {

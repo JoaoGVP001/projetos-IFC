@@ -49,7 +49,11 @@ resultados locais. **Salvar versão** conserva uma versão independente do
 rascunho. Em **Versões, exportação e biblioteca**, gere PDF e um PNG por folha,
 escolha o destino e adicione a cópia textual revisada à biblioteca. Mensagens
 e questões também podem criar páginas, com origem e proteção de gabaritos.
-A IA propõe uma organização editável por seleção explícita. [Uso e limites](docs/PAGINAS_ESTUDO.md).
+**Organizar preservando o conteúdo** acrescenta rótulos às seções sem reescrever
+fórmulas, texto ou imagens. Funciona localmente, com prévia e versão recuperável
+do original; a assistência opcional da IA devolve apenas IDs/rótulos. O modo
+**Nova explicação por IA** continua separado e exige revisão do conteúdo novo.
+[Uso e limites](docs/PAGINAS_ESTUDO.md) · [Fidelidade e qualidade](docs/FIDELIDADE_QUALIDADE.md).
 
 ## Abrir no computador atual
 

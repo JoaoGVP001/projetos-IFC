@@ -7,7 +7,7 @@ PERFIS = {'rapido': ('Rápido no notebook', 640, 180, 180),
           'estudo': ('Estudo', 1024, 240, 260),
           'completo': ('Completo', 1536, 360, 380),
           'legado': ('Configuração anterior', 1024, 180, 240)}
-ESTRUTURADAS = {'Gerar atividade', 'Organizar página', 'Propor cálculo', 'Propor Discreta'}
+ESTRUTURADAS = {'Gerar atividade', 'Organizar página', 'Rotular blocos', 'Propor cálculo', 'Propor Discreta'}
 
 
 def politica(config, modo='Resolver'):

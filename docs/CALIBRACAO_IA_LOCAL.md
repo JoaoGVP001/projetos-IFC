@@ -1,5 +1,10 @@
 # Calibração da IA local por tarefa
 
+Atualização posterior: o avaliador inclui `rotulos`, `sem_tentativa` e
+`ocr_duvidoso`. A página fiel é montada localmente a partir dos IDs, sem
+redigitação matemática pelo modelo. Resultados das nove consultas novas e
+falhas restantes estão em [Fidelidade e qualidade](FIDELIDADE_QUALIDADE.md).
+
 Continuidade da estabilidade em 12/10/2026, usando a fachada `ia.py` e o orçamento
 real do aplicativo. O avaliador é uma ferramenta de desenvolvimento/diagnóstico;
 não usa o acervo pessoal nem altera a configuração do CadernoMat.

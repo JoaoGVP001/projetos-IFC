@@ -1,5 +1,11 @@
 # Páginas de estudo - L4
 
+**12/10 — organização fiel:** disponível em **Organizar preservando o conteúdo**.
+Rotula seções inteiras localmente ou por IDs com IA, conservando texto/ordem/
+fórmulas/imagens e salvando uma versão recuperável do original ao aplicar.
+O fluxo anterior agora se chama **Nova explicação por IA · revisar conteúdo**,
+pois gera texto novo. Uso, contratos e limites em [Fidelidade e qualidade](FIDELIDADE_QUALIDADE.md).
+
 Atualização de 12/10: novas propostas por IA preservam a presença literal das
 fórmulas marcadas nas seções selecionadas. Omissão/reescrita da notação é recusada,
 sem mudar rascunho/versões. Não é teste de equivalência nem de correção matemática;
@@ -83,7 +89,7 @@ de impressão é claro, independentemente do tema da interface.
 
 ## Organização com IA
 
-Expanda **Organizar com ajuda da IA**. Marque as seções e materiais que a IA
+Expanda **Nova explicação por IA · revisar conteúdo**. Marque as seções e materiais que a IA
 poderá consultar; nenhum material é selecionado automaticamente.
 **Preparar proposta de página** mostra provedor, instruções, dados e trechos
 incluídos, com origem/avisos de extração e orçamento local. **Pedir organização

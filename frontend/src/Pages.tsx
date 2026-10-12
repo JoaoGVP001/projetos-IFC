@@ -198,7 +198,9 @@ export function Pages({
     [chosen, setChosen] = useState<string[]>([]),
     [materials, setMaterials] = useState<string[]>([]),
     [proposal, setProposal] = useState<PageJob | null>(null),
-    [proposalContent, setProposalContent] = useState<PageContent | null>(null);
+    [proposalContent, setProposalContent] = useState<PageContent | null>(null),
+    [faithful, setFaithful] = useState<PageJob | null>(null),
+    [faithfulChosen, setFaithfulChosen] = useState<string[]>([]);
   const draft = useRef<Window["cadernoMatPageDraft"]>(null),
     dirty = useRef(false),
     chain = useRef<Promise<void>>(Promise.resolve()),
@@ -237,6 +239,8 @@ export function Pages({
     setMaterials([]);
     setProposal(null);
     setProposalContent(null);
+    setFaithful(null);
+    setFaithfulChosen([]);
     setPreview(false);
     await api("pagina_navegar", { id });
     setSources(await api("pagina_fontes", { id }));
@@ -322,6 +326,7 @@ export function Pages({
           .then((js) => {
             if (!live) return;
             setJobs(js);
+            setFaithful((j) => (j ? js.find((x) => x.id === j.id) || j : null));
             setProposal((j) => {
               if (!j) return null;
               const fresh = js.find((x) => x.id === j.id) || j;
@@ -726,12 +731,226 @@ export function Pages({
             </div>
           )}
           {!preview && (
-            <details className="page-ai">
-              <summary>Organizar com ajuda da IA</summary>
+            <details className="page-faithful page-ai">
+              <summary>Organizar preservando o conteúdo</summary>
               <p>
-                Escolha as seções e os materiais. A prévia mostra o provedor e
-                tudo que será enviado. O rascunho muda somente ao aplicar a
-                proposta.
+                Os rótulos aparecem junto às seções; títulos, texto, fórmulas,
+                imagens e ordem são conservados integralmente. Seções não
+                marcadas também permanecem. Não cria prova, resumo ou exercício,
+                nem verifica se o original está correto.
+              </p>
+              {content!.secoes.map((s, i) => (
+                <label key={s.id}>
+                  <input
+                    type="checkbox"
+                    aria-label={`Preservar seção ${i + 1}`}
+                    checked={faithfulChosen.includes(s.id)}
+                    disabled={busy || faithful?.estado === "executando"}
+                    onChange={(e) =>
+                      setFaithfulChosen((xs) =>
+                        e.target.checked
+                          ? [...xs, s.id]
+                          : xs.filter((id) => id !== s.id),
+                      )
+                    }
+                  />
+                  {s.titulo || "Seção sem título"} · {s.texto.length} caracteres
+                </label>
+              ))}
+              <div className="page-actions">
+                <Button
+                  disabled={
+                    !editable ||
+                    !faithfulChosen.length ||
+                    faithful?.estado === "executando"
+                  }
+                  onClick={() =>
+                    void safe(async () =>
+                      setFaithful(
+                        await api("pagina_organizar", {
+                          id: page.id,
+                          secoes: faithfulChosen,
+                          modo: "local",
+                        }),
+                      ),
+                    )
+                  }
+                >
+                  Preparar organização local
+                </Button>
+                <Button
+                  disabled={
+                    !editable ||
+                    !faithfulChosen.length ||
+                    faithfulChosen.length > 8 ||
+                    faithful?.estado === "executando"
+                  }
+                  onClick={() =>
+                    void safe(async () =>
+                      setFaithful(
+                        await api("pagina_organizar", {
+                          id: page.id,
+                          secoes: faithfulChosen,
+                          modo: "ia",
+                        }),
+                      ),
+                    )
+                  }
+                >
+                  Preparar rótulos com IA
+                </Button>
+              </div>
+              <p className="muted">
+                Local: sem modelo, chave ou internet. IA: até oito seções, envia
+                IDs, títulos e somente os primeiros 240 caracteres de cada
+                seção, com abreviação indicada. Nenhum arquivo, imagem, material
+                ou histórico adicional é enviado.
+              </p>
+              {jobs
+                .filter(
+                  (j) =>
+                    ["organizacao", "rotulos"].includes(j.tipo) &&
+                    [
+                      "previa",
+                      "concluida",
+                      "erro",
+                      "interrompida",
+                      "cancelada",
+                    ].includes(j.estado) &&
+                    j.id !== faithful?.id,
+                )
+                .slice(0, 3)
+                .map((j) => (
+                  <Button key={j.id} onClick={() => setFaithful(j)}>
+                    Reabrir prévia · {j.tipo === "organizacao" ? "local" : "IA"}{" "}
+                    · {j.estado} · {j.id.slice(0, 8)}
+                  </Button>
+                ))}
+              {faithful?.previa && (
+                <>
+                  <strong>{String(faithful.previa.destino)}</strong>
+                  <p>{(faithful.previa.avisos || []).join(" ")}</p>
+                  <details>
+                    <summary>Conteúdo preservado e hashes</summary>
+                    <pre>
+                      {JSON.stringify(
+                        {
+                          hash_original: faithful.previa.hash_original,
+                          blocos: faithful.previa.blocos,
+                        },
+                        null,
+                        2,
+                      )}
+                    </pre>
+                  </details>
+                  {faithful.previa.preparada && (
+                    <details>
+                      <summary>
+                        Dados e instruções que serão enviados para rotular
+                      </summary>
+                      <pre>
+                        {faithful.previa.preparada.instrucoes +
+                          "\n\n" +
+                          faithful.previa.preparada.pergunta}
+                      </pre>
+                      {faithful.previa.preparada.orcamento && (
+                        <pre>
+                          {JSON.stringify(
+                            faithful.previa.preparada.orcamento,
+                            null,
+                            2,
+                          )}
+                        </pre>
+                      )}
+                    </details>
+                  )}
+                </>
+              )}
+              {faithful?.estado === "previa" && (
+                <Button
+                  disabled={!editable}
+                  onClick={() =>
+                    void safe(async () =>
+                      setFaithful(
+                        await api("pagina_consultar", { id: faithful.id }),
+                      ),
+                    )
+                  }
+                >
+                  Pedir rótulos à IA
+                </Button>
+              )}
+              {faithful?.estado === "executando" && (
+                <>
+                  <Loading>Consultando o provedor escolhido…</Loading>
+                  <Button
+                    onClick={() =>
+                      void api("pagina_cancelar", { id: faithful.id }).catch(
+                        (e) => notify(e.message),
+                      )
+                    }
+                  >
+                    Cancelar rótulos
+                  </Button>
+                </>
+              )}
+              {faithful?.erro && (
+                <p role="alert">
+                  {faithful.erro} O rascunho foi preservado. Você pode preparar
+                  a organização local ou editar manualmente.
+                </p>
+              )}
+              {faithful?.estado === "concluida" && faithful.resultado && (
+                <>
+                  <h2>Prévia fiel · conteúdo original, rótulos adicionais</h2>
+                  <p>
+                    Ao aplicar, uma versão do original será salva para
+                    restauração. Nada é aplicado automaticamente.
+                  </p>
+                  <details>
+                    <summary>
+                      Texto preservado integral · sem renderização
+                    </summary>
+                    <pre>{JSON.stringify(faithful.resultado, null, 2)}</pre>
+                  </details>
+                  <div className="paper-viewport">
+                    <StudyDocument
+                      data={{
+                        ...page.render,
+                        conteudo: faithful.resultado,
+                        versao: "prévia fiel",
+                      }}
+                    />
+                  </div>
+                  <Button
+                    disabled={!editable}
+                    onClick={() =>
+                      void safe(async () => {
+                        const p = await api<Page>("pagina_aceitar", {
+                          id: page.id,
+                          trabalho: faithful.id,
+                        });
+                        await load(p.id);
+                        notify(
+                          `Organização aplicada. Original recuperável na versão ${p.versao}.`,
+                        );
+                      })
+                    }
+                  >
+                    Aplicar organização preservando o original
+                  </Button>
+                </>
+              )}
+            </details>
+          )}
+          {!preview && (
+            <details className="page-ai">
+              <summary>Nova explicação por IA · revisar conteúdo</summary>
+              <p>
+                Este modo reescreve conteúdo e pode introduzir erros. Não é
+                organização fiel. Escolha as seções e os materiais. A prévia
+                mostra o provedor e tudo que será enviado. O rascunho muda
+                somente ao aplicar a proposta.
               </p>
               {content!.secoes.map((s) => (
                 <label key={s.id}>

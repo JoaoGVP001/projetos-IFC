@@ -623,6 +623,22 @@ Validacao: 39 testes automatizados e fluxo de janela com cancelamento e
 confirmacao da exclusao. Streaming, cancelamento da consulta e repeticao de
 envio ainda permanecem pendentes nesta etapa.
 
+## Entrega — fidelidade e qualidade (12/10/2026)
+
+Prioridade: organização local de seções inteiras, sem reescrita ou corte de
+Markdown; prévia e checkpoint recuperável antes de aplicar. Em seguida, IA
+opcional devolve apenas IDs e rótulos de catálogo, mantendo ordem, conteúdo,
+origens e recursos congelados. A modalidade de nova explicação fica separada.
+Snapshots/hashes usam os JSONs existentes no SQLite v11, sem migração de DDL.
+Contratos, alterações concorrentes, rollback/checkpoint e restauração validados;
+React/Qt, PDF/PNG e nove respostas reais offline avaliados. Rubricas de
+matemática e avaliação RAG ficam separadas da fidelidade; diagnóstico de GPU
+somente leitura. 257 testes Python (247 aprovados/10 opcionais ignorados),
+39 React, build e aceites Qt de páginas/estabilidade. Corrigida também a corrida
+de inicialização da ponte Qt, com testes de prontidão. Dados pessoais preservados
+por hash. Falhas restantes de indução/prosa e limites registrados em
+docs/FIDELIDADE_QUALIDADE.md; não há selo universal nem aceite Windows.
+
 ## Refinamento — acoes por conversa (10/10/2026)
 
 Implementados menu no hover por chat, fixar/desafixar com persistencia e titulos

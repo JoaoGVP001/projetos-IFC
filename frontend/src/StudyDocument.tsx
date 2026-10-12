@@ -285,6 +285,12 @@ export function StudyDocument({
         </section>
         {data.conteudo.secoes.map((s) => (
           <section key={s.id}>
+            {s.rotulo && (
+              <p className="page-origin">
+                {s.rotulo} · rótulo{" "}
+                {s.rotulo_origem === "ia" ? "sugerido pela IA" : "local"}
+              </p>
+            )}
             {s.titulo && <h2>{s.titulo}</h2>}
             <p className="page-origin">{origins[s.origem]}</p>
             {s.recurso && data.recursos[s.recurso] && (

@@ -133,3 +133,82 @@ it("mostra editor de seções e exige versão salva para exportar", async () => 
   ).toBe("Resumo");
   await window.cadernoMatFlushPage?.();
 });
+it("organização local é uma prévia explícita sem consultar IA e aplica apenas o trabalho", async () => {
+  const get = fixture();
+  const normal = vi.mocked(api).getMockImplementation()!;
+  vi.mocked(api).mockImplementation(async (op, d: any) => {
+    if (op === "pagina_organizar")
+      return {
+        id: "j",
+        tipo: "organizacao",
+        estado: "concluida",
+        erro: "",
+        previa: { destino: "Local", avisos: [] },
+        resultado: structuredClone(content),
+      } as never;
+    if (op === "pagina_aceitar") return get() as never;
+    return normal(op, d);
+  });
+  render(<Pages state={state} notify={vi.fn()} seed="p" />);
+  await waitFor(() => screen.getByLabelText("Preservar seção 1"));
+  fireEvent.click(screen.getByLabelText("Preservar seção 1"));
+  fireEvent.click(screen.getByText("Preparar organização local"));
+  await waitFor(() =>
+    screen.getByText("Aplicar organização preservando o original"),
+  );
+  expect(
+    screen.getByText("Texto preservado integral · sem renderização"),
+  ).toBeTruthy();
+  expect(api).toHaveBeenCalledWith("pagina_organizar", {
+    id: "p",
+    secoes: ["s1"],
+    modo: "local",
+  });
+  expect(
+    vi
+      .mocked(api)
+      .mock.calls.some(
+        ([op]) => op === "pagina_consultar" || op === "pagina_aceitar",
+      ),
+  ).toBe(false);
+  fireEvent.click(
+    screen.getByText("Aplicar organização preservando o original"),
+  );
+  await waitFor(() =>
+    expect(api).toHaveBeenCalledWith("pagina_aceitar", {
+      id: "p",
+      trabalho: "j",
+    }),
+  );
+});
+it("recusa por IDs é acessível e mantém disponível o fluxo local", async () => {
+  fixture();
+  const normal = vi.mocked(api).getMockImplementation()!;
+  vi.mocked(api).mockImplementation(async (op, d) =>
+    op === "pagina_organizar"
+      ? ({
+          id: "j",
+          tipo: "rotulos",
+          estado: "erro",
+          erro: "IDs fora da ordem obrigatória",
+          previa: { destino: "Ollama", avisos: [] },
+        } as never)
+      : normal(op, d),
+  );
+  render(<Pages state={state} notify={vi.fn()} seed="p" />);
+  await waitFor(() => screen.getByLabelText("Preservar seção 1"));
+  fireEvent.click(screen.getByLabelText("Preservar seção 1"));
+  fireEvent.click(screen.getByText("Preparar rótulos com IA"));
+  await waitFor(() =>
+    expect(screen.getByRole("alert").textContent).toContain(
+      "ordem obrigatória",
+    ),
+  );
+  expect(
+    screen.queryByText("Aplicar organização preservando o original"),
+  ).toBeNull();
+  expect(
+    (screen.getByText("Preparar organização local") as HTMLButtonElement)
+      .disabled,
+  ).toBe(false);
+});

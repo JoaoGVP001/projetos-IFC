@@ -156,10 +156,24 @@ class AvaliacaoLocal(unittest.TestCase):
         self.assertIn('sem aspas decorativas', structured['instrucoes'])
         self.assertNotIn('palavras', structured['instrucoes'])
         self.assertEqual(structured['orcamento']['reserva_saida'],1024)
+        from tutor_calculo.avaliacao_local import BLOCOS_FICTICIOS
+        from tutor_calculo.organizacao import prompt_ids, plano_local
+        labels=preparar_consulta(prompt_ids(BLOCOS_FICTICIOS),modo='Rotular blocos',provedor='ollama',local={'perfil':'rapido','contexto':4096})
+        self.assertEqual(labels['orcamento']['reserva_saida'],1024)
+        self.assertNotIn('palavras',labels['instrucoes'])
+        valid=avaliar('rotulos',json.dumps(plano_local(BLOCOS_FICTICIOS)))
+        self.assertEqual(valid['contrato'],'valido');self.assertEqual(valid['revisao_matematica'],'pendente')
+        self.assertEqual(avaliar('rotulos','{"blocos":[]}')['contrato'],'invalido')
 
     def test_saudacao_nao_recebe_tarefa_de_aula_e_nao_engole_pedido(self):
         from tutor_calculo.ia import eh_saudacao, preparar_consulta
         self.assertTrue(eh_saudacao('Olá! Quero estudar matemática.'))
+        induction=preparar_consulta('Olá, explique indução.',provedor='ollama',local={'perfil':'rapido','contexto':4096})
+        self.assertIn('k arbitrário',induction['instrucoes']);self.assertNotIn('Extensão contínua',induction['instrucoes'])
+        mixed=preparar_consulta('Explique indução e o limite de f(x).',provedor='ollama',local={'perfil':'rapido','contexto':4096})
+        self.assertIn('k arbitrário',mixed['instrucoes']);self.assertIn('Extensão contínua',mixed['instrucoes'])
+        limits=preparar_consulta('Explique indução e suas limitações.',provedor='ollama',local={'perfil':'rapido','contexto':4096})
+        self.assertNotIn('Extensão contínua',limits['instrucoes'])
         for q in ('Olá, explique indução.', 'Bom dia, derive x^2.', 'Olá quero estudar matemática discreta'):
             self.assertFalse(eh_saudacao(q))
         p = preparar_consulta('Olá! Quero estudar matemática.', modo='Explicar', provedor='ollama', local={'perfil':'rapido','contexto':2048}, caderno={'nome':'Discreta','preferencia':'completa'})
