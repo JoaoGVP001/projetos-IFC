@@ -28,6 +28,18 @@ localmente. Diagramas pequenos podem ser exportados em PNG. A IA propõe dados
 revisáveis e explica resultados; atividades conservam versão/questão/tentativa,
 com comparação separada de notas. [Uso, exemplos e limites](docs/DISCRETA.md).
 
+## IA local: respostas completas e diagnóstico
+
+Escolha **Configurações de IA → Ollama → Rápido no notebook** para uma primeira
+explicação curta terminada. Estudo/Completo oferecem mais saída; configurações
+antigas permanecem preservadas. Interrupções mantêm texto e métricas com aviso
+separado. **Repetir curto** e **Próxima parte** exibem prévia e exigem envio explícito.
+
+O botão **Ilustração de indução** produz um diagrama local revisável, reutilizável
+nas páginas de estudo e exportações; não certifica a demonstração. O diagnóstico
+mostra CPU/GPU/contexto observado e memória, sem inventar dados indisponíveis.
+[Padrões, medições, limites e testes](docs/ESTABILIDADE_IA_LOCAL.md).
+
 ## Páginas de estudo e PDF/PNG (L4)
 
 Abra **Páginas de estudo → Nova página**, edite seções Markdown/LaTeX e insira
@@ -247,9 +259,10 @@ pnpm e2e:semantica
 pnpm e2e:matematica
 pnpm e2e:discreta
 pnpm e2e:paginas
+pnpm e2e:estabilidade
 ```
 
-A entrega foi validada com **207 testes Python aprovados** (10 opcionais Tk ignorados), **33 testes de interface**, build e seis
+A entrega foi validada com **218 testes Python aprovados** (10 opcionais Tk ignorados), **35 testes de interface**, build e oito
 fluxos na janela Qt, incluindo reinício, dois temas, tamanho mínimo e teclado.
 Exportação real: catorze folhas inspecionadas, incluindo gráficos e tabela de
 64 linhas. Ollama real foi validado com rede externa bloqueada; Gemini/OpenAI
@@ -258,6 +271,7 @@ Os testes da interface anterior são opcionais sem Tkinter/display.
 
 [Arquitetura e contrato](docs/INTERFACE.md) · [Sistema de design](docs/DESIGN.md) ·
 [Continuidade](GUIA_CONTINUIDADE.md) · [Planejamento](PLANEJAMENTO.md) ·
+[Resumo completo para o PC de casa](docs/TRANSFERENCIA_PC_CASA.md) ·
 [Plano de IA local, gráficos e páginas de caderno](docs/IA_LOCAL.md) ·
 [Piloto local executado](docs/PILOTO_LOCAL.md).
 

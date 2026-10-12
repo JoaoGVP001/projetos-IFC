@@ -18,7 +18,33 @@ export type Chat = {
   fixada: number;
   arquivada: number;
 };
+export type Metrics = {
+  modelo?: string;
+  perfil?: string;
+  segundos?: number;
+  tokens_saida?: number | null;
+  num_predict?: number;
+  tokens_s?: number | null;
+  primeiro_token_s?: number | null;
+  done_reason?: string | null;
+  frame_final?: boolean;
+  carga_s?: number | null;
+  entrada_s?: number | null;
+  geracao_s?: number | null;
+  memoria?: {
+    rss_aplicativo_max?: number | null;
+    rss_filhos_aplicativo_max?: number | null;
+    rss_ollama_max?: number | null;
+    swap_usada_max?: number | null;
+    ram_disponivel_min?: number | null;
+  };
+  dispositivo?: { processador: string };
+};
 export type Mensagem = {
+  metricas?: Metrics;
+  interrupcao?: { mensagem: string; motivo: string } | null;
+  origem_consulta?: string | null;
+  origem_mensagem?: number | null;
   id: number;
   papel: "user" | "assistant";
   texto: string;
@@ -60,6 +86,7 @@ export type Config = {
     modelo: string;
     contexto: number;
     timeout: number;
+    perfil?: string;
   } | null;
   provedores: Record<
     string,
@@ -70,6 +97,7 @@ export type Config = {
       url?: string;
       contexto?: number;
       timeout?: number;
+      perfil?: string;
     }
   >;
 };
@@ -85,8 +113,23 @@ export type DiagnosticoLocal = {
   carregado: boolean;
   modelo_disponivel: boolean;
   aviso: string;
+  dispositivo?: {
+    estado: string;
+    processador: string;
+    size: number | null;
+    size_vram: number | null;
+    contexto: number | null;
+  };
+  memoria?: {
+    ram_total: number | null;
+    ram_disponivel: number | null;
+    swap_usada: number | null;
+  };
 };
 export type Orcamento = {
+  perfil_nome?: string;
+  perfil?: string;
+  timeout?: number;
   contexto: number;
   entrada_estimada: number;
   reserva_saida: number;

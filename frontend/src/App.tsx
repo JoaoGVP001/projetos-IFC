@@ -1,6 +1,13 @@
 import { BuscaSemantica } from "./BuscaSemantica";
 import { MathTools, MathCard } from "./MathTools";
 import { DiscreteTools, DiscreteCard } from "./DiscreteTools";
+import {
+  ResponseStatus,
+  Adjustment,
+  InductionForm,
+  InductionCard,
+  type AjustePrevia,
+} from "./LocalStudy";
 import { Pages } from "./Pages";
 import { PageChatPreview } from "./StudyDocument";
 import {
@@ -92,6 +99,8 @@ type Modal =
       operacao: string;
       dados: Record<string, unknown>;
     }
+  | { tipo: "ajuste"; dados: AjustePrevia }
+  | { tipo: "inducao" }
   | { tipo: "link" }
   | { tipo: "matematica"; proposta?: string }
   | { tipo: "discreta"; proposta?: string }
@@ -944,7 +953,8 @@ export default function App() {
                   {state.mensagens.map((m) => (
                     <article
                       key={m.id}
-                      className={`message message-${m.papel} ${m.estado !== "ok" ? "message-error" : ""}`}
+                      id={`mensagem-${m.id}`}
+                      className={`message message-${m.papel}`}
                     >
                       <div className="message-label">
                         <span className={`avatar ${m.papel}`}>
@@ -1006,7 +1016,13 @@ export default function App() {
                               j.mensagem_id === m.id,
                           )
                           .map((j) =>
-                            j.versao === "discreta-v1" ? (
+                            j.versao === "inducao-visual-v1" ? (
+                              <InductionCard
+                                key={j.id}
+                                id={j.id}
+                                notify={notify}
+                              />
+                            ) : j.versao === "discreta-v1" ? (
                               <DiscreteCard
                                 key={j.id}
                                 id={j.id}
@@ -1023,6 +1039,32 @@ export default function App() {
                             ),
                           )}
                       </div>
+                      <ResponseStatus m={m} />
+                      {m.consulta_id && (
+                        <div className="response-actions">
+                          {["curta", "continuar"].map((acao) => (
+                            <Button
+                              key={acao}
+                              variant="ghost"
+                              disabled={occupied || !editable}
+                              onClick={() =>
+                                void api<AjustePrevia>("ia_ajuste_previa", {
+                                  id: m.consulta_id,
+                                  acao,
+                                })
+                                  .then((dados) =>
+                                    setModal({ tipo: "ajuste", dados }),
+                                  )
+                                  .catch((e) => notify(e.message))
+                              }
+                            >
+                              {acao === "curta"
+                                ? "Repetir curto"
+                                : "Próxima parte"}
+                            </Button>
+                          ))}
+                        </div>
+                      )}
                       <Button
                         variant="ghost"
                         disabled={!!currentBook?.arquivado || occupied}
@@ -1214,6 +1256,14 @@ export default function App() {
                   <div className="composer-left">
                     <Button
                       variant="ghost"
+                      icon={ImageIcon}
+                      aria-label="Ilustração de indução"
+                      title="Ilustração local de indução"
+                      disabled={!state.conversa || !editable || occupied}
+                      onClick={() => setModal({ tipo: "inducao" })}
+                    />
+                    <Button
+                      variant="ghost"
                       icon={Sigma}
                       aria-label="Matemática Discreta"
                       title="Ferramentas de Matemática Discreta"
@@ -1276,7 +1326,7 @@ export default function App() {
                     disabled={!editable || occupied || !draft.trim()}
                     onClick={send}
                   >
-                    {state.ocupado ? "Consultando" : "Enviar"}
+                    {state.ocupado ? "Processando" : "Enviar"}
                   </Button>
                 </div>
               </div>
@@ -1369,31 +1419,35 @@ export default function App() {
       {modal && (
         <Dialog
           title={
-            modal.tipo === "caderno"
-              ? modal.item
-                ? "Editar caderno"
-                : "Criar caderno"
-              : modal.tipo === "chat"
-                ? modal.acao === "mover"
-                  ? "Mover conversa"
-                  : "Renomear conversa"
-                : modal.tipo === "confirmar"
-                  ? modal.titulo
-                  : modal.tipo === "link"
-                    ? "Adicionar link de estudo"
-                    : modal.tipo === "config"
-                      ? "Seu instrutor de IA"
-                      : modal.tipo === "material"
-                        ? "Organizar material"
-                        : modal.tipo === "detalhe"
-                          ? "Visualizar material"
-                          : modal.tipo === "pagina"
-                            ? "Página de estudo"
-                            : modal.tipo === "discreta"
-                              ? "Ferramentas de Matemática Discreta"
-                              : modal.tipo === "matematica"
-                                ? "Cálculos e gráficos locais"
-                                : "Prévia do envio"
+            modal.tipo === "ajuste"
+              ? "Prévia da próxima parte"
+              : modal.tipo === "inducao"
+                ? "Ilustração de indução"
+                : modal.tipo === "caderno"
+                  ? modal.item
+                    ? "Editar caderno"
+                    : "Criar caderno"
+                  : modal.tipo === "chat"
+                    ? modal.acao === "mover"
+                      ? "Mover conversa"
+                      : "Renomear conversa"
+                    : modal.tipo === "confirmar"
+                      ? modal.titulo
+                      : modal.tipo === "link"
+                        ? "Adicionar link de estudo"
+                        : modal.tipo === "config"
+                          ? "Seu instrutor de IA"
+                          : modal.tipo === "material"
+                            ? "Organizar material"
+                            : modal.tipo === "detalhe"
+                              ? "Visualizar material"
+                              : modal.tipo === "pagina"
+                                ? "Página de estudo"
+                                : modal.tipo === "discreta"
+                                  ? "Ferramentas de Matemática Discreta"
+                                  : modal.tipo === "matematica"
+                                    ? "Cálculos e gráficos locais"
+                                    : "Prévia do envio"
           }
           subtitle={
             modal.tipo === "config"
@@ -1409,6 +1463,26 @@ export default function App() {
           ].includes(modal.tipo)}
           onClose={() => setModal(null)}
         >
+          {modal.tipo === "ajuste" && (
+            <Adjustment
+              data={modal.dados}
+              onSend={() =>
+                run("ia_ajuste_enviar", { id: modal.dados.id }).then((ok) => {
+                  if (ok) setModal(null);
+                })
+              }
+            />
+          )}
+          {modal.tipo === "inducao" && state.conversa && (
+            <InductionForm
+              chat={state.conversa.id}
+              notify={notify}
+              done={() => {
+                setModal(null);
+                void refresh();
+              }}
+            />
+          )}
           {modal.tipo === "pagina" && (
             <PageChatPreview
               id={modal.id}
@@ -2272,6 +2346,10 @@ function SendPreview({
       {p.orcamento && (
         <section className="local-budget">
           <h3>Orçamento do modelo local</h3>
+          <p>
+            Perfil: {p.orcamento.perfil_nome || "anterior"} · tempo limite:{" "}
+            {p.orcamento.timeout ?? "não informado"} s.
+          </p>
           <p>
             Entrada estimada: {p.orcamento.entrada_estimada} · saída reservada:{" "}
             {p.orcamento.reserva_saida} · margem: {p.orcamento.margem} ·

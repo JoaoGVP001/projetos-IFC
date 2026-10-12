@@ -43,6 +43,11 @@ if [[ "${1:-}" == '--discreta' ]]; then
     .venv/bin/python tests/aceite_discreta_local.py
     exit
 fi
+if [[ "${1:-}" == '--estabilidade' ]]; then
+    cd -- "$integracao_repo"
+    .venv/bin/python tests/aceite_estabilidade_local.py "${@:2}"
+    exit
+fi
 if [[ "${1:-}" == '--paginas' ]]; then
     cd -- "$integracao_repo"
     .venv/bin/python tests/aceite_paginas_local.py

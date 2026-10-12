@@ -9,7 +9,7 @@ export const nomeProvedor = (p: string) =>
     ollama: "IA local · Ollama",
     gemini: "Gemini",
     openai: "OpenAI",
-    matematica: "Cálculo local",
+    matematica: "Ferramenta local",
   })[p] || p;
 
 export function ConfigForm({
@@ -34,6 +34,7 @@ export function ConfigForm({
   const [scope, setScope] = useState(chat ? "chat" : "padrao");
   const [url, setUrl] = useState(initial?.url || "http://127.0.0.1:11434");
   const [context, setContext] = useState(initial?.contexto || 4096);
+  const [profile, setProfile] = useState(initial?.perfil || "legado");
   const [timeout, setTimeoutLocal] = useState(initial?.timeout || 180);
   const [diagnostic, setDiagnostic] = useState<DiagnosticoLocal | null>(null);
   const [testing, setTesting] = useState(false);
@@ -51,7 +52,13 @@ export function ConfigForm({
     setTesting(true);
     setError("");
     try {
-      const args = { modelo: model, url, contexto: context, timeout };
+      const args = {
+        modelo: model,
+        url,
+        contexto: context,
+        timeout,
+        perfil: profile,
+      };
       if (iniciar) await api("ollama_iniciar", args);
       setDiagnostic(await api<DiagnosticoLocal>("ollama_diagnostico", args));
     } catch (e) {
@@ -74,6 +81,7 @@ export function ConfigForm({
                   url,
                   contexto: context,
                   timeout,
+                  perfil: profile,
                 }
               : {
                   provedor: provider,
@@ -176,6 +184,33 @@ export function ConfigForm({
                     </option>
                   </select>
                 </Field>
+                <Field label="Perfil de resposta">
+                  <select
+                    aria-label="Perfil de resposta"
+                    value={profile}
+                    onChange={(e) => {
+                      setProfile(e.target.value);
+                      if (e.target.value === "completo") setContext(4096);
+                      setTimeoutLocal(
+                        (
+                          {
+                            rapido: 180,
+                            estudo: 240,
+                            completo: 360,
+                            legado: 180,
+                          } as Record<string, number>
+                        )[e.target.value],
+                      );
+                    }}
+                  >
+                    <option value="legado">Configuração anterior</option>
+                    <option value="rapido">Rápido no notebook</option>
+                    <option value="estudo">Estudo</option>
+                    <option value="completo">
+                      Completo · pode demorar em CPU
+                    </option>
+                  </select>
+                </Field>
                 <Field label="Tempo limite (segundos)">
                   <input
                     type="number"
@@ -220,6 +255,28 @@ export function ConfigForm({
                     {diagnostic.modelo_disponivel
                       ? `Modelo de texto disponível${diagnostic.carregado ? " e carregado" : " · será carregado na primeira consulta"}.`
                       : diagnostic.aviso}
+                  </p>
+                  <p>
+                    Execução atual:{" "}
+                    {diagnostic.dispositivo?.estado === "nao_carregado"
+                      ? "nenhum modelo carregado agora"
+                      : diagnostic.dispositivo?.processador || "desconhecida"}
+                    . Contexto observado:{" "}
+                    {diagnostic.dispositivo?.contexto ?? "não informado"}.
+                  </p>
+                  <p>
+                    RAM disponível:{" "}
+                    {diagnostic.memoria?.ram_disponivel == null
+                      ? "não medida"
+                      : (diagnostic.memoria.ram_disponivel / 2 ** 30).toFixed(
+                          1,
+                        ) + " GiB"}{" "}
+                    · swap usada:{" "}
+                    {diagnostic.memoria?.swap_usada == null
+                      ? "não medida"
+                      : (diagnostic.memoria.swap_usada / 2 ** 30).toFixed(1) +
+                        " GiB"}
+                    .
                   </p>
                   <Field label="Modelos instalados">
                     <select

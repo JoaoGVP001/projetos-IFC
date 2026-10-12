@@ -1,6 +1,19 @@
 # CadernoMat — planejamento de produto e desenvolvimento
 
-Atualizado em 11/10/2026.
+Atualizado em 12/10/2026.
+
+## Entregue — estabilidade da IA local
+
+Métricas preservadas nas interrupções, avisos separados do Markdown, perfis de
+saída por tarefa, continuação/repetição curta explícita com prévia e fontes
+autorizadas. Diagnóstico CPU/GPU/memória, benchmark em CPU e ilustração local
+limitada de indução reutilizando artefatos e páginas L4. Sem alterações
+administrativas: o módulo NVIDIA não está disponível para o kernel ativo.
+Resposta de indução completada no piloto em CPU (~99 s / 488 tokens), com
+rede externa bloqueada, sem promessa de imagem inexistente. Mantém v11,
+configuração antiga e versões L4. Limites e medições detalhados em
+[Estabilidade da IA local](docs/ESTABILIDADE_IA_LOCAL.md). Comparação com modelo
+menor e correção administrativa do driver seguem separadas.
 
 ## Entregue — L4: páginas de estudo e exportação
 

@@ -58,6 +58,8 @@ class Aplicacao:
         self._calculos=Calculos(self)
         from .discreta_servico import Discreta
         self._discreta=Discreta(self)
+        from .inducao_servico import Inducao
+        self._inducao=Inducao(self)
         from .paginas_servico import PaginasServico
         self._paginas=PaginasServico(self)
         with self._banco() as (h,c,b):
@@ -80,7 +82,7 @@ class Aplicacao:
         finally:h.fechar()
 
     def _ocupado(self):
-        return any(t['tipo'] in ('ia','indice','matematica') and t['estado']=='executando' for t in self._tarefas.values())
+        return any(t['tipo'] in ('ia','indice','matematica','exportacao') and t['estado']=='executando' for t in self._tarefas.values())
 
     def _livre(self):
         if self._ocupado():raise ValueError('Aguarde a consulta antes de alterar a organizacao.')
@@ -141,7 +143,7 @@ class Aplicacao:
             'material_detalhe':self._material_detalhe,'previa':self._previa,'enviar':self._enviar,
             'configurar':self._configurar,'preferencias':self._salvar_preferencias,
             'ollama_diagnostico':self._ollama_diagnostico,'ollama_iniciar':self._ollama_iniciar,'ia_cancelar':self._ia_cancelar,
-            'ia_repetir':self._ia_repetir,'semantica_status':self._semantica_status,
+            'ia_ajuste_previa':self._ajuste_previa,'ia_ajuste_enviar':self._ajuste_enviar,'ia_repetir':self._ia_repetir,'semantica_status':self._semantica_status,
             'semantica_indexar':self._semantica_indexar,'semantica_cancelar':self._semantica_cancelar,
             'semantica_ativar':self._semantica_ativar}
         operacoes.update({op:(lambda d, op=op:self._estudo.executar(op,d)) for op in OPERACOES})
@@ -151,6 +153,7 @@ class Aplicacao:
         operacoes.update({op:(lambda d,op=op:self._discreta.executar(op,d)) for op in DISCRETA_OPS})
         from .paginas_servico import OPERACOES as PAGE_OPS
         operacoes.update({op:(lambda d,op=op:self._paginas.executar(op,d)) for op in PAGE_OPS})
+        operacoes.update({op:(lambda d,op=op:self._inducao.executar(op,d)) for op in ('inducao_executar','inducao_obter','inducao_cancelar')})
         if not isinstance(operacao,str) or operacao not in operacoes:raise ValueError('Operacao nao permitida.')
         if not isinstance(dados,dict) or len(dados)>15:raise ValueError('Parametros invalidos.')
         with self._lock:
@@ -272,12 +275,14 @@ class Aplicacao:
         with self._banco() as (h,c,b):
             cid=c.navegacao()['conversa_id']
             modo=d.get('modo','texto')
+            serializada=modo=='hibrida' and self._ocupado()
+            if serializada:modo='texto'
             if modo not in ('texto','hibrida'):raise ValueError('Modo de busca inválido.')
             busca=texto(d.get('busca',''),300)
             registros=[] if booleano(d.get('so_chat',False)) and not cid else b.listar(
                 busca if modo=='texto' else '',texto(d.get('tipo',''),20),texto(d.get('materia',''),100),
                 dias,cid if d.get('so_chat') else None,TODOS_CADERNOS if caderno=='todos' else caderno)
-            report={}
+            report={'metodo':'busca textual','aviso':'Busca semântica aguardará a operação local; usando busca textual para poupar memória.'} if serializada else {}
             ocorrencias={}
             if modo=='hibrida' and busca.strip():
                 from .semantica import IndiceSemantico
@@ -403,6 +408,7 @@ class Aplicacao:
         return recuperar_chat(b,cid,pergunta,detalhes)
 
     def _previa(self,d):
+        self._livre()
         cid=ident(d.get('id'),True);pergunta=texto(d.get('texto',''),30000)
         with self._banco() as (h,c,b):
             chat=h.obter(cid) if cid else None
@@ -486,10 +492,11 @@ class Aplicacao:
         except RespostaIncompleta as exc:estado='incompleta';error=str(exc)
         except (ValueError,RuntimeError,ImportError) as exc:estado='erro';error=str(exc)
         except Exception:estado='erro';error='Falha inesperada na consulta. Revise o enunciado e tente novamente.'
-        if estado!='ok':resposta=(partial+'\n\n' if partial else '')+error
+        if estado!='ok':resposta=partial
+        if metrics.get('motivo') is None:metrics['motivo']='concluida' if estado=='ok' else estado
         with self._lock:
             if token.evento.is_set() and estado=='ok':
-                estado='cancelada';error='Consulta cancelada antes de concluir.';resposta=(partial+'\n\n' if partial else '')+error
+                estado='cancelada';error='Consulta cancelada antes de concluir.';resposta=partial
             with self._banco() as (h,c,b):
                 with h.db:
                     rid=h.db.execute("INSERT INTO mensagens(conversa_id,papel,texto,estado,provedor,modelo) VALUES(?,'assistant',?,?,?,?)",(cid,resposta,estado,selection['provedor'] if not snapshot.get('calculo_local') else 'local/IA',selection['modelo'] if not snapshot.get('calculo_local') else 'SymPy')).lastrowid
@@ -509,6 +516,14 @@ class Aplicacao:
                     h.db.execute("UPDATE consultas_ia SET estado='incompleta',resposta_id=?,erro=? WHERE id=?",(rid,message,row['id']))
                     h.db.execute("UPDATE conversas SET rascunho=CASE WHEN rascunho='' THEN ? ELSE rascunho END WHERE id=?",(snapshot['pergunta'],row['conversa_id']))
 
+    def _ajuste_previa(self,d):
+        from .continuacao import previa
+        return previa(self,d)
+
+    def _ajuste_enviar(self,d):
+        from .continuacao import enviar
+        return enviar(self,d)
+
     def _ia_cancelar(self,d):
         tid=ident(d.get('id'));task=self._tarefas.get(tid)
         if not task:raise ValueError('Consulta não encontrada.')
@@ -524,7 +539,8 @@ class Aplicacao:
             if not row or row['estado'] not in ('erro','cancelada','incompleta'):raise ValueError('Repita somente uma consulta não concluída.')
             cid=row['conversa_id'];self._editavel(h,c,cid);snap=json.loads(row['snapshot'])
             selection=self._selecao(h,cid)
-            if selection!=snap['selecao']:raise ValueError('A configuração mudou. Confira uma nova prévia e envie a pergunta novamente.')
+            from .continuacao import selecao_normalizada
+            if selection!=selecao_normalizada(snap.get('selecao_base',snap['selecao'])):raise ValueError('A configuração mudou. Confira uma nova prévia e envie a pergunta novamente.')
             # Material removido/desmarcado não pode voltar a ser enviado via repetição.
             selected={m['id'] for m in b.anexos(cid) if m['selecionado']}
             if any(f['material_id'] not in selected for f in snap['fontes'] or []):raise ValueError('A seleção documental mudou. Confira uma nova prévia.')
@@ -546,7 +562,7 @@ class Aplicacao:
         if scope not in ('padrao','chat','herdar'):raise ValueError('Escopo inválido.')
         model=texto(d.get('modelo',''),100,scope=='herdar')
         local=validar_config({'modelo':model,'url':d.get('url','http://127.0.0.1:11434'),
-            'contexto':d.get('contexto',4096),'timeout':d.get('timeout',180)}) if provedor=='ollama' and scope!='herdar' else None
+            'contexto':d.get('contexto',4096),'timeout':d.get('timeout',180),**({'perfil':d['perfil']} if 'perfil' in d else {})}) if provedor=='ollama' and scope!='herdar' else None
         with self._banco() as (h,c,b):
             cid=c.navegacao()['conversa_id']
             if scope in ('chat','herdar'):

@@ -3,7 +3,7 @@
 Abra **Páginas de estudo** na lateral do caderno e clique em **Nova página**.
 Edite título, assunto, papel e seções em Markdown/LaTeX. **Adicionar seção**,
 setas e remover permitem organizar enunciado, etapas, resumo e prática. Imagens
-matemáticas entram por **Inserir resultado local**, escolhendo um cálculo
+matemáticas e ilustração conceitual de indução entram por **Inserir resultado local**, escolhendo um cálculo
 concluído do mesmo caderno. Não há execução de código da página.
 
 O rascunho salva automaticamente com estado visível. **Salvar versão** cria uma
@@ -186,3 +186,7 @@ novo corretor universal ou geração artística.
 
 Referências do mecanismo: [impressão PDF do Qt](https://doc.qt.io/qt-6.11/qwebenginepage.html#printToPdf)
 e [API PySide6](https://doc.qt.io/qtforpython-6.8/PySide6/QtWebEngineCore/QWebEnginePage.html).
+
+A etapa de estabilidade acrescentou a ilustração local de indução. Sua legenda,
+texto e PNG são preservados por ID/hash, com indicação de não verificação.
+[Uso do recurso](ESTABILIDADE_IA_LOCAL.md).

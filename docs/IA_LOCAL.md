@@ -527,3 +527,11 @@ O piloto de terminal não muda o provedor do aplicativo, nem o banco pessoal.
 Ainda não houve comparação entre modelos, embeddings, gráficos ou geração de
 imagens. O núcleo L1 foi integrado na interface e validado neste notebook (consulte [Ollama](OLLAMA.md)). L0 do PC de casa e L2–L5 continuam planejados. Revalidar modelos,
 versões, licenças e recursos na data de cada implementação.
+
+## Estabilização após L4 — entregue em 12/10/2026
+
+Perfis por tarefa, métricas em interrupções, avisos externos ao Markdown e partes
+explícitas com prévia. Ilustração local limitada de indução aproveita artefatos e
+exportação L4; não amplia o escopo de provas verificadas ou geração artística.
+CPU medida (~99 s na confirmação); driver NVIDIA permanece questão do sistema.
+[Medições, limitações e próximos testes](ESTABILIDADE_IA_LOCAL.md).

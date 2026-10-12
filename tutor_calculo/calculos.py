@@ -32,7 +32,7 @@ def migrar_calculos(db):
 
 
 def processo(spec, token, timeout=TIMEOUT, modulo="tutor_calculo.ferramentas_matematicas"):
-    if modulo not in ("tutor_calculo.ferramentas_matematicas", "tutor_calculo.discreta"): raise ValueError("Worker inválido.")
+    if modulo not in ("tutor_calculo.ferramentas_matematicas", "tutor_calculo.discreta", "tutor_calculo.inducao"): raise ValueError("Worker inválido.")
     token.verificar()
     proc = subprocess.Popen([sys.executable, '-m', modulo],
         stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,

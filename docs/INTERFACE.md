@@ -191,3 +191,12 @@ do serviço; `math_exportar` usa o seletor nativo na ponte. PNGs são recuperado
 por ID/hash, sem caminhos internos. O estado do chat acrescenta `calculos`, com
 metadados leves; a imagem só é lida ao visualizar o resultado.
 [Contrato, limites e persistência](MATEMATICA_LOCAL.md).
+
+## Estabilidade local
+
+`ia_ajuste_previa` e `ia_ajuste_enviar` criam partes explícitas, com snapshot,
+relação à mensagem e fontes/configuração revalidadas. Dados da mensagem têm
+`interrupcao`, `metricas` e origem; aviso não entra no Markdown. Configurações
+incluem perfil preservando arquivos antigos. Diagnóstico distingue instalado,
+carregado e dispositivo observado. `inducao_*` reutiliza tarefas e PNG limitado,
+sem execução de SVG/HTML/código. [Contrato e medições](ESTABILIDADE_IA_LOCAL.md).

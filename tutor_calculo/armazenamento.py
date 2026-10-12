@@ -2,6 +2,7 @@
 
 from contextlib import closing
 import os
+import json
 import sqlite3
 import sys
 from pathlib import Path
@@ -214,8 +215,16 @@ class Historico:
             self.db.execute('DELETE FROM conversas WHERE id=?',(conversa,))
 
     def mensagens(self, conversa):
-        return [dict(x) for x in self.db.execute('''SELECT m.*,q.id AS consulta_id,q.usuario_id AS consulta_usuario_id FROM mensagens m
-            LEFT JOIN consultas_ia q ON q.resposta_id=m.id WHERE m.conversa_id=? ORDER BY m.id''',(conversa,))]
+        rows=self.db.execute("""SELECT m.*,q.id AS consulta_id,q.usuario_id AS consulta_usuario_id,q.parcial AS qparcial,q.erro AS qerro,q.metricas AS qmetricas,json_extract(q.snapshot,'$.origem_consulta') AS qsnap,(SELECT resposta_id FROM consultas_ia original WHERE original.id=json_extract(q.snapshot,'$.origem_consulta')) AS origem_mensagem FROM mensagens m
+            LEFT JOIN consultas_ia q ON q.resposta_id=m.id WHERE m.conversa_id=? ORDER BY m.id""",(conversa,))
+        result=[]
+        for r in rows:
+            m=dict(r);partial=m.pop('qparcial');error=m.pop('qerro');metrics=m.pop('qmetricas');snap=m.pop('qsnap')
+            m['metricas']=json.loads(metrics or '{}');m['interrupcao']={'mensagem':error,'motivo':m['metricas'].get('motivo','interrompida')} if error else None
+            m['origem_consulta']=snap
+            if m['estado']!='ok' and m['consulta_id']:m['texto']=partial or ''
+            result.append(m)
+        return result
 
     def renomear(self, conversa, titulo):
         if not titulo.strip():

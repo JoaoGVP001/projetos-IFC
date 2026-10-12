@@ -86,10 +86,13 @@ class PaginasServico:
                     origins=[{'tipo':'mensagem','id':mid,'titulo':m['titulo'],'provedor':m['provedor'],'modelo':m['modelo']}]
                 r=pages.criar(bid,content,origins)
                 if mid is not None:
-                    math=h.db.execute("SELECT id FROM calculos WHERE mensagem_id=? AND tipo='calculo' AND estado='concluida'",(mid,)).fetchone()
+                    math=h.db.execute("SELECT id,versao FROM calculos WHERE mensagem_id=? AND tipo='calculo' AND estado='concluida'",(mid,)).fetchone()
                     if math:
                         content['secoes'][0]['texto']='';content['secoes'][0]['titulo']='Enunciado e notas'
                         r=pages.rascunho(r['id'],content,r['revisao']);r=pages.importar_calculo(a,r['id'],math['id'])
+                        if math['versao']=='inducao-visual-v1':
+                            content=r['rascunho'];content['secoes']=[s for s in content['secoes'] if s.get('recurso') or s['texto'].strip()]
+                            r=pages.rascunho(r['id'],content,r['revisao'])
                 with h.db:h.db.execute('UPDATE pagina_navegacao SET pagina_id=? WHERE id=1',(r['id'],))
             elif op=='pagina_rascunho':r=pages.rascunho(pid,d.get('conteudo'),d.get('revisao'))
             elif op=='pagina_salvar':r=pages.salvar(pid)
@@ -133,6 +136,7 @@ class PaginasServico:
             row=h.db.execute("SELECT id FROM pagina_jobs WHERE pagina_id=? AND versao=? AND tipo='exportacao' AND estado='concluida' ORDER BY rowid DESC LIMIT 1",(d.get('id'),d.get('versao'))).fetchone()
             if type(d.get('refazer',False)) is not bool:raise ValueError('Estado de exportação inválido.')
             if row and not d.get('refazer',False):return self.job(h,row['id'])
+            a._livre()
             jid=str(uuid4())
             with h.db:h.db.execute("INSERT INTO pagina_jobs(id,pagina_id,versao,tipo,estado) VALUES(?,?,?,'exportacao','executando')",(jid,d.get('id'),d.get('versao')))
             self.start(jid,'exportacao',lambda:self.worker_export(jid,doc));return self.job(h,jid)

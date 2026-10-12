@@ -55,6 +55,7 @@ describe("Configuração da IA local", () => {
         url: "http://127.0.0.1:11434",
         contexto: 4096,
         timeout: 180,
+        perfil: "legado",
       }),
     );
   });

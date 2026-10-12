@@ -169,13 +169,14 @@ class Paginas:
         else:
             from .ferramentas_matematicas import resumo as resumo_calculo
             from .discreta import resumo as resumo_discreta
-            result=json.loads(record['resultado']);summary=(resumo_discreta if record['versao']=='discreta-v1' else resumo_calculo)(result)
+            from .inducao import resumo as resumo_inducao
+            result=json.loads(record['resultado']);summary=(resumo_inducao if record['versao']=='inducao-visual-v1' else resumo_discreta if record['versao']=='discreta-v1' else resumo_calculo)(result)
             rid=str(uuid4());name='';hashvalue=''
             if record['artefato']:
                 raw=app._calculos.png(jid);hashvalue=sha256(raw).hexdigest();name=hashvalue+'.png';dest=self.assets/name
                 if not dest.exists() or dest.is_symlink() or sha256(dest.read_bytes()).hexdigest()!=hashvalue:
                     temp=self.assets/(rid+'.tmp');temp.write_bytes(raw);os.replace(temp,dest)
-            meta={'rotulo':'Resultado local · '+record['versao'],'versao':record['versao'],'spec':json.loads(record['spec']),'resultado':result}
+            meta={'rotulo':('Ilustração · sem verificação matemática · ' if record['versao']=='inducao-visual-v1' else 'Resultado local · ')+record['versao'],'versao':record['versao'],'spec':json.loads(record['spec']),'resultado':result}
             with self.db:self.db.execute('INSERT INTO pagina_recursos VALUES(?,?,?,?,?,?)',(rid,jid,summary,json.dumps(meta,ensure_ascii=False),name,hashvalue))
         content=json.loads(row['rascunho']);content['secoes'].append({'id':str(uuid4()),'titulo':'Resultado matemático','texto':'','origem':'ferramenta','recurso':rid})
         origins=json.loads(row['origens']);origins.append({'tipo':'calculo','id':jid,'recurso':rid,'titulo':'Resultado '+record['versao']})

@@ -7,9 +7,9 @@ import time
 from threading import Timer
 from urllib.parse import urlsplit
 
-from .contratos import Cancelamento, RespostaIncompleta
+from .contratos import Cancelamento, RespostaIncompleta, ErroLocal
 
-PADRAO = {'url': 'http://127.0.0.1:11434', 'modelo': 'qwen3.5:4b-q4_K_M', 'contexto': 4096, 'timeout': 180}
+PADRAO = {'url': 'http://127.0.0.1:11434', 'modelo': 'qwen3.5:4b-q4_K_M', 'contexto': 4096, 'timeout': 180, 'perfil': 'rapido'}
 
 
 def validar_modelo(modelo):
@@ -23,6 +23,9 @@ def validar_modelo(modelo):
 def validar_config(dados):
     if not isinstance(dados, dict): raise ValueError('Configuração local inválida.')
     conf = {k: dados.get(k, v) for k, v in PADRAO.items()}
+    if dados and 'perfil' not in dados: conf['perfil']='legado'
+    from ..desempenho import PERFIS
+    if not isinstance(conf['perfil'],str) or conf['perfil'] not in PERFIS: raise ValueError('Perfil local inválido.')
     try:
         u = urlsplit(conf['url'])
         if (u.scheme != 'http' or u.hostname != '127.0.0.1' or not u.port
@@ -34,6 +37,7 @@ def validar_config(dados):
     validar_modelo(conf['modelo'])
     if type(conf['contexto']) is not int or conf['contexto'] not in (2048, 4096):
         raise ValueError('Escolha o perfil de 2.048 ou 4.096 tokens.')
+    if conf['perfil']=='completo' and conf['contexto']!=4096:raise ValueError('Perfil Completo precisa de contexto 4.096; confirme esse tamanho na configuração.')
     if type(conf['timeout']) is not int or not 30 <= conf['timeout'] <= 600:
         raise ValueError('O tempo limite local deve ficar entre 30 e 600 segundos.')
     return conf
@@ -75,7 +79,7 @@ class Ollama:
             if timer: timer.cancel()
             connection.close()
             if cancelar: cancelar.verificar()
-            if expirou: raise RespostaIncompleta('Tempo limite do Ollama atingido. Tente uma pergunta menor.') from exc
+            if expirou: raise RespostaIncompleta('Tempo limite do Ollama atingido. Tente uma pergunta menor.','timeout') from exc
             raise RuntimeError('Ollama indisponível. Inicie o servidor local e teste a conexão em Configurações de IA.') from exc
         except Exception:
             if timer: timer.cancel()
@@ -109,13 +113,14 @@ class Ollama:
         info = {'capacidades': [], 'digest': '', 'modelo_disponivel': False, 'aviso': ''}
         try: info.update(self.modelo(), modelo_disponivel=True)
         except RuntimeError as exc: info['aviso'] = str(exc)
-        return {'versao': version, 'modelos': modelos, **info,
+        from ..desempenho import dispositivo, memoria
+        return {'versao': version, 'modelos': modelos, **info, 'dispositivo':dispositivo(carregados,self.config['modelo']), 'memoria':memoria(),
                 'carregado': any(m.get('name') == self.config['modelo'] for m in carregados),
                 'local': True, 'visao_implementada': False}
 
     def modelo(self,cancelar=None,capacidade='completion'):
         installed = next((m for m in self.metadados('tags',cancelar=cancelar).get('models', []) if m.get('name') == self.config['modelo']), None)
-        if not installed: raise RuntimeError('O modelo selecionado não está instalado. Escolha uma tag na lista local.')
+        if not installed: raise ErroLocal('O modelo selecionado não está instalado. Escolha uma tag na lista local.','modelo_indisponivel')
         info = self.metadados('show', {'model': self.config['modelo'], 'verbose': False},cancelar)
         if any(d.get('remote_host') or d.get('remote_model') for d in (installed, info)):
             raise RuntimeError('Este modelo usa processamento cloud e foi bloqueado. Escolha pesos locais.')
@@ -124,49 +129,75 @@ class Ollama:
         return {'capacidades': capabilities, 'digest': installed.get('digest', '')}
 
     def consultar(self, mensagens, saida, cancelar=None, trecho=None, formato=None):
+        from ..desempenho import Amostragem, dispositivo
         cancelar = cancelar or Cancelamento()
-        cancelar.verificar()
-        info = self.modelo(cancelar)
-        cancelar.verificar()
-        body = {'model': self.config['modelo'], 'messages': mensagens, 'stream': True, 'keep_alive': '2m',
-                'options': {'num_ctx': self.config['contexto'], 'num_predict': saida,
-                            'temperature': .7, 'top_p': .8, 'top_k': 20, 'presence_penalty': 1.5, 'repeat_penalty': 1.0}}
-        if 'thinking' in info['capacidades']: body['think'] = False
-        if formato is not None: body['format'] = formato
-        start = time.monotonic(); first = None; pieces = []; size = 0; final = None
-        con, response, timer, expirou = self._abrir('chat', body, cancelar, self.config['timeout'])
+        start=time.monotonic(); first=None; pieces=[]; size=0; final={}; con=response=timer=None; expirou=[]
+        metrics={'provedor':'ollama','modelo':self.config['modelo'],'digest':None,
+                 'num_ctx':self.config['contexto'],'num_predict':saida,'timeout':self.config['timeout'],
+                 'perfil':self.config['perfil'],'thinking':None,'motivo':'executando', 'done_reason':None,
+                 'tokens_entrada':None,'tokens_saida':None,'tokens_cache':None,
+                 'carga_s':None,'entrada_s':None,'geracao_s':None,'total_runtime_s':None,
+                 'tokens_s':None,'primeiro_token_s':None,'dispositivo':{'estado':'desconhecido','processador':'desconhecido'}}
+        sampler=Amostragem();sampler.__enter__()
         try:
+            cancelar.verificar();info=self.modelo(cancelar);metrics['digest']=info['digest'];cancelar.verificar()
+            body={'model':self.config['modelo'],'messages':mensagens,'stream':True,'keep_alive':'2m',
+                  'options':{'num_ctx':self.config['contexto'],'num_predict':saida,
+                             'temperature':.7,'top_p':.8,'top_k':20,'presence_penalty':1.5,'repeat_penalty':1.0}}
+            if 'thinking' in info['capacidades']:body['think']=False;metrics['thinking']=False
+            if formato is not None:body['format']=formato
+            con,response,timer,expirou=self._abrir('chat',body,cancelar,self.config['timeout'])
             while True:
-                cancelar.verificar()
-                line = response.readline(65537)
-                if not line: break
-                if len(line) > 65536: raise RespostaIncompleta('Trecho de resposta local acima do limite.')
-                data = json.loads(line)
-                if data.get('error'): raise RespostaIncompleta('O runtime interrompeu a geração. Confira memória e o modelo instalado.')
-                part = data.get('message', {}).get('content', '')
-                if not isinstance(part, str): raise ValueError()
+                cancelar.verificar();line=response.readline(65537)
+                if not line:break
+                if len(line)>65536:raise RespostaIncompleta('Trecho local acima do limite.','limite_trecho')
+                data=json.loads(line)
+                if data.get('error'):
+                    motivo='memoria' if 'out of memory' in str(data['error']).lower() else 'runtime'
+                    raise RespostaIncompleta('Runtime interrompeu a geração'+(' por falta de memória confirmada.' if motivo=='memoria' else '.'),motivo)
+                part=data.get('message',{}).get('content','')
+                if not isinstance(part,str):raise ValueError()
                 if part:
-                    size += len(part)
-                    if size > 120000: raise RespostaIncompleta('Resposta local acima do limite.')
-                    first = first if first is not None else time.monotonic()-start
+                    size+=len(part)
+                    if size>120000:raise RespostaIncompleta('Resposta acima do limite.','limite_texto')
+                    if first is None:
+                        first=time.monotonic()-start
+                        try:metrics['dispositivo']=dispositivo(self.metadados('ps',timeout=1).get('models',[]),self.config['modelo'])
+                        except RuntimeError:pass
                     pieces.append(part)
-                    if trecho: trecho(part)
-                if data.get('done') is True:
-                    final = data; break
+                    if trecho:trecho(part)
+                if data.get('done') is True:final=data;break
             cancelar.verificar()
-            if expirou: raise RespostaIncompleta('Tempo limite local atingido; resposta incompleta.')
-            if not final or not pieces: raise RespostaIncompleta('Ollama encerrou sem uma resposta completa.')
-            if final.get('done_reason') not in ('stop', None):
-                raise RespostaIncompleta('Limite de geração local atingido. Divida a pergunta ou gere menos questões.')
-            duration = final.get('eval_duration', 0)/1e9
-            return {'texto': ''.join(pieces), 'metricas': {'segundos': time.monotonic()-start,
-                    'primeiro_token_s': first, 'tokens_s': final.get('eval_count', 0)/duration if duration else None,
-                    'tokens_entrada': final.get('prompt_eval_count'), 'tokens_saida': final.get('eval_count'),
-                    'digest': info['digest']}}
-        except (OSError, http.client.HTTPException) as exc:
-            cancelar.verificar()
-            raise RespostaIncompleta('Conexão local interrompida ou tempo limite atingido; texto parcial não concluído.') from exc
-        except (ValueError, TypeError, AttributeError) as exc:
-            raise RespostaIncompleta('O runtime retornou uma resposta inválida; texto parcial não concluído.') from exc
+            if expirou:raise RespostaIncompleta('Tempo limite local atingido; texto parcial preservado.','timeout')
+            if not final or not pieces:raise RespostaIncompleta('Conexão encerrada sem uma resposta completa.','fim_abrupto')
+            reason=final.get('done_reason')
+            if reason is not None and (not isinstance(reason,str) or len(reason)>80):raise RespostaIncompleta('Motivo de encerramento inválido.','resposta_invalida')
+            metrics['done_reason']=reason
+            if reason not in ('stop',None):
+                raise RespostaIncompleta('Limite de saída atingido; texto parcial preservado.' if reason=='length' else 'Encerramento inesperado do runtime.', 'limite_saida' if reason=='length' else 'fim_inesperado')
+            metrics['motivo']='concluida'
+            return {'texto':''.join(pieces),'metricas':metrics}
+        except Exception as exc:
+            from .contratos import ConsultaCancelada
+            if cancelar.evento.is_set():exc=ConsultaCancelada('Consulta cancelada; texto parcial preservado.')
+            elif isinstance(exc,(OSError,http.client.HTTPException)):
+                exc=RespostaIncompleta('Tempo limite local atingido.' if expirou else 'Conexão local interrompida.', 'timeout' if expirou else 'conexao')
+            elif isinstance(exc,(ValueError,TypeError,AttributeError)) and not isinstance(exc,RespostaIncompleta):
+                exc=RespostaIncompleta('O runtime retornou dados inválidos.','resposta_invalida')
+            metrics['motivo']='cancelada' if isinstance(exc,ConsultaCancelada) else getattr(exc,'motivo','runtime_indisponivel')
+            exc.metricas=metrics
+            raise exc
         finally:
-            cancelar.registrar(None); timer.cancel(); response.close(); con.close()
+            final={k:v for k,v in final.items() if k=='done_reason' and isinstance(v,str) and len(v)<=80 or type(v) is int and v>=0}
+            duration=final.get('eval_duration',0)/1e9
+            metrics['frame_final']=bool(final)
+            metrics.update(segundos=time.monotonic()-start,primeiro_token_s=first,done_reason=final.get('done_reason'),
+                tokens_entrada=final.get('prompt_eval_count'),tokens_saida=final.get('eval_count'),tokens_cache=final.get('prompt_eval_cached_count'),
+                tokens_s=final.get('eval_count',0)/duration if duration else None)
+            for target,key in [('carga_s','load_duration'),('entrada_s','prompt_eval_duration'),('geracao_s','eval_duration'),('total_runtime_s','total_duration')]:
+                metrics[target]=final[key]/1e9 if type(final.get(key)) is int else None
+            sampler.__exit__();metrics['memoria']=dict(sampler.dados)
+            cancelar.registrar(None)
+            if timer:timer.cancel()
+            if response:response.close()
+            if con:con.close()

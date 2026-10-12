@@ -117,7 +117,16 @@ def preparar_consulta(pergunta, modo='Resolver', historico=None, fontes=None, ca
     if provedor == 'ollama':
         from .provedores.ollama import validar_config
         from .recuperacao import orcamento_local
-        prepared = orcamento_local(validar_config(local or {}), instrucoes, pergunta, contexto, fontes)
+        prepared = orcamento_local(validar_config(local or {}), instrucoes, pergunta, contexto, fontes, modo)
+        if modo not in ('Gerar atividade','Organizar página','Propor cálculo','Propor Discreta'):
+            from .desempenho import politica
+            policy=politica(validar_config(local or {}),modo)
+            instrucoes += ('\nPrioridade de execução: termine uma primeira resposta completa em até '+str(policy['palavras_alvo'])+
+                ' palavras, mesmo com preferência por explicação completa. Comece pelo núcleo matemático; omita introduções, analogias e repetições. '
+                'Em indução: domínio n>=n0, caso base, fixe k arbitrário >=n0 (nunca apenas algum k), use a hipótese P(k), prove P(k+1) e escreva a conclusão do exemplo para todo n>=n0 antes da prática. '
+                'Recursos disponíveis no chat: texto e LaTeX. Não escreva Mermaid nem prometa imagem gerada. Se solicitado visual de indução, indique em uma frase o botão Ilustração de indução; não discuta instruções ou bastidores. '
+                'Uma saudação recebe até 30 palavras. Para assunto longo, termine esta parte e sugira pedir a próxima; não deixe expressões abertas.')
+            prepared=orcamento_local(validar_config(local or {}), instrucoes, pergunta, contexto, fontes, modo)
         prepared['pedagogia'] = pedagogia
         return prepared
     if fontes is not None:
@@ -141,9 +150,13 @@ def perguntar(pergunta: str, modo: str = 'Resolver', historico=None, fontes=None
         from .provedores.ollama import Ollama, validar_config
         config = validar_config(local or {})
         if modelo: config['modelo'] = modelo
-        result = Ollama(config).consultar([{'role':'system','content':instrucoes}]+contexto+
+        try:
+            result = Ollama(config).consultar([{'role':'system','content':instrucoes}]+contexto+
                                          [{'role':'user','content':pergunta}], prepared['orcamento']['reserva_saida'],
                                          cancelar, trecho, formato)
+        except Exception as exc:
+            if metricas and getattr(exc,'metricas',None): metricas(exc.metricas)
+            raise
         if metricas: metricas(result['metricas'])
         return result['texto'] if modo in ('Gerar atividade','Propor Discreta','Organizar página') else finalizar_fontes(result['texto'], fontes)
     chave, modelo_configurado = configuracao(provedor)

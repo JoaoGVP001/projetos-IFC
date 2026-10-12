@@ -1,3 +1,31 @@
+Para continuar em outra máquina, leia primeiro o
+[resumo completo e transferência para o PC de casa](docs/TRANSFERENCIA_PC_CASA.md).
+Ele consolida as entregas; as seções abaixo preservam o histórico de cada fase.
+
+## Entrega atual — estabilidade local (12/10/2026)
+
+Leia docs/ESTABILIDADE_IA_LOCAL.md. SQLite permanece v11. Adapter Ollama guarda
+métricas em erros/cancelamentos via exceções tipadas; não misturar erro com texto.
+Historico expõe aviso/partes de forma compatível, sem reescrever mensagens antigas.
+Perfis em desempenho.py; configurações anteriores são legado, sem sobrescrita.
+JSON tem reserva mínima própria; validação de orçamento continua obrigatória.
+continuacao.py usa prévia/snapshot/idempotência e revalida configuração/fontes;
+perfil curto só vale naquela chamada. Gemini/OpenAI sem streaming também podem
+continuar. Não colocar texto parcial no histórico normal ou em system prompt.
+
+Ilustração de indução em worker limitado, sem prova universal, reutiliza IDs/PNGs
+L3 e páginas/exportação L4. Rótulos são texto, nunca SVG/comandos gerados. UI em
+LocalStudy.tsx separa aviso, métricas, prévia e imagem; fonte da parte é navegável.
+Operações pesadas são coordenadas; FTS disponível com aviso quando runtime ocupado.
+
+Aceite real CPU com rede externa bloqueada: respostas 83/95/46 s e confirmação
+com caderno completo 99 s/488 tokens. Ganho é resposta menor e terminada; tokens/s
+não melhoraram. Relatórios privados fora do Git. Não tocar driver/kernel: módulo
+NVIDIA instalado para ABI diferente do kernel ativo; GPU ainda não foi recuperada.
+Candidato 1.7B documentado, sem download/benchmark automático. Windows não testado.
+Aceite: 218 Python/dez opcionais ignorados, 35 React, oito fluxos Qt; 33 tabelas
+e nove arquivos/configurações pessoais iguais por hash.
+
 ## Entrega atual — páginas de estudo L4 (11/10/2026)
 
 Leia docs/PAGINAS_ESTUDO.md. SQLite v11, backup v10, seis tabelas próprias; não

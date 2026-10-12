@@ -28,7 +28,7 @@ class RuntimeSimulado:
                 self.send_response(status);self.end_headers();self.wfile.write(json.dumps(data).encode());self.wfile.flush()
             def do_GET(self):
                 if self.path=='/api/version':self.reply({'version':'simulado'})
-                elif self.path in ('/api/tags','/api/ps'):self.reply({'models':[{'name':'teste:4b','size':100,'digest':'digest-teste','details':{'quantization_level':'Q4'}}]})
+                elif self.path in ('/api/tags','/api/ps'):self.reply({'models':[{'name':'teste:4b','size':100,'digest':'digest-teste','details':{'quantization_level':'Q4'},**({'size_vram':0,'context_length':4096} if self.path=='/api/ps' else {})}]} )
                 else:self.reply({},404)
             def do_POST(self):
                 data=json.loads(self.rfile.read(int(self.headers['Content-Length'])))

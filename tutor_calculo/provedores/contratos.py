@@ -6,8 +6,14 @@ class ConsultaCancelada(RuntimeError):
     pass
 
 
+class ErroLocal(RuntimeError):
+    def __init__(self, mensagem, motivo):
+        super().__init__(mensagem); self.motivo=motivo
+
+
 class RespostaIncompleta(RuntimeError):
-    pass
+    def __init__(self, mensagem, motivo='interrompida', metricas=None):
+        super().__init__(mensagem); self.motivo=motivo; self.metricas=metricas or {}
 
 
 class Cancelamento:

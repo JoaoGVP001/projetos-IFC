@@ -34,9 +34,11 @@ def custo_mensagens(instrucoes, pergunta, historico):
     return 32 + sum(estimar_tokens(s)+16 for s in [instrucoes, pergunta]+[m['content'] for m in historico])
 
 
-def orcamento_local(config, instrucoes, pergunta, historico, fontes):
+def orcamento_local(config, instrucoes, pergunta, historico, fontes, modo="Resolver"):
     from .materiais import contexto_documental
-    contexto = config['contexto']; saida = 640 if contexto == 2048 else 1024
+    from .desempenho import politica
+    policy=politica(config,modo)
+    contexto = config['contexto']; saida = policy['reserva_saida']
     margem = 256; limite = contexto-saida-margem
     def mensagem(fs):
         if fs is None: return pergunta
@@ -62,7 +64,7 @@ def orcamento_local(config, instrucoes, pergunta, historico, fontes):
         accepted = pair+accepted
     count = custo_mensagens(instrucoes, mensagem(selected), accepted)
     return {'instrucoes': instrucoes, 'pergunta': mensagem(selected), 'historico': accepted, 'fontes': selected,
-            'orcamento': {'contexto': contexto, 'entrada_estimada': count, 'reserva_saida': saida, 'margem': margem,
+            'orcamento': {**policy, 'contexto': contexto, 'entrada_estimada': count, 'reserva_saida': saida, 'margem': margem,
                           'metodo': 'estimativa: bytes UTF-8/2 + overhead; sem tokenizer exato',
                           'pares_omitidos': (len(historico)-len(accepted))//2,
                           'trechos_omitidos': len(fontes or [])-len(selected or []), 'trechos_abreviados': abbreviations}}
