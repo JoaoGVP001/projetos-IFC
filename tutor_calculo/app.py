@@ -32,14 +32,14 @@ def usa_analisador(texto):
 
 
 def resolver(texto: str, usar_ia: bool = False, *, caderno=None, historico=None,
-             provedor=None, modelo=None, local=None, cancelar=None, trecho=None, metricas=None, preparada=None) -> str:
+             provedor=None, modelo=None, local=None, cancelar=None, trecho=None, metricas=None, preparada=None, rascunho=None) -> str:
     contexto = {}
     if caderno is not None:
         contexto['caderno'] = caderno
     if historico is not None:
         contexto['historico'] = historico
     for key,value in {'provedor':provedor,'modelo':modelo,'local':local,'cancelar':cancelar,
-                      'trecho':trecho,'metricas':metricas,'preparada':preparada}.items():
+                      'trecho':trecho,'metricas':metricas,'preparada':preparada,'rascunho':rascunho}.items():
         if value is not None:contexto[key]=value
     if usar_ia:
         return perguntar(texto, modo="Resolver", **contexto)

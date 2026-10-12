@@ -23,6 +23,7 @@ type Source = {
   proveniencia?: { original: string; extracao: string };
 };
 type Sources = {
+  consulta_modelo?: boolean | null;
   estado?: string;
   mensagem: number;
   pergunta: string;
@@ -105,11 +106,13 @@ export function ConsultedSources({
               )}
               {f.aviso_atual && <p role="status">{f.aviso_atual}</p>}
               <strong>
-                {data.estado && data.estado !== "ok"
-                  ? "Trecho preparado no snapshot · envio/conclusão não confirmados"
-                  : f.envio_exato
-                    ? "Trecho exato enviado"
-                    : "Trecho preservado no snapshot"}
+                {data.consulta_modelo === false
+                  ? "Trecho preparado · não enviado ao modelo"
+                  : data.estado && data.estado !== "ok"
+                    ? "Trecho preparado no snapshot · envio/conclusão não confirmados"
+                    : f.envio_exato
+                      ? "Trecho exato enviado"
+                      : "Trecho preservado no snapshot"}
               </strong>
               <pre>{f.texto}</pre>
               <details>

@@ -55,11 +55,14 @@ def recuperar(h,mid):
     row=h.db.execute('SELECT q.*,m.texto FROM consultas_ia q JOIN mensagens m ON m.id=q.resposta_id WHERE m.id=?',(mid,)).fetchone()
     if not row:raise ValueError('Esta mensagem não tem snapshot documental recuperável.')
     snap=json.loads(row['snapshot']);p=snap.get('preparada') or {}
+    metrics=json.loads(row['metricas'] or '{}')
     exact='fontes' in p
     fonts=deepcopy(p.get('fontes',snap.get('fontes')) or [])
     # O rodapé anexado pelo aplicativo não é evidência de citação do modelo.
     body=re.split(r'\n\n### (?:Fontes citadas nesta resposta|Trechos disponibilizados)',row['texto'],maxsplit=1)[0]
     cited=set(re.findall(r'\[(M\d+)\]',body));cache={}
+    quality=metrics.get('qualidade') or {}
+    if quality.get('estado') in ('extratos','sem_evidencia'):cited=set(quality.get('referencias',[]))
     for f in fonts:
         prov=f.get('proveniencia');status='legado';warning='Registro antigo sem assinatura de extração; texto do snapshot preservado.'
         current=h.db.execute('SELECT chave FROM materiais WHERE id=?',(f['material_id'],)).fetchone()
@@ -75,6 +78,7 @@ def recuperar(h,mid):
                  envio_exato=exact,verificacao='Citação/extração não verificam a afirmação matemática.')
     return {'mensagem':mid,'consulta':row['id'],'conversa':row['conversa_id'],
             'estado':row['estado'],
+            'consulta_modelo':metrics.get('consulta_modelo'),
             'pergunta':snap.get('original',snap['pergunta']),'fontes':fonts,'envio_exato':exact,
             'aviso':'Confira se o trecho sustenta a afirmação. Referência existente não significa resposta correta.'}
 

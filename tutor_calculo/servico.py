@@ -22,6 +22,7 @@ from .provedores.contratos import Cancelamento, ConsultaCancelada, RespostaIncom
 from .provedores.ollama import Ollama, validar_config
 from .app import resolver, usa_analisador
 from .links import normalizar_url
+from .revisao_respostas import RespostaRetida,escopo
 
 
 def texto(valor, limite=1000, vazio=True):
@@ -456,7 +457,8 @@ class Aplicacao:
             for old in list(self._previas_estudo)[:-20]:self._previas_estudo.pop(old)
             return {**selection,'token':token,'pedagogia':p['pedagogia'],'mensagem':pergunta,'historico':p['historico'],
                 'fontes':p['fontes'],'recuperacao':recuperacao,'instrucoes':p['instrucoes'],'orcamento':p['orcamento'],
-                'destino':'Cálculo simbólico neste computador, sem consulta à IA' if calc else 'Somente Ollama neste computador' if selection['local'] else 'Provedor online',
+                'protecao_fontes':p.get('protecao_fontes'),
+                'destino':'Consulta bloqueada localmente; nada será enviado' if p.get('protecao_fontes') else 'Cálculo simbólico neste computador, sem consulta à IA' if calc else 'Somente Ollama neste computador' if selection['local'] else 'Provedor online',
                 'originais_enviados':False}
 
     def _enviar(self,d):
@@ -509,13 +511,14 @@ class Aplicacao:
                 self._tarefas.pop(key);self._cancelamentos.pop(key,None)
         self._cancelamentos[tid]=Cancelamento()
         self._tarefas[tid]={'id':tid,'tipo':'ia','estado':'executando','conversa':cid,'parcial':'',
+            'conferencia':'citações literais' if snapshot['modo']=='Consultar materiais' else 'sinais de redação matemática' if escopo(snapshot['pergunta'],'Resolver' if snapshot['modo']=='Resolver com IA' else snapshot['modo']) else None,
             'cancelavel':snapshot['selecao']['provedor']=='ollama' and not snapshot.get('calculo_local'),
             'provedor':snapshot['selecao']['provedor'],'modelo':snapshot['selecao']['modelo']}
         self._revisao+=1
         self._executor.submit(self._consultar,tid,cid,snapshot)
 
     def _consultar(self,tid,cid,snapshot):
-        estado='ok';error='';partial='';last_write=0;metrics={}
+        estado='ok';error='';partial='';pending='';last_write=0;metrics={}
         pergunta,modo,historico,fontes,caderno=[snapshot[k] for k in ('pergunta','modo','historico','fontes','caderno')]
         selection=snapshot['selecao'];token=self._cancelamentos[tid]
         def trecho(value):
@@ -527,16 +530,28 @@ class Aplicacao:
                     with self._banco() as (h,c,b):
                         with h.db:h.db.execute('UPDATE consultas_ia SET parcial=? WHERE id=?',(partial,tid))
                     last_write=time.monotonic();self._revisao+=1
+        def rascunho(value):
+            nonlocal pending,last_write
+            pending+=value
+            # Guarda o parcial de matemática para interrupção/reinício, sem
+            # apresentar o rascunho como resposta durante a conferência.
+            with self._lock:
+                if time.monotonic()-last_write>=.3:
+                    with self._banco() as (h,c,b):
+                        with h.db:h.db.execute('UPDATE consultas_ia SET parcial=? WHERE id=?',(pending,tid))
+                    last_write=time.monotonic()
         try:
             token.verificar()
             resposta=resolver(pergunta,caderno=caderno,historico=historico,provedor=selection['provedor'],modelo=selection['modelo'],
-                local=selection['local'],cancelar=token,trecho=trecho,metricas=metrics.update,preparada=snapshot['preparada']) if modo=='Resolver' else perguntar(
+                local=selection['local'],cancelar=token,trecho=trecho,metricas=metrics.update,preparada=snapshot['preparada'],rascunho=rascunho) if modo=='Resolver' else perguntar(
                 pergunta,modo='Resolver' if modo=='Resolver com IA' else modo,historico=historico,fontes=fontes,caderno=caderno,
                 provedor=selection['provedor'],modelo=selection['modelo'],local=selection['local'],cancelar=token,
-                trecho=trecho,metricas=metrics.update,preparada=snapshot['preparada'])
+                trecho=trecho,metricas=metrics.update,preparada=snapshot['preparada'],rascunho=rascunho)
             token.verificar()
         except ConsultaCancelada as exc:estado='cancelada';error=str(exc)
         except RespostaIncompleta as exc:estado='incompleta';error=str(exc)
+        except RespostaRetida as exc:
+            estado='erro';error=str(exc);metrics.update(exc.metricas);metrics['motivo']='revisao_resposta';partial=exc.resposta
         except (ValueError,RuntimeError,ImportError) as exc:estado='erro';error=str(exc)
         except Exception:estado='erro';error='Falha inesperada na consulta. Revise o enunciado e tente novamente.'
         if estado!='ok':resposta=partial

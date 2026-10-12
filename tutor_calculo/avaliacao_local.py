@@ -88,10 +88,15 @@ def formato(caso):
     return None
 
 
-def avaliar(caso, resposta):
+def avaliar(caso, resposta, metricas=None):
     """Checagens pontuais identificadas, jamais aprovação global da narrativa."""
     out = {'contrato': 'nao_aplicavel', 'checagens_pontuais': {},
            'revisao_matematica': 'pendente', 'rubrica': CASOS[caso]['rubrica'], 'avisos': []}
+    quality=(metricas or {}).get('qualidade') or {}
+    if CASOS[caso]['modo']=='Consultar materiais' and quality.get('estado') in ('extratos','sem_evidencia','recusada'):
+        out['contrato']='invalido' if quality['estado']=='recusada' else 'valido'
+        out['escopo_contrato']='Presença literal no texto preparado; não verifica relevância, OCR ou matemática.'
+        if quality['estado']=='recusada':out['erro_contrato']=quality['aviso']
     if caso not in ('atividade', 'pagina','rotulos'):
         if re.search(r'^\s*```mermaid\b', resposta, re.M | re.I):
             out['avisos'].append('Mermaid não renderizado no aplicativo.')
@@ -256,7 +261,7 @@ def executar(destino, modelos, perfis, casos, repeticoes=1, contexto=4096,
                 finally:
                     timer.cancel()
                     if row['estado'] != 'concluida': row['texto'] = ''.join(pieces)
-                    row['avaliacao'] = avaliar(case, row['texto'])
+                    row['avaliacao'] = avaliar(case, row['texto'],row['metricas'])
                     data['amostras'].append(row)
                     data['resumo'] = resumo(data['amostras'])
                     data['segundos_rodada'] = time.monotonic()-start

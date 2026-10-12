@@ -322,6 +322,7 @@ def contexto_documental(fontes):
                         'pagina': f['pagina'] if f['tipo'] in ('pdf','pptx') or 'PDF' in f.get('metodo','') else None,
                         'unidade': 'slide' if f['tipo']=='pptx' else 'pagina' if f['tipo']=='pdf' or 'PDF' in f.get('metodo','') else None,
                         'aviso_extracao': f.get('aviso','')[:1000],
+                        'metodo_extracao': f.get('metodo','')[:240],
                         'origem': f.get('origem_titulo','')[:240],
                         'selecao': f.get('selecao','busca textual'),
                         'texto': f['texto']} for f in fontes], ensure_ascii=False)

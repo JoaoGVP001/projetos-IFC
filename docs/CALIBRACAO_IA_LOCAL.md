@@ -1,5 +1,10 @@
 # Calibração da IA local por tarefa
 
+Atualização documental: o avaliador registra o contrato de citações literais,
+sem tratar isso como validação de relevância/OCR/provas. Casos bloqueados
+localmente conservam `consulta_modelo: false` e não têm tempo/tokens de geração.
+Novas amostras e limites em [Contenção de erros](PROTECAO_ERROS.md).
+
 O catálogo de referência agora possui trinta casos adicionais (10 Cálculo,
 10 Discreta, 10 documentais), com rubricas independentes e prefixos `ref_*`.
 Cinco consultas novas e a falha de OCR no modo Explicar, comparada ao modo

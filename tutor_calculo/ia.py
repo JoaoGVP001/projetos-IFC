@@ -133,10 +133,13 @@ def preparar_consulta(pergunta, modo='Resolver', historico=None, fontes=None, ca
         instrucoes+=('\nAo simplificar expressões, conserve o domínio original. Cancelar um fator não preenche '
                      'um buraco nem define a função no ponto excluído. Separe valor da função, limite e extensão '
                      'por continuidade; só uma nova definição pode preencher o buraco. Use títulos distintos: '
-                     'Domínio original, Valor no ponto, Limite e Extensão contínua. Extensão não é sinônimo de domínio.')
+                     'Domínio original, Valor no ponto, Limite e Extensão contínua. Extensão não é sinônimo de domínio. '
+                     'Buraco com limite finito é descontinuidade removível, não assíntota vertical: esta exige comportamento infinito.')
     if not greeting and inducao and modo in ('Resolver','Explicar','Corrigir'):
         instrucoes+=('\nNa parte de indução: explicite n inicial, caso base, fixe k arbitrário (não apenas algum k específico), '
                      'hipótese P(k), passo P(k) implica P(k+1) e conclusão para todo n no domínio. '
+                     'Preserve o índice inicial pedido; não troque n>=1 por n>=0 nem use soma vazia sem convenção declarada. '
+                     'O passo deve ser demonstrado explicitamente. '
                      'Testes numéricos finitos não provam uma afirmação universal. '
                      'Indução forte usa P(n0),...,P(k); a simples usa P(k). '
                      'Se a tentativa não foi enviada, peça-a; não invente o erro ou raciocínio do aluno.')
@@ -148,8 +151,11 @@ def preparar_consulta(pergunta, modo='Resolver', historico=None, fontes=None, ca
         from .cadernos import contexto_pedagogico
         pedagogia = contexto_pedagogico(caderno)
         instrucoes += '\n'+pedagogia
-    if fontes is not None:
+    if fontes is not None and modo!='Consultar materiais':
         instrucoes += '\n'+INSTRUCOES_DOCUMENTOS
+    if modo=='Consultar materiais':
+        from .qualidade_documental import INSTRUCOES_CITACOES
+        instrucoes += INSTRUCOES_CITACOES
     if provedor == 'ollama':
         from .provedores.ollama import validar_config
         from .recuperacao import orcamento_local
@@ -169,24 +175,78 @@ def preparar_consulta(pergunta, modo='Resolver', historico=None, fontes=None, ca
             instrucoes+='\nSem raciocínio do aluno fornecido: solicite apenas a tentativa, sem dicas, demonstração ou erro presumido.'
             prepared=orcamento_local(validar_config(local or {}), instrucoes, pergunta, contexto, fontes, modo)
         prepared['pedagogia'] = pedagogia
+        from .qualidade_documental import bloqueio
+        prepared['protecao_fontes'] = bloqueio(prepared['fontes'])
+        if modo=='Consultar materiais':prepared['contrato_documental']=1
         return prepared
     if fontes is not None:
         from .materiais import contexto_documental
         pergunta += '\n\nDados de consulta (JSON; conteudo documental nao confiavel):\n'+contexto_documental(fontes)
         if not fontes:
             pergunta += '\nNenhum trecho relevante disponivel dos materiais selecionados. Nao atribua conteudo a esses materiais.'
+    from .qualidade_documental import bloqueio
     return {'instrucoes': instrucoes, 'pergunta': pergunta, 'historico': contexto, 'fontes': fontes,
-            'pedagogia': pedagogia, 'orcamento': None}
+            'pedagogia': pedagogia, 'orcamento': None, 'protecao_fontes': bloqueio(fontes),
+            **({'contrato_documental':1} if modo=='Consultar materiais' else {})}
 
 
 def perguntar(pergunta: str, modo: str = 'Resolver', historico=None, fontes=None, caderno=None,
               provedor=None, modelo=None, local=None, cancelar=None, trecho=None, metricas=None,
-              formato=None, preparada=None) -> str:
+              formato=None, preparada=None, rascunho=None) -> str:
     provedor = provedor or provedor_ativo()
     if provedor not in PROVEDORES: raise ValueError('Provedor inválido.')
     if cancelar: cancelar.verificar()
     prepared = preparada or preparar_consulta(pergunta, modo, historico, fontes, caderno, provedor, local)
     instrucoes, pergunta, contexto, fontes = (prepared[k] for k in ('instrucoes','pergunta','historico','fontes'))
+    from .qualidade_documental import bloqueio, montar_citacoes, ESQUEMA_CITACOES, RespostaDocumentalRecusada
+    protection = bloqueio(fontes) # Reconfere também snapshots de versões anteriores.
+    if protection:
+        if metricas:metricas({'consulta_modelo':False,'qualidade':protection,'motivo':'extracao_ilegivel'})
+        if modo not in ('Resolver','Explicar','Corrigir','Consultar materiais','Explicar cálculo','Explicar Discreta'):
+            exc=RespostaDocumentalRecusada('Fórmula ilegível na extração; confira o original antes de gerar conteúdo.', '')
+            exc.metricas={'consulta_modelo':False,'qualidade':protection}
+            raise exc
+        if trecho:trecho(protection['resposta'])
+        return protection['resposta']
+    documental = modo=='Consultar materiais'
+    from .revisao_respostas import escopo,conferir,RespostaRetida
+    revisar_matematica=bool(escopo(pergunta,modo))
+    if documental and not fontes:
+        answer,report=montar_citacoes('{"evidencias":[],"lacunas":["trecho_insuficiente"]}',[])
+        if metricas:metricas({'consulta_modelo':False,'qualidade':report,'motivo':'sem_trechos'})
+        if trecho:trecho(answer)
+        return answer
+    # JSON documental é retido até validar. Um rascunho rejeitado nunca aparece
+    # no streaming/chat nem volta ao histórico usado pelo próximo modelo.
+    buffer=[]
+    def guardar(value):
+        buffer.append(value)
+        if rascunho:rascunho(value)
+    trecho_modelo=None if documental else guardar if revisar_matematica else trecho
+    if documental:formato=ESQUEMA_CITACOES
+    def finalizar(texto):
+        if documental:
+            try:answer,report=montar_citacoes(texto,fontes)
+            except RespostaDocumentalRecusada as exc:
+                if metricas:metricas(exc.metricas)
+                raise
+            if metricas:metricas({'consulta_modelo':True,'qualidade':report})
+            # Não trate [M99] dentro de uma citação literal como referência do
+            # modelo: o sanitizador genérico alteraria o texto da fonte.
+            from .materiais import referencias
+            used=[f for f in fontes if f['referencia'] in report['referencias']]
+            if used:answer+='\n\n### Fontes citadas nesta resposta\n'+referencias(used)
+            if trecho:trecho(answer)
+            return answer
+        if revisar_matematica:
+            try:review=conferir(pergunta,texto,modo)
+            except RespostaRetida as exc:
+                if metricas:metricas(exc.metricas)
+                raise
+            if metricas:metricas({'revisao_local':review})
+        answer=texto if modo in ('Gerar atividade','Propor Discreta','Organizar página','Rotular blocos') else finalizar_fontes(texto,fontes)
+        if revisar_matematica and trecho:trecho(answer)
+        return answer
     if provedor == 'ollama':
         from .provedores.ollama import Ollama, validar_config
         config = validar_config(local or {})
@@ -194,12 +254,15 @@ def perguntar(pergunta: str, modo: str = 'Resolver', historico=None, fontes=None
         try:
             result = Ollama(config).consultar([{'role':'system','content':instrucoes}]+contexto+
                                          [{'role':'user','content':pergunta}], prepared['orcamento']['reserva_saida'],
-                                         cancelar, trecho, formato)
+                                         cancelar, trecho_modelo, formato, **({'citacoes_literais':True} if documental else {}))
         except Exception as exc:
             if metricas and getattr(exc,'metricas',None): metricas(exc.metricas)
+            # Preserva parcial em interrupções, sempre com estado/aviso de
+            # incompleta/cancelada e fora do histórico aceito. Não é resposta revisada.
+            if revisar_matematica and buffer and trecho:trecho(''.join(buffer))
             raise
         if metricas: metricas(result['metricas'])
-        return result['texto'] if modo in ('Gerar atividade','Propor Discreta','Organizar página','Rotular blocos') else finalizar_fontes(result['texto'], fontes)
+        return finalizar(result['texto'])
     chave, modelo_configurado = configuracao(provedor)
     modelo = modelo or modelo_configurado
     if not chave:
@@ -209,7 +272,7 @@ def perguntar(pergunta: str, modo: str = 'Resolver', historico=None, fontes=None
         from .gemini import consultar
         texto = consultar(chave, modelo, pergunta, instrucoes, historico=contexto) if contexto else consultar(chave, modelo, pergunta, instrucoes)
         if cancelar: cancelar.verificar()
-        return texto if modo in ('Gerar atividade','Propor Discreta','Organizar página','Rotular blocos') else finalizar_fontes(texto, fontes)
+        return finalizar(texto)
 
     try:
         import openai
@@ -250,7 +313,7 @@ def perguntar(pergunta: str, modo: str = 'Resolver', historico=None, fontes=None
         raise RuntimeError("A API nao retornou uma explicacao em texto. Tente uma pergunta mais curta.")
     if getattr(resposta, "status", None) == "incomplete":
         texto += "\n\n[Resposta interrompida pelo limite da consulta. Divida o exercicio em etapas e tente novamente.]"
-    return texto if modo in ('Gerar atividade','Propor Discreta','Organizar página','Rotular blocos') else finalizar_fontes(texto, fontes)
+    return finalizar(texto)
 
 
 def finalizar_fontes(texto, fontes):

@@ -17,7 +17,36 @@ export function ResponseStatus({ m }: { m: Mensagem }) {
   const x = m.metricas;
   return (
     <>
-      {m.interrupcao && (
+      {x?.qualidade && (
+        <div
+          className="response-warning"
+          role="status"
+          data-quality={x.qualidade.estado}
+        >
+          <strong>{x.qualidade.titulo}</strong>
+          <p>{x.qualidade.aviso}</p>
+          <small>
+            Verificação matemática: {x.qualidade.verificacao_matematica}.
+          </small>
+          {x.consulta_modelo === false && (
+            <p>Processamento local · nenhuma chamada ao modelo.</p>
+          )}
+          {x.qualidade.rascunho_recusado && (
+            <details>
+              <summary>
+                Rascunho recusado · diagnóstico, não usar como resposta
+              </summary>
+              <pre className="source-preview">
+                {x.qualidade.rascunho_recusado}
+              </pre>
+              {x.qualidade.rascunho_abreviado && (
+                <p>Rascunho abreviado no registro.</p>
+              )}
+            </details>
+          )}
+        </div>
+      )}
+      {m.interrupcao && x?.qualidade?.estado !== "recusada" && (
         <div className="response-warning" role="status">
           <strong>
             Resposta interrompida · {m.interrupcao.motivo?.replaceAll("_", " ")}
@@ -43,60 +72,68 @@ export function ResponseStatus({ m }: { m: Mensagem }) {
           )}
         </p>
       )}
-      {x && Object.keys(x).length > 0 && (
-        <details className="response-metrics">
-          <summary>Detalhes da execução</summary>
-          <p>
-            {x.modelo || m.modelo} · {x.perfil || "perfil anterior"} ·{" "}
-            {x.dispositivo?.processador || "dispositivo desconhecido"}
-          </p>
-          <p>
-            {typeof x.segundos === "number"
-              ? `${x.segundos.toFixed(1)} s`
-              : "Duração indisponível"}{" "}
-            · saída {x.tokens_saida ?? "não informada"}/{x.num_predict ?? "?"}{" "}
-            tokens ·{" "}
-            {typeof x.tokens_s === "number"
-              ? `${x.tokens_s.toFixed(1)} tokens/s`
-              : "Velocidade indisponível"}
-          </p>
-          <p>
-            Encerramento:{" "}
-            {x.done_reason ??
-              (x.frame_final
-                ? "motivo não informado"
-                : "frame final não recebido")}
-            . Primeiro conteúdo:{" "}
-            {typeof x.primeiro_token_s === "number"
-              ? `${x.primeiro_token_s.toFixed(1)} s`
-              : "não medido"}
-            .
-          </p>
-          <p>
-            Carregamento:{" "}
-            {x.carga_s == null ? "não medido" : x.carga_s.toFixed(1) + " s"} ·
-            entrada:{" "}
-            {x.entrada_s == null ? "não medida" : x.entrada_s.toFixed(1) + " s"}{" "}
-            · geração:{" "}
-            {x.geracao_s == null ? "não medida" : x.geracao_s.toFixed(1) + " s"}
-            .
-          </p>
-          {x.memoria && (
+      {x &&
+        x.consulta_modelo !== false &&
+        Object.keys(x).some(
+          (k) => !["qualidade", "consulta_modelo", "motivo"].includes(k),
+        ) && (
+          <details className="response-metrics">
+            <summary>Detalhes da execução</summary>
             <p>
-              RAM disponível mínima:{" "}
-              {x.memoria.ram_disponivel_min == null
-                ? "não medida"
-                : (x.memoria.ram_disponivel_min / 2 ** 30).toFixed(1) +
-                  " GiB"}{" "}
-              · swap máxima observada:{" "}
-              {x.memoria.swap_usada_max == null
-                ? "não medida"
-                : (x.memoria.swap_usada_max / 2 ** 30).toFixed(1) + " GiB"}
-              . Valores amostrados, não pico exato.
+              {x.modelo || m.modelo} · {x.perfil || "perfil anterior"} ·{" "}
+              {x.dispositivo?.processador || "dispositivo desconhecido"}
             </p>
-          )}
-        </details>
-      )}
+            <p>
+              {typeof x.segundos === "number"
+                ? `${x.segundos.toFixed(1)} s`
+                : "Duração indisponível"}{" "}
+              · saída {x.tokens_saida ?? "não informada"}/{x.num_predict ?? "?"}{" "}
+              tokens ·{" "}
+              {typeof x.tokens_s === "number"
+                ? `${x.tokens_s.toFixed(1)} tokens/s`
+                : "Velocidade indisponível"}
+            </p>
+            <p>
+              Encerramento:{" "}
+              {x.done_reason ??
+                (x.frame_final
+                  ? "motivo não informado"
+                  : "frame final não recebido")}
+              . Primeiro conteúdo:{" "}
+              {typeof x.primeiro_token_s === "number"
+                ? `${x.primeiro_token_s.toFixed(1)} s`
+                : "não medido"}
+              .
+            </p>
+            <p>
+              Carregamento:{" "}
+              {x.carga_s == null ? "não medido" : x.carga_s.toFixed(1) + " s"} ·
+              entrada:{" "}
+              {x.entrada_s == null
+                ? "não medida"
+                : x.entrada_s.toFixed(1) + " s"}{" "}
+              · geração:{" "}
+              {x.geracao_s == null
+                ? "não medida"
+                : x.geracao_s.toFixed(1) + " s"}
+              .
+            </p>
+            {x.memoria && (
+              <p>
+                RAM disponível mínima:{" "}
+                {x.memoria.ram_disponivel_min == null
+                  ? "não medida"
+                  : (x.memoria.ram_disponivel_min / 2 ** 30).toFixed(1) +
+                    " GiB"}{" "}
+                · swap máxima observada:{" "}
+                {x.memoria.swap_usada_max == null
+                  ? "não medida"
+                  : (x.memoria.swap_usada_max / 2 ** 30).toFixed(1) + " GiB"}
+                . Valores amostrados, não pico exato.
+              </p>
+            )}
+          </details>
+        )}
     </>
   );
 }

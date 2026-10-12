@@ -1,5 +1,5 @@
 """Qt: PDF fictício de duas páginas, IA HTTP simulada e ferramentas reais."""
-import os,sys,time
+import os,sys,time,json
 from pathlib import Path
 from threading import Thread
 from unittest.mock import patch
@@ -21,7 +21,9 @@ def pdf(path):
  w.write(path)
 
 if __name__=='__main__':
- root=Path(os.environ['CADERNOMAT_TEST_DIR']);r=RuntimeSimulado();r.reason='stop';r.text="A derivada da função é $f'(x)=2x-4$ [M1]. A figura não foi interpretada; não posso descrevê-la."
+ root=Path(os.environ['CADERNOMAT_TEST_DIR']);r=RuntimeSimulado();r.reason='stop';r.text=json.dumps({'evidencias':[{'referencia':'M1','citacao':'Derivada: 2x-4.'}], 'lacunas':['figura_nao_interpretada']})
+ if (root/'resposta-invalida').exists():r.text=json.dumps({'evidencias':[{'referencia':'M1','citacao':'Derivada: 999.'}],'lacunas':[]})
+ if (root/'resposta-inducao').exists():r.text='Se P(k) for verdadeiro para algum inteiro k, então P(k+1) também é verdadeiro.'
  app=Aplicacao(root/'historico.sqlite3')
  with app._banco() as (h,c,b):
   if not h.listar():

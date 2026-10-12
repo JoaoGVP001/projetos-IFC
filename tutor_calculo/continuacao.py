@@ -18,6 +18,8 @@ def previa(app,d):
     with app._banco() as (h,c,b):
         old=h.db.execute('SELECT * FROM consultas_ia WHERE id=?',(d.get('id'),)).fetchone()
         if not old or old['estado'] in ('previa','executando'):raise ValueError('Escolha uma resposta encerrada.')
+        if json.loads(old['metricas'] or '{}').get('qualidade',{}).get('estado') in ('recusada','bloqueada'):
+            raise ValueError('Confira as fontes e faça uma nova pergunta. Um rascunho recusado ou uma extração ilegível não pode ser continuado.')
         cid=old['conversa_id'];chat=app._editavel(h,c,cid);source=json.loads(old['snapshot']);base=app._selecao(h,cid)
         if selecao_normalizada(source.get('selecao_base',source['selecao']))!=base:raise ValueError('A configuração mudou. Volte à pergunta original e confira uma nova prévia.')
         old_ids={f['material_id'] for f in source['fontes'] or []}
@@ -39,9 +41,10 @@ def previa(app,d):
         fontes,_=recuperar_estudo(h,list(old_ids),original,True,{})
         fontes=congelar(h,fontes)
         book=c.obter(chat['caderno_id']) if chat['caderno_id'] else None
-        prepared=preparar_consulta(request,modo='Explicar',fontes=fontes if old_ids else None,caderno=book,provedor=sel['provedor'],local=sel['local'])
+        mode='Consultar materiais' if source['modo']=='Consultar materiais' else 'Explicar'
+        prepared=preparar_consulta(request,modo=mode,fontes=fontes if old_ids else None,caderno=book,provedor=sel['provedor'],local=sel['local'])
         selar_envio(prepared)
-        snap={'pergunta':request,'original':original,'modo':'Resolver com IA','historico':[], 'fontes':prepared['fontes'],'caderno':book,'selecao':sel,'selecao_base':base,'preparada':prepared,'calculo_local':False,'origem_consulta':old['id'],'ajuste':acao,'recuperacao':{}}
+        snap={'pergunta':request,'original':original,'modo':'Consultar materiais' if mode=='Consultar materiais' else 'Resolver com IA','historico':[], 'fontes':prepared['fontes'],'caderno':book,'selecao':sel,'selecao_base':base,'preparada':prepared,'calculo_local':False,'origem_consulta':old['id'],'ajuste':acao,'recuperacao':{}}
         tid=str(uuid4())
         with h.db:h.db.execute("INSERT INTO consultas_ia(id,conversa_id,snapshot,estado) VALUES(?,?,?,'previa')",(tid,cid,json.dumps(snap,ensure_ascii=False)))
         return {'id':tid,'acao':acao,'provedor':sel['provedor'],'modelo':sel['modelo'],'pergunta':request,'fontes':prepared['fontes'],'instrucoes':prepared['instrucoes'],'orcamento':prepared['orcamento'],'origem':old['resposta_id'],'historico':[], 'originais_enviados':False}

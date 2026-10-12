@@ -6,16 +6,43 @@ import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
 import rehypeKatex from "rehype-katex";
 import { api } from "./bridge";
 export function normalizarMatematica(texto: string) {
-  return texto
-    .split(/(`{3,}[\s\S]*?`{3,}|~{3,}[\s\S]*?~{3,}|`+[^`\n]*`+)/g)
-    .map((p, i) =>
-      i % 2
-        ? p
-        : p
-            .replace(/\\\[([\s\S]*?)\\\]/g, "\n\n$$$$\n$1\n$$$$\n\n")
-            .replace(/\\\(([\s\S]*?)\\\)/g, "$$$1$"),
-    )
-    .join("");
+  const converter = (parte: string) =>
+    parte
+      .split(/(`+[^`\n]*`+)/g)
+      .map((p, i) =>
+        i % 2
+          ? p
+          : p
+              .replace(/\\\[([\s\S]*?)\\\]/g, "\n\n$$$$\n$1\n$$$$\n\n")
+              .replace(/\\\(([\s\S]*?)\\\)/g, "$$$1$"),
+      )
+      .join("");
+  // Uma citação pode conter ``` dentro de um fence maior. Proteja até o
+  // fechamento com o mesmo caractere e comprimento mínimo do fence original.
+  let fence: { char: string; tamanho: number } | null = null;
+  let fora = "",
+    resultado = "";
+  for (const linha of texto.match(/[^\n]*(?:\n|$)/g) || []) {
+    if (!linha) continue;
+    if (fence) {
+      resultado += linha;
+      const close = linha.match(/^ {0,3}(`{3,}|~{3,})[ \t]*(?:\r?\n)?$/);
+      if (
+        close &&
+        close[1][0] === fence.char &&
+        close[1].length >= fence.tamanho
+      )
+        fence = null;
+    } else {
+      const open = linha.match(/^ {0,3}(`{3,}|~{3,})/);
+      if (open) {
+        resultado += converter(fora) + linha;
+        fora = "";
+        fence = { char: open[1][0], tamanho: open[1].length };
+      } else fora += linha;
+    }
+  }
+  return resultado + converter(fora);
 }
 const schema = {
   ...defaultSchema,

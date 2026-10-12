@@ -287,6 +287,98 @@ try {
       .texto,
     snapshots.fontes[0].texto,
   );
+  // Mesmo ID verdadeiro: número inventado deve ficar retido e fora do chat.
+  await fechar();
+  await writeFile(resolve(pasta, "resposta-invalida"), "fixture");
+  await iniciar();
+  await fill("Mensagem", "Qual a derivada da função quadrática?");
+  await fill("Modo de estudo", "Consultar materiais");
+  await click("Enviar mensagem");
+  await wait(() =>
+    evaluate('document.body.innerText.includes("Enviar com estas fontes")'),
+  );
+  await click("Enviar com estas fontes");
+  await wait(async () =>
+    (await estado()).mensagens.some(
+      (m) => m.metricas?.qualidade?.estado === "recusada",
+    ),
+  );
+  const refused = (await estado()).mensagens.find(
+    (m) => m.metricas?.qualidade?.estado === "recusada",
+  );
+  assert.equal(refused.estado, "erro");
+  assert.ok(!refused.texto.includes("999"));
+  assert.ok(refused.metricas.qualidade.rascunho_recusado.includes("999"));
+  await wait(() =>
+    evaluate('!!document.querySelector("[data-quality=recusada]")'),
+  );
+  await evaluate(
+    'document.querySelector("[data-quality=recusada]").scrollIntoView({block:"center"});true',
+  );
+  await captura("estudo-resposta-retida.png");
+  await fechar();
+  await iniciar();
+  assert.equal(
+    (await estado()).mensagens.find((m) => m.id === refused.id).metricas
+      .qualidade.estado,
+    "recusada",
+  );
+  await fechar();
+  await writeFile(resolve(pasta, "resposta-inducao"), "fixture");
+  await iniciar();
+  await fill("Mensagem", "Explique indução matemática.");
+  await fill("Modo de estudo", "Explicar");
+  await click("Enviar mensagem");
+  await wait(() =>
+    evaluate('document.body.innerText.includes("Enviar com estas fontes")'),
+  );
+  await click("Enviar com estas fontes");
+  await wait(async () =>
+    (await estado()).mensagens.some(
+      (m) =>
+        m.metricas?.qualidade?.titulo ===
+        "Redação matemática retida para revisão",
+    ),
+  );
+  const mathRefused = (await estado()).mensagens.find(
+    (m) =>
+      m.metricas?.qualidade?.titulo ===
+      "Redação matemática retida para revisão",
+  );
+  assert.equal(mathRefused.estado, "erro");
+  assert.ok(!mathRefused.texto.includes("algum inteiro k"));
+  await wait(() =>
+    evaluate(
+      `!!document.querySelector('#mensagem-${mathRefused.id} .consulted-sources')`,
+    ),
+  );
+  assert.equal(
+    await evaluate(
+      `!!document.querySelector('#mensagem-${mathRefused.id} .response-actions')`,
+    ),
+    false,
+  );
+  assert.equal(
+    await evaluate(
+      `!!document.querySelector('#mensagem-${refused.id} .consulted-sources')`,
+    ),
+    true,
+  );
+  assert.equal(
+    await evaluate(
+      `!!document.querySelector('#mensagem-${refused.id} .response-actions')`,
+    ),
+    false,
+  );
+  await wait(() =>
+    evaluate(
+      'document.body.innerText.includes("Redação matemática retida para revisão")',
+    ),
+  );
+  await evaluate(
+    'document.querySelectorAll("[data-quality=recusada]")[1].scrollIntoView({block:"center"});true',
+  );
+  await captura("estudo-inducao-retida.png");
   await wait(() => evaluate('!!document.querySelector(".consulted-sources")'));
   await evaluate('document.querySelector(".consulted-sources").open=true;true');
   await wait(() =>
@@ -322,7 +414,7 @@ try {
   assert.ok(await evaluate("document.documentElement.scrollWidth<=1000"));
   assert.deepEqual(errosPagina, []);
   console.log(
-    "E2E estudo confiável OK: prévia sem envio, trecho/página, operação local vinculada, página fiel/PDF/PNG, reinício, remoção sem perda do snapshot e temas.",
+    "E2E estudo confiável OK: prévia sem envio, citações literais, resposta adulterada retida, operação local vinculada, página fiel/PDF/PNG, reinício, remoção sem perda do snapshot e temas.",
   );
 } catch (e) {
   if (ws?.readyState === 1)

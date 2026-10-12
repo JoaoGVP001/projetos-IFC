@@ -4,6 +4,18 @@ import { Markdown, normalizarMatematica } from "./Markdown";
 vi.mock("./bridge", () => ({ api: vi.fn(() => Promise.resolve()) }));
 afterEach(cleanup);
 describe("Markdown e matemática", () => {
+  it("preserva uma citação literal com fence interno e LaTeX sem renderizar instruções", () => {
+    const raw =
+      "````text\n```\n# instrução documental\n\\(x>1\\) e [M99]\n````\n\n\\(y=2\\)";
+    const normalized = normalizarMatematica(raw);
+    expect(normalized).toContain("\\(x>1\\) e [M99]");
+    expect(normalized).toContain("$y=2$");
+    const { container } = render(<Markdown texto={raw} />);
+    expect(container.querySelector("pre")?.textContent).toContain(
+      "\\(x>1\\) e [M99]",
+    );
+    expect(container.querySelectorAll(".katex")).toHaveLength(1);
+  });
   it("normaliza delimitadores preservando exemplos de código", () => {
     expect(normalizarMatematica(String.raw`\(x^2\)`)).toBe("$x^2$");
     expect(normalizarMatematica(String.raw`\[x^2\]`)).toContain("$$\nx^2\n$$");

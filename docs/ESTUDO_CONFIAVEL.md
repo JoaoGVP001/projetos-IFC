@@ -1,5 +1,11 @@
 # Estudo com materiais e operações conferíveis
 
+Atualização: **Consultar materiais** agora monta citações literais conferidas
+localmente, retém rascunhos incompatíveis e distingue falta de evidência de
+correção matemática. Aviso crítico de fórmula ilegível bloqueia a consulta.
+As medições abaixo registram a entrega anterior; resultados atuais em
+[Contenção de erros](PROTECAO_ERROS.md).
+
 Primeira entrega das fases 1/2 do planejamento de evolução, em 12/10/2026.
 Páginas avançadas, simulados, backup/Windows e visão continuam planejados.
 Reutilizados biblioteca, ferramentas, consultas e snapshots JSON; SQLite v11,

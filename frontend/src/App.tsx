@@ -989,16 +989,20 @@ export default function App() {
                         </strong>
                         {m.estado !== "ok" && (
                           <Badge kind="warning">
-                            {m.estado === "cancelada"
-                              ? "Cancelada · texto parcial"
-                              : m.estado === "incompleta"
-                                ? "Resposta incompleta"
-                                : "Não concluído"}
+                            {m.metricas?.qualidade?.estado === "recusada"
+                              ? "Resposta retida"
+                              : m.estado === "cancelada"
+                                ? "Cancelada · texto parcial"
+                                : m.estado === "incompleta"
+                                  ? "Resposta incompleta"
+                                  : "Não concluído"}
                           </Badge>
                         )}
                         {m.papel === "assistant" && m.provedor && (
                           <span className="message-provider" title={m.modelo}>
-                            {nomeProvedor(m.provedor)} · {m.modelo}
+                            {m.metricas?.consulta_modelo === false
+                              ? "Proteção local · sem consulta à IA"
+                              : `${nomeProvedor(m.provedor)} · ${m.modelo}`}
                           </span>
                         )}
                       </div>
@@ -1068,31 +1072,34 @@ export default function App() {
                           onCheck={(tipo, estudo) => setModal({ tipo, estudo })}
                         />
                       )}
-                      {m.consulta_id && (
-                        <div className="response-actions">
-                          {["curta", "continuar"].map((acao) => (
-                            <Button
-                              key={acao}
-                              variant="ghost"
-                              disabled={occupied || !editable}
-                              onClick={() =>
-                                void api<AjustePrevia>("ia_ajuste_previa", {
-                                  id: m.consulta_id,
-                                  acao,
-                                })
-                                  .then((dados) =>
-                                    setModal({ tipo: "ajuste", dados }),
-                                  )
-                                  .catch((e) => notify(e.message))
-                              }
-                            >
-                              {acao === "curta"
-                                ? "Repetir curto"
-                                : "Próxima parte"}
-                            </Button>
-                          ))}
-                        </div>
-                      )}
+                      {m.consulta_id &&
+                        !["recusada", "bloqueada"].includes(
+                          m.metricas?.qualidade?.estado || "",
+                        ) && (
+                          <div className="response-actions">
+                            {["curta", "continuar"].map((acao) => (
+                              <Button
+                                key={acao}
+                                variant="ghost"
+                                disabled={occupied || !editable}
+                                onClick={() =>
+                                  void api<AjustePrevia>("ia_ajuste_previa", {
+                                    id: m.consulta_id,
+                                    acao,
+                                  })
+                                    .then((dados) =>
+                                      setModal({ tipo: "ajuste", dados }),
+                                    )
+                                    .catch((e) => notify(e.message))
+                                }
+                              >
+                                {acao === "curta"
+                                  ? "Repetir curto"
+                                  : "Próxima parte"}
+                              </Button>
+                            ))}
+                          </div>
+                        )}
                       <Button
                         variant="ghost"
                         disabled={!!currentBook?.arquivado || occupied}
@@ -1185,7 +1192,9 @@ export default function App() {
                         <Markdown texto={activeTask.parcial} onError={notify} />
                       ) : (
                         <Loading>
-                          Carregando modelo e construindo a resposta…
+                          {activeTask.conferencia
+                            ? `Gerando resposta · aguardando conferência de ${activeTask.conferencia}…`
+                            : "Carregando modelo e construindo a resposta…"}
                         </Loading>
                       )}
                     </article>
@@ -1635,7 +1644,9 @@ export default function App() {
                   disabled={working}
                   onClick={() => void send(sendPreview.token)}
                 >
-                  Enviar com estas fontes
+                  {sendPreview.protecao_fontes
+                    ? "Registrar aviso, sem consultar IA"
+                    : "Enviar com estas fontes"}
                 </Button>
               )}
             </>
@@ -2387,6 +2398,16 @@ function SendPreview({
   if (!p) return <Loading />;
   return (
     <div className="send-preview">
+      {p.protecao_fontes && (
+        <div className="response-warning" role="status">
+          <strong>{p.protecao_fontes.titulo}</strong>
+          <p>{p.protecao_fontes.aviso}</p>
+          <p>
+            Confira a página original e os símbolos. Desmarque o material com
+            esse aviso para estudar apenas o conceito.
+          </p>
+        </div>
+      )}
       <div className="notice">
         <CheckCircle2 size={18} />
         <span>

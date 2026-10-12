@@ -2,6 +2,26 @@
 
 Atualizado em 12/10/2026.
 
+## Entregue — contenção de erros documentais e matemáticos
+
+Falha reproduzida: `Explicar` reconstruiu uma fórmula explicitamente ilegível
+do OCR e atribuiu a reconstrução ao PDF, mesmo encerrando com `stop`.
+Entregues bloqueio por aviso crítico de extração nos três provedores, contrato
+de citações literais em `Consultar materiais`, montagem local e retenção de
+rascunhos incompatíveis. Diagnóstico fora do Markdown, sem contaminar o contexto
+aceito; estados de execução e de qualidade separados. Revisão local restrita
+das redações observadas: k específico, assíntota removível e remoção de buraco
+por simplificação. Parciais de matemática preservados durante a conferência
+e nas interrupções, sem aprovar universalmente uma prova por palavras-chave.
+
+297 testes Python (287 aprovados/dez opcionais ignorados), 45 React, build e
+quatro fluxos Qt: estudo com citações e indução retidas, estabilidade/continuação,
+desktop e Ollama/RAG/cancelamento/repetição. Dez gerações reais em CPU e um
+bloqueio sem inferência; três redações gravadas retidas na revisão local final.
+As mesmas 33 tabelas/30 arquivos pessoais/configurações ficaram iguais por hash,
+SQLite v11/integridade/FKs preservados. Sem mudança de modelo, chamada paga,
+migração ou reindexação do acervo. [Proteções, medições e limites](docs/PROTECAO_ERROS.md).
+
 ## Próxima entrega proposta — organização fiel e qualidade
 
 Plano detalhado em [Prompt da próxima etapa](docs/planejamentos/PROMPT_FIDELIDADE_E_QUALIDADE.md).

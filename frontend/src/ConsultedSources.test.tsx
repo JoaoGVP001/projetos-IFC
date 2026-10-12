@@ -28,13 +28,14 @@ const source = {
   original_disponivel: true,
   envio_exato: true,
 };
-async function show(f = source) {
+async function show(f = source, model = true) {
   vi.mocked(api).mockResolvedValue({
     mensagem: 7,
     pergunta: "Confira f(x)=x^2.",
     fontes: [f],
     envio_exato: true,
     aviso: "Citação não verifica a resposta.",
+    consulta_modelo: model,
   });
   const onCheck = vi.fn();
   render(
@@ -50,9 +51,20 @@ async function show(f = source) {
   ).parentElement!;
   details.setAttribute("open", "");
   fireEvent(details, new Event("toggle"));
-  await waitFor(() => screen.getByText("Trecho exato enviado"));
+  await waitFor(() =>
+    screen.getByText(
+      model
+        ? "Trecho exato enviado"
+        : "Trecho preparado · não enviado ao modelo",
+    ),
+  );
   return onCheck;
 }
+it("não chama um snapshot preparado de trecho enviado quando a proteção bloqueou a consulta", async () => {
+  await show(source, false);
+  expect(screen.queryByText("Trecho exato enviado")).toBeNull();
+  expect(screen.getByText(source.texto)).toBeTruthy();
+});
 it("mostra snapshot, página, aviso e abre a fonte por mensagem/referência", async () => {
   await show();
   expect(screen.getByText(source.texto)).toBeTruthy();

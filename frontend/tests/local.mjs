@@ -16,7 +16,8 @@ import { createServer } from "node:net";
 
 const raiz = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const pasta = await mkdtemp(resolve(tmpdir(), "cadernomat-local-e2e-"));
-const capturas = resolve(raiz, "docs/screenshots");
+const capturas =
+  process.env.CADERNOMAT_SCREENSHOTS_DIR || resolve(raiz, "docs/screenshots");
 await mkdir(capturas, { recursive: true });
 await writeFile(
   resolve(pasta, "notas.txt"),
@@ -247,8 +248,14 @@ try {
   await click("Enviar com estas fontes");
   await wait(() =>
     evaluate(
+      "document.querySelector('[aria-label=\"Resposta em geração\"]')?.textContent.includes('aguardando conferência')",
+    ),
+  );
+  assert.equal(
+    await evaluate(
       "!!document.querySelector('[aria-label=\"Resposta em geração\"] .markdown')",
     ),
+    false,
   );
   await click("Cancelar resposta");
   await wait(async () => !(await estado()).ocupado);

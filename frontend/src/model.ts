@@ -19,6 +19,15 @@ export type Chat = {
   arquivada: number;
 };
 export type Metrics = {
+  consulta_modelo?: boolean;
+  qualidade?: {
+    estado: string;
+    titulo: string;
+    aviso: string;
+    verificacao_matematica: string;
+    rascunho_recusado?: string;
+    rascunho_abreviado?: boolean;
+  };
   modelo?: string;
   perfil?: string;
   segundos?: number;
@@ -171,6 +180,7 @@ export type Estado = {
   preferencias: { tema: "claro" | "escuro"; recolhida: boolean };
   ocupado: boolean;
   tarefas: {
+    conferencia?: string | null;
     id: string;
     tipo: string;
     estado: string;
@@ -207,6 +217,7 @@ export type Detalhe = {
   aviso_previa: string;
 };
 export type Previa = {
+  protecao_fontes?: Metrics["qualidade"] | null;
   token?: string;
   provedor: string;
   modelo: string;

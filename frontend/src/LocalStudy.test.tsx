@@ -10,6 +10,30 @@ import { ResponseStatus, Adjustment } from "./LocalStudy";
 import { Markdown } from "./Markdown";
 import type { Mensagem } from "./model";
 afterEach(cleanup);
+it("mostra proteção local sem inventar execução e mantém rascunho recusado em texto simples", () => {
+  const m = {
+    texto: "Aviso seguro.",
+    estado: "erro",
+    metricas: {
+      consulta_modelo: false,
+      qualidade: {
+        estado: "recusada",
+        titulo: "Resposta retida",
+        aviso: "Citação alterada.",
+        verificacao_matematica: "não realizada",
+        rascunho_recusado: "<script>roubar()</script> $2+2=5$",
+      },
+    },
+  } as Mensagem;
+  render(<ResponseStatus m={m} />);
+  expect(screen.getByText("Resposta retida")).toBeTruthy();
+  expect(screen.getByText(/nenhuma chamada ao modelo/)).toBeTruthy();
+  expect(screen.getByText(/Verificação matemática/)).toBeTruthy();
+  expect(screen.queryByText("Detalhes da execução")).toBeNull();
+  const pre = screen.getByText("<script>roubar()</script> $2+2=5$");
+  expect(pre.tagName).toBe("PRE");
+  expect(pre.querySelector("script")).toBeNull();
+});
 it("mantém aviso fora do código truncado e distingue falta de métricas de zero", () => {
   const m = {
     texto: "```mermaid\nA-->B",

@@ -48,6 +48,9 @@ Para avaliar tarefas com dados fictícios e relatório privado, veja
 respostas limitadas aos trechos. O envio documental mostra uma prévia validada;
 na resposta, **Conferir fontes e operações** abre o snapshot, a página original
 e ferramentas locais com vínculo à consulta. [Uso, testes e limites](docs/ESTUDO_CONFIAVEL.md).
+Neste modo, citações são conferidas literalmente antes da exibição; números e
+símbolos inventados ficam retidos. Fórmulas explicitamente ilegíveis na extração
+geram aviso local sem chamar o provedor. [Proteções e limites](docs/PROTECAO_ERROS.md).
 
 Abra **Páginas de estudo → Nova página**, edite seções Markdown/LaTeX e insira
 resultados locais. **Salvar versão** conserva uma versão independente do

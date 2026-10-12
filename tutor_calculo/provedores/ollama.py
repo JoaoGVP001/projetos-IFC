@@ -128,7 +128,7 @@ class Ollama:
         if capacidade not in capabilities: raise RuntimeError('O modelo não informou a capacidade solicitada na API de metadados: '+capacidade)
         return {'capacidades': capabilities, 'digest': installed.get('digest', '')}
 
-    def consultar(self, mensagens, saida, cancelar=None, trecho=None, formato=None):
+    def consultar(self, mensagens, saida, cancelar=None, trecho=None, formato=None, citacoes_literais=False):
         from ..desempenho import Amostragem, dispositivo
         cancelar = cancelar or Cancelamento()
         start=time.monotonic(); first=None; pieces=[]; size=0; final={}; con=response=timer=None; expirou=[]
@@ -145,6 +145,9 @@ class Ollama:
                   'options':{'num_ctx':self.config['contexto'],'num_predict':saida,
                              'temperature':.7,'top_p':.8,'top_k':20,'presence_penalty':1.5,'repeat_penalty':1.0}}
             if 'thinking' in info['capacidades']:body['think']=False;metrics['thinking']=False
+            if citacoes_literais:
+                body['options'].update(temperature=0,presence_penalty=0)
+                metrics['amostragem']='citações: temperature=0, presence_penalty=0; sem garantia de correção'
             if formato is not None:body['format']=formato
             con,response,timer,expirou=self._abrir('chat',body,cancelar,self.config['timeout'])
             while True:
