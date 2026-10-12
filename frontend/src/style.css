@@ -2144,3 +2144,257 @@ small,
   overflow-wrap: anywhere;
   font-size: 12px;
 }
+
+/* Compositor de folhas: a prévia e o PDF usam o mesmo DOM sanitizado. */
+.study-document {
+  position: relative;
+  color: #24332f;
+  font-family: Inter, sans-serif;
+}
+.study-source {
+  position: absolute;
+  left: -20000px;
+  top: 0;
+  width: 186mm;
+  visibility: hidden;
+}
+.study-sheet {
+  width: 209mm;
+  height: 296mm;
+  padding: 12mm;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-rows: 8mm 1fr 8mm;
+  gap: 3mm;
+  background-color: white;
+  margin: 0 auto 20px;
+  box-shadow: 0 3px 16px #0002;
+  overflow: hidden;
+}
+.study-sheet header {
+  font-size: 11px;
+  border-bottom: 1px solid #dce5df;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.study-sheet footer {
+  font-size: 10px;
+  text-align: right;
+  border-top: 1px solid #dce5df;
+  padding-top: 6px;
+}
+.study-sheet-body {
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+}
+.study-source,
+.study-sheet-body {
+  font-size: 14px;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+.study-source h1,
+.study-sheet h1 {
+  font-size: 25px;
+  line-height: 1.25;
+  margin: 0 0 14px;
+}
+.study-source h2,
+.study-sheet h2 {
+  font-size: 19px;
+  line-height: 1.4;
+  margin: 16px 0 8px;
+}
+.study-source h3,
+.study-sheet h3 {
+  font-size: 16px;
+  margin: 12px 0 6px;
+}
+.study-source p,
+.study-sheet p {
+  margin: 0 0 10px;
+}
+.study-source table,
+.study-sheet table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 12px;
+  table-layout: auto;
+  margin: 10px 0;
+}
+.study-source th,
+.study-source td,
+.study-sheet th,
+.study-sheet td {
+  border: 1px solid #dce5df;
+  padding: 5px;
+  text-align: left;
+}
+.study-sheet th {
+  background: #edf4ef;
+}
+.study-source .markdown,
+.study-sheet .markdown {
+  font-size: 14px;
+  line-height: 1.65;
+}
+.study-source .katex-display,
+.study-sheet .katex-display {
+  overflow: visible;
+}
+.study-source figure,
+.study-sheet figure {
+  margin: 12px 0;
+  break-inside: avoid;
+}
+.study-source img,
+.study-sheet img {
+  display: block;
+  max-width: 100%;
+  max-height: 115mm;
+  width: auto;
+  height: auto;
+  margin: auto;
+}
+.study-source figcaption,
+.study-sheet figcaption {
+  font-size: 11px;
+  text-align: center;
+  margin-top: 6px;
+}
+.study-source pre,
+.study-sheet pre {
+  white-space: pre-wrap;
+  background: #f5f7f3;
+  padding: 10px;
+  font-size: 11px;
+}
+.study-source .page-origin,
+.study-sheet .page-origin {
+  font-size: 11px;
+  color: #5c6a63;
+}
+.paper-pautado {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    #fff 0,
+    #fff 25px,
+    #eef3f0 25px,
+    #eef3f0 26px
+  );
+}
+.paper-quadriculado {
+  background-image:
+    linear-gradient(#edf2ef 1px, transparent 1px),
+    linear-gradient(90deg, #edf2ef 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+@media print {
+  html,
+  body,
+  #root {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+  }
+  .study-source {
+    display: none;
+  }
+  #root,
+  body {
+    height: auto !important;
+    overflow: visible !important;
+    min-width: 0 !important;
+  }
+  @page {
+    size: A4;
+    margin: 0;
+  }
+  .study-sheet {
+    margin: 0;
+    box-shadow: none;
+    break-after: page;
+  }
+  .study-sheet:last-child {
+    break-after: auto;
+  }
+  .study-document {
+    zoom: 1 !important;
+  }
+}
+.pages-area {
+  height: 100%;
+  overflow: auto;
+  padding: 24px;
+  min-width: 0;
+}
+.page-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 12px 0;
+}
+.page-actions input:not([type="checkbox"]),
+.page-actions select {
+  max-width: 480px;
+  min-width: 220px;
+}
+.page-actions h1 {
+  font-size: 24px;
+}
+.page-list {
+  display: grid;
+  gap: 12px;
+}
+.page-list button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 18px;
+}
+.page-editor {
+  max-width: 850px;
+  margin: auto;
+}
+.page-section {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin: 18px 0;
+}
+.page-editor textarea {
+  min-height: 180px;
+  resize: vertical;
+}
+.page-ai {
+  margin: 24px 0;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.page-ai label {
+  display: block;
+  margin: 12px 0;
+}
+.page-export {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+.paper-viewport {
+  max-width: 100%;
+  overflow: auto;
+  background: var(--bg);
+  padding: 18px 0;
+}
+.page-ai pre {
+  max-height: 350px;
+  overflow: auto;
+  white-space: pre-wrap;
+}

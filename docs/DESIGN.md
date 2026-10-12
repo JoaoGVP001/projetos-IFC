@@ -100,3 +100,12 @@ rola verticalmente sem comprimir campos ou introduzir rolagem horizontal.
 
 `pnpm e2e:matematica` também captura formulário, gráfico, proposta e explicação
 com banco fictício e chamadas online proibidas.
+
+## Páginas de estudo
+
+O editor utiliza os componentes e tokens existentes. Folhas A4 têm composição
+local independente do tema da janela: papel branco, pautado ou quadriculado
+discreto, margens, cabeçalho e numeração. A prévia tem rolagem própria em janelas
+pequenas; PDF e PNG preservam a versão escolhida e proporções das figuras.
+A fonte Inter e as fontes KaTeX permanecem locais. Limites de quebra e fórmulas
+largas são explícitos em [Páginas de estudo](PAGINAS_ESTUDO.md).

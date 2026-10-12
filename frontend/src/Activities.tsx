@@ -50,6 +50,7 @@ type Props = {
   notify: (s: string) => void;
   seed?: Seed | null;
   onChat: () => Promise<void>;
+  onPage?: (id: string) => Promise<void>;
 };
 const data = (v: string | null) =>
   v ? new Date(v.replace(" ", "T") + "Z").toLocaleString("pt-BR") : "—";
@@ -71,7 +72,7 @@ const rotulos: Record<string, string> = {
   revisao_necessaria: "Revisão necessária",
 };
 
-export function Activities({ state, notify, seed, onChat }: Props) {
+export function Activities({ state, notify, seed, onChat, onPage }: Props) {
   const [list, setList] = useState<{
     itens: Atividade[];
     total: number;
@@ -333,6 +334,7 @@ export function Activities({ state, notify, seed, onChat }: Props) {
         />
       ) : attempt && activity ? (
         <Practice
+          onPage={onPage}
           key={attempt.id}
           attempt={attempt}
           onUpdate={setAttempt}
@@ -1553,6 +1555,7 @@ export function Practice({
   onBack,
   onAI,
   onChat,
+  onPage,
 }: {
   attempt: Tentativa;
   onUpdate: (t: Tentativa) => void;
@@ -1561,6 +1564,7 @@ export function Practice({
   onBack: () => void;
   onAI: (tipo: string) => void;
   onChat: () => void;
+  onPage?: (id: string) => Promise<void>;
 }) {
   const [values, setValues] = useState<Record<string, string | boolean | null>>(
       () =>
@@ -1841,6 +1845,45 @@ export function Practice({
           </div>
         )}
         <div className="practice-tools">
+          {onPage && (
+            <>
+              <Button
+                disabled={busy || saving}
+                onClick={() =>
+                  void perform(async () => {
+                    await flush();
+                    const p = await api<{ id: string }>("pagina_questao", {
+                      tentativa: t.id,
+                      questao: q.id,
+                      solucao: false,
+                    });
+                    await onPage(p.id);
+                  })
+                }
+              >
+                Criar página da questão
+              </Button>
+              {(final || r.revelada) && (
+                <Button
+                  disabled={busy || saving}
+                  onClick={() =>
+                    void perform(async () => {
+                      await flush();
+                      const p = await api<{ id: string }>("pagina_questao", {
+                        tentativa: t.id,
+                        questao: q.id,
+                        solucao: true,
+                      });
+                      await onPage(p.id);
+                    })
+                  }
+                >
+                  Criar página com solução
+                </Button>
+              )}
+            </>
+          )}
+
           <Button
             disabled={!t.editavel || busy || saving}
             onClick={() =>

@@ -127,12 +127,12 @@ class Biblioteca:
         with self.db:
             self.db.execute('DELETE FROM chat_materiais WHERE conversa_id=? AND material_id=?', (conversa,ident))
 
-    def adicionar_arquivo(self, caminho, conversa):
+    def adicionar_arquivo(self, caminho, conversa, origem_titulo=None):
         caminho = Path(caminho)
         info = caminho.stat()
         if not stat.S_ISREG(info.st_mode): raise ValueError('Selecione um arquivo regular.')
         if info.st_size > MAX_ARQUIVO: raise ValueError('Arquivo excede 20 MiB.')
-        titulo = self.historico.obter(conversa)['titulo']
+        titulo = self.historico.obter(conversa)['titulo'] if conversa else str(origem_titulo or 'Material local')[:240]
         temporario = None
         try:
             with caminho.open('rb') as origem, tempfile.NamedTemporaryFile(dir=self.raiz, delete=False) as destino:
@@ -146,7 +146,7 @@ class Biblioteca:
             chave = 'sha256:'+resumo.hexdigest()
             existente = self.db.execute('SELECT id FROM materiais WHERE chave=?', (chave,)).fetchone()
             if existente:
-                self.vincular(existente['id'], conversa)
+                if conversa:self.vincular(existente['id'], conversa)
                 return existente['id'], False
             # Extensao preservada so para o aplicativo que abre o original; nunca executada aqui.
             ext = caminho.suffix.lower()[:12]
@@ -160,11 +160,11 @@ class Biblioteca:
                     self.db.execute('''INSERT INTO materiais(id,chave,nome,tipo,tamanho,caminho,origem_id,origem_titulo)
                                     VALUES (?,?,?,?,?,?,?,?)''',
                                     (ident,chave,caminho.name[:240],tipo_arquivo(caminho.name),tamanho,nome_local,conversa,titulo))
-                    self.db.execute('INSERT INTO chat_materiais(conversa_id,material_id) VALUES (?,?)', (conversa,ident))
+                    if conversa:self.db.execute('INSERT INTO chat_materiais(conversa_id,material_id) VALUES (?,?)', (conversa,ident))
             except sqlite3.IntegrityError:
                 existente = self.db.execute('SELECT id FROM materiais WHERE chave=?',(chave,)).fetchone()
                 if existente:
-                    self.vincular(existente['id'],conversa)
+                    if conversa:self.vincular(existente['id'],conversa)
                     return existente['id'],False
                 # Nao apagar um blob que outra instancia possa ter registrado.
                 raise
@@ -287,7 +287,7 @@ class Biblioteca:
     def recuperar(self, conversa, pergunta, limite=6000):
         """Contrato de recuperacao: lista de trechos/proveniencia; futuro indice vetorial substituivel."""
         consulta = consulta_fts(pergunta)
-        candidatos = [dict(x) for x in self.db.execute('''SELECT t.*,m.nome,m.url,m.tipo,m.metodo,m.aviso,
+        candidatos = [dict(x) for x in self.db.execute('''SELECT t.*,m.nome,m.url,m.tipo,m.metodo,m.aviso,m.origem_titulo,
             bm25(trechos_fts) AS relevancia FROM trechos_fts JOIN trechos t ON t.id=trechos_fts.rowid
             JOIN materiais m ON m.id=t.material_id JOIN chat_materiais c ON c.material_id=m.id
             WHERE trechos_fts MATCH ? AND c.conversa_id=? AND c.selecionado=1
@@ -296,7 +296,7 @@ class Biblioteca:
         pedido_geral = re.search(r'\b(resum\w*|analise|analisar|simulado\w*|prova\w*|atividad\w*|crie|criar)\b', normalizado(pergunta))
         if not candidatos and pedido_geral:
             # Resumos genericos recebem uma amostra inicial identificada, nunca fingem ler tudo.
-            candidatos = [dict(x) for x in self.db.execute('''SELECT t.*,m.nome,m.url,m.tipo,m.metodo,m.aviso
+            candidatos = [dict(x) for x in self.db.execute('''SELECT t.*,m.nome,m.url,m.tipo,m.metodo,m.aviso,m.origem_titulo
                 FROM trechos t JOIN materiais m ON m.id=t.material_id
                 JOIN chat_materiais c ON c.material_id=m.id WHERE c.conversa_id=? AND c.selecionado=1
                 AND m.estado IN ('pronto','parcial') AND t.ordem=0
@@ -322,6 +322,7 @@ def contexto_documental(fontes):
                         'pagina': f['pagina'] if f['tipo'] in ('pdf','pptx') or 'PDF' in f.get('metodo','') else None,
                         'unidade': 'slide' if f['tipo']=='pptx' else 'pagina' if f['tipo']=='pdf' or 'PDF' in f.get('metodo','') else None,
                         'aviso_extracao': f.get('aviso','')[:1000],
+                        'origem': f.get('origem_titulo','')[:240],
                         'selecao': f.get('selecao','busca textual'),
                         'texto': f['texto']} for f in fontes], ensure_ascii=False)
 

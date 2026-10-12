@@ -222,7 +222,7 @@ class Atividades:
 
     def navegar(self, d):
         atual = self.navegacao(); area = d.get('area', 'atividades'); aid = d.get('atividade', atual['atividade']); tid = d.get('tentativa', atual['tentativa'])
-        if area not in ('chat', 'materiais', 'atividades'): raise ValueError('Área inválida.')
+        if area not in ('chat', 'materiais', 'atividades', 'paginas'): raise ValueError('Área inválida.')
         if aid: self.obter(aid)
         if tid:
             row = self.db.execute('SELECT atividade_id FROM tentativas WHERE id=?', (identificador(tid),)).fetchone()

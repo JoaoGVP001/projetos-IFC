@@ -42,6 +42,29 @@ class Ponte:
             elif operacao=='exemplo':
                 from .app import EXEMPLO
                 resultado=EXEMPLO
+            elif operacao=='pagina_copiar':
+                if self._window is None:raise ValueError('Janela não disponível.')
+                formato=dados.get('formato');files=self._app._paginas.arquivos(ident(dados.get('id')),formato)
+                import webview,tempfile,shutil
+                if formato=='pdf':
+                    destino=self._window.create_file_dialog(webview.FileDialog.SAVE,save_filename='pagina-cadernomat.pdf',file_types=('Documento PDF (*.pdf)',))
+                    if destino:
+                        path=Path(destino[0]).with_suffix('.pdf');fd,tmp=tempfile.mkstemp(prefix='.cadernomat-',dir=path.parent)
+                        try:
+                            with os.fdopen(fd,'wb') as f:f.write(files[0][1].read_bytes());f.flush();os.fsync(f.fileno())
+                            os.replace(tmp,path)
+                        finally:Path(tmp).unlink(missing_ok=True)
+                else:
+                    destino=self._window.create_file_dialog(webview.FileDialog.FOLDER)
+                    if destino:
+                        root=Path(destino[0]);target=root/('pagina-'+dados['id'][:8])
+                        if target.exists():raise ValueError('As folhas já existem nessa pasta. Escolha outro destino ou gere outra exportação.')
+                        temp=Path(tempfile.mkdtemp(prefix='.cadernomat-',dir=root))
+                        try:
+                            for name,source in files:shutil.copyfile(source,temp/name)
+                            os.replace(temp,target)
+                        finally:shutil.rmtree(temp,ignore_errors=True)
+                resultado={'exportado':bool(destino),'arquivos':len(files)}
             elif operacao in ('math_exportar','discreta_exportar'):
                 if self._window is None:raise ValueError('Janela não disponível.')
                 raw=self._app._calculos.png(ident(dados.get('id')))

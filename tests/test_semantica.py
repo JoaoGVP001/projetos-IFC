@@ -207,6 +207,7 @@ class MigracaoSemanticaTest(unittest.TestCase):
             path=Path(tmp)/'h.sqlite3';h=Historico(path);cid=h.criar();h.adicionar(cid,'user','Mensagem anterior');h.fechar()
             with sqlite3.connect(path) as db:
                 for table in ('semantica_config','semantica_vetores','semantica_preparo','semantica_trabalho'):db.execute('DROP TABLE '+table)
+                for l4_table in ('pagina_materiais','pagina_jobs','pagina_navegacao','pagina_versoes','paginas_estudo','pagina_recursos'):db.execute('DROP TABLE IF EXISTS '+l4_table)
                 db.execute('DROP TRIGGER semantica_texto_alterado');db.execute('DROP TABLE IF EXISTS calculos');db.execute('PRAGMA user_version=7')
             def fail(db):db.execute('CREATE TABLE lixo(id)');raise RuntimeError('falha simulada')
             with patch('tutor_calculo.semantica.migrar_semantica',fail),self.assertRaises(RuntimeError):Historico(path)
@@ -214,7 +215,7 @@ class MigracaoSemanticaTest(unittest.TestCase):
                 self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],7)
                 self.assertIsNone(db.execute("SELECT name FROM sqlite_master WHERE name='lixo'").fetchone())
             h=Historico(path)
-            self.assertEqual(h.db.execute('PRAGMA user_version').fetchone()[0],10);self.assertEqual(h.mensagens(cid)[0]['texto'],'Mensagem anterior');h.fechar()
+            self.assertEqual(h.db.execute('PRAGMA user_version').fetchone()[0],11);self.assertEqual(h.mensagens(cid)[0]['texto'],'Mensagem anterior');h.fechar()
             with sqlite3.connect(str(path)+'.v7.backup') as db:self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],7)
 
 if __name__=='__main__':unittest.main()

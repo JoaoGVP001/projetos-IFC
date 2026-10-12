@@ -233,7 +233,7 @@ class BibliotecaTest(unittest.TestCase):
             self.assertEqual(banco.obter('antigo')['rascunho'],'rascunho')
             self.assertEqual(banco.obter('antigo')['fixada'],1)
             self.assertEqual(banco.mensagens('antigo')[0]['texto'],'Pergunta')
-            self.assertEqual(banco.db.execute('PRAGMA user_version').fetchone()[0],10)
+            self.assertEqual(banco.db.execute('PRAGMA user_version').fetchone()[0],11)
             self.assertTrue(Path(str(caminho)+'.v3.backup').exists())
         finally: banco.fechar()
         backup = sqlite3.connect(str(caminho)+'.v3.backup')

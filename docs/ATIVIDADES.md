@@ -152,3 +152,11 @@ do usuário continua pelo atalho CadernoMat, com assets compilados localmente.
 Provas/simulados cronometrados, flashcards e embeddings permanecem para
 outras entregas. Próxima etapa: provas/simulados usando estas versões e tentativas,
 com regras explícitas de conclusão, tempo e apresentação dos resultados.
+
+## Páginas de estudo
+
+Na tentativa, **Criar página da questão** copia o enunciado do snapshot vigente.
+**Criar página com solução** só está disponível depois de revelar/finalizar,
+com proteção também no backend. A página identifica atividade, versão, questão
+e tentativa, sem alterar gabaritos, respostas ou notas.
+[Editor, versões e exportação](PAGINAS_ESTUDO.md).

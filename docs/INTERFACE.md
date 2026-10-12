@@ -4,7 +4,7 @@
 
 ```text
 React + TypeScript → bridge.ts → Ponte.request → Aplicacao
-                                                ├─ Historico / Cadernos / Biblioteca / Atividades / Tentativas (SQLite v9)
+                                                ├─ Historico / Cadernos / Biblioteca / Atividades / Tentativas (SQLite v11)
                                                 ├─ processamento documental em subprocesso
                                                 ├─ ia.py → Gemini / OpenAI / provedores.ollama
                                                 └─ app.py → matemática local / fallback IA
@@ -31,6 +31,16 @@ mas rascunhos podem ser escritos para a próxima pergunta.
 interno do pywebview, sem Vite. Ao fechar, adia o encerramento para uma thread
 que lê e salva o último rascunho e então destrói a janela; avaliar JavaScript
 dentro do callback síncrono do Qt bloquearia a thread gráfica.
+
+## Páginas de estudo L4
+
+`Pages.tsx` edita seções/rascunhos e versões. `StudyDocument.tsx` compartilha
+prévia e impressão A4; `paginas_servico.py` coordena origens, propostas e
+exportações em subprocesso Qt. A fila de autosave é drenada ao navegar/fechar;
+falha mantém o editor aberto. `paginas_chat` expõe metadados para abrir a prévia
+no chat. A ponte acrescenta `pagina_*`, listagem `paginas` e `pagina_copiar`
+(seletor nativo), sempre por IDs, sem caminhos fornecidos pelo React.
+[Contrato, limites, persistência e validação](PAGINAS_ESTUDO.md).
 
 ## Contrato da ponte
 

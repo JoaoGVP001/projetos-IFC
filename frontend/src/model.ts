@@ -97,6 +97,13 @@ export type Orcamento = {
   trechos_abreviados: number;
 };
 export type Estado = {
+  pagina?: string | null;
+  paginas_chat?: {
+    id: string;
+    titulo: string;
+    versao: number;
+    mensagem: number;
+  }[];
   calculos?: {
     id: string;
     versao?: string;

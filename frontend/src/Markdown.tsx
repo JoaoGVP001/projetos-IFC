@@ -30,9 +30,11 @@ const schema = {
 export const Markdown = memo(function Markdown({
   texto,
   onError,
+  semImagens = false,
 }: {
   texto: string;
   onError?: (m: string) => void;
+  semImagens?: boolean;
 }) {
   return (
     <div className="markdown">
@@ -47,6 +49,16 @@ export const Markdown = memo(function Markdown({
           ],
         ]}
         components={{
+          ...(semImagens
+            ? {
+                img: ({ alt }: { alt?: string }) => (
+                  <span>
+                    [Imagem Markdown omitida:{" "}
+                    {alt || "insira um resultado matemático pelo aplicativo"}]
+                  </span>
+                ),
+              }
+            : {}),
           a: ({ href, children }) => (
             <a
               href={href}

@@ -394,18 +394,22 @@ uma limitação, nunca execução de código fornecido pelo modelo.
 
 ### L4 — Resposta com aparência de página de caderno
 
-- [ ] Criar um formato de página com título, enunciado, interpretação, etapas,
+Entregue em 11/10/2026: [uso e limites](PAGINAS_ESTUDO.md). Qt/PDFium testados
+no Linux; Windows ainda precisa de aceite. Biblioteca recebe Markdown revisado
+por ação explícita, sem seleção/indexação semântica automática.
+
+- [x] Criar um formato de página com título, enunciado, interpretação, etapas,
   fórmulas, gráficos/diagramas, resultado, hipóteses, referências e uma prática.
-- [ ] A IA propõe conteúdo estruturado; o aplicativo sanitiza e compõe HTML/CSS
+- [x] A IA propõe conteúdo estruturado; o aplicativo sanitiza e compõe HTML/CSS
   com KaTeX e os gráficos gerados. Texto e equações permanecem editáveis.
-- [ ] Layout de folha pautada/quadriculada opcional, contraste legível, margens,
+- [x] Layout de folha pautada/quadriculada opcional, contraste legível, margens,
   fonte local e cores discretas; manter o design atual do aplicativo.
-- [ ] Visualizar no chat e em tela de página; salvar versão vinculada ao caderno
+- [x] Visualizar no chat e em tela de página; salvar versão vinculada ao caderno
   e permitir revisar antes de marcar como material de estudo.
-- [ ] Exportar PDF e PNG paginados, com limites de resolução/duração. Fazer prova
+- [x] Exportar PDF e PNG paginados, com limites de resolução/duração. Fazer prova
   de exportação no Qt/WebView2 real antes de escolher o mecanismo de captura;
   evitar depender de recursos inexistentes no backend gráfico.
-- [ ] Reabrir a mesma versão após reiniciar e indicar as verificações realizadas.
+- [x] Reabrir a mesma versão após reiniciar e indicar as verificações realizadas.
   A página bonita não transforma explicações não verificadas em prova.
 
 **Aceite:** resposta curta e resposta de várias páginas, fórmulas largas e

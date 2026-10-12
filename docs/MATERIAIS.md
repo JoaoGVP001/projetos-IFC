@@ -161,3 +161,12 @@ conserva trechos, IDs, páginas e referências, independente de Gemini/OpenAI/Ol
 [Embeddings locais](BUSCA_SEMANTICA.md) acrescentam busca por significado, cache
 versionado e indexação incremental na migração v8. Visão e relações gráficas entre
 materiais ainda são futuras. A extração/OCR e seus limites permanecem iguais.
+
+## Páginas revisadas do CadernoMat
+
+Uma versão salva de página pode entrar na biblioteca por ação explícita.
+A cópia é Markdown textual, associada ao caderno e deduplicada por página/versão;
+permanece desmarcada para consultas e não dispara embeddings. Identificação de
+origem acompanha cada trecho na recuperação textual/híbrida, evitando usar texto
+gerado como confirmação independente. Diagramas ficam na página/PDF/PNG e não
+são interpretados por essa cópia textual. [Uso e limites](PAGINAS_ESTUDO.md).

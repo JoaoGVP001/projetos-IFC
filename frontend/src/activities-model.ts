@@ -89,7 +89,7 @@ export type Historico = {
   resumo: Resumo;
 };
 export type EstudoNav = {
-  area: "chat" | "materiais" | "atividades";
+  area: "chat" | "materiais" | "atividades" | "paginas";
   atividade: string | null;
   tentativa: string | null;
 };

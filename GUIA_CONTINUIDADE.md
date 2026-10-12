@@ -1,3 +1,32 @@
+## Entrega atual — páginas de estudo L4 (11/10/2026)
+
+Leia docs/PAGINAS_ESTUDO.md. SQLite v11, backup v10, seis tabelas próprias; não
+confundir paginas_estudo com paginas da extração. paginas.py valida rascunhos,
+conflitos e versões; paginas_servico.py coordena origens, IA, biblioteca e jobs.
+StudyDocument.tsx compartilha prévia/exportação, com Markdown sanitizado,
+KaTeX validado, A4 e paginação de tabelas. exportar_paginas.py roda Qt isolado,
+HTTP somente loopback/token, printToPdf e PNG por PDFium. Não imprimir o DOM
+de chat arbitrário nem depender de API de impressão do WebView2 sem teste.
+
+Originais L3 são copiados/conferidos e nunca editados. Exportar só versão salva;
+rascunho é independente. IA exige seções/fontes selecionadas, prévia e aplicação
+explícita; proposta não salva versão. Soluções ocultas continuam protegidas.
+Biblioteca recebe Markdown revisado, sem chat/fonte/embeddings automáticos e
+com origem em todos os trechos, inclusive recuperação híbrida. Preservar os
+snapshots/arquivos e a distinção entre resultados locais e texto do usuário/IA.
+
+Fechamento drena a fila de autosave e mantém janela aberta em falha. Processos
+longos não seguram o lock SQLite. Cancelamento/falha não publica conclusão.
+Comandos: unittest, pnpm test/build/e2e:paginas, aceite_paginas_exportacao.py e
+scripts/testar_integracao_offline_linux.sh --paginas. Windows não foi testado.
+Aceite L4: 207 Python aprovados/dez opcionais ignorados, 33 React, build, seis
+fluxos Qt e catorze folhas inspecionadas. Ollama real offline ~72 s, proposta
+revisável/exportação e versão anterior preservadas. Migração pessoal v10 → v11
+conferiu 27 tabelas antigas/nove arquivos, seis materiais/678 trechos/vetores.
+
+Próximas melhorias: L5, zoom/orientação/quebra de blocos grandes, qualidade de
+organização do modelo e empacotamento. Nenhuma geração artística ou treinamento.
+
 ## Entrega atual — Matemática Discreta L3 (11/10/2026)
 
 Leia [docs/DISCRETA.md](docs/DISCRETA.md). SQLite v10 com backup v9 acrescenta
@@ -14,7 +43,7 @@ Discreta/Cálculo/atividades/chat. Ollama real em namespace sem rede externa,
 proposta ~30 s e explicação ~46 s, resultado e PNG preservados ao reiniciar.
 Migração pessoal preservou as 26 tabelas e arquivos/configurações, incluindo os
 seis materiais/678 trechos do Classroom. Relatórios pessoais fora do Git.
-Próxima etapa L4: páginas de estudo com composição local e PDF paginado.
+L4 foi entregue acima com composição local e PDF paginado.
 Windows ainda precisa de teste real. Atalho CadernoMat permanece o mesmo.
 
 ## Entrega atual — matemática local L3 (11/10/2026)
@@ -26,7 +55,8 @@ Preservar árvore original/domínio, tempos/limites, versões e estados separado
 de cada operação. Propostas só copiam função/intervalo/ponto explícitos; não
 executar automaticamente documentos nem números inventados pelo modelo.
 PNG por IDs/hash fora do Git; falhas/cancelamentos não publicam conclusão.
-Atalho usa a interface compilada. Discreta, páginas L4 e SVG/PDF ficam seguintes.
+Atalho usa a interface compilada. Discreta e páginas L4 estão entregues acima;
+SVG independente continua futuro.
 Aceite: 175 Python aprovados/10 opcionais ignorados, 24 React, cinco fluxos Qt.
 Comandos: unittest, pnpm test/build/e2e:matematica e aceite Ollama offline em
 scripts/testar_integracao_offline_linux.sh --matematica; Windows não foi testado.

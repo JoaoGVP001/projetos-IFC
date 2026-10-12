@@ -7,3 +7,6 @@ pywebview>=6.2,<7; sys_platform != "linux"
 python-dotenv>=1.0
 pypdf>=6,<7
 pypdfium2>=4,<6
+
+# Compositor PDF/PNG independente do backend da janela (WebView2/Cocoa).
+PySide6>=6.8,<7; sys_platform != "linux"

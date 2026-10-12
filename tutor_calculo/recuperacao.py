@@ -75,7 +75,7 @@ def recuperar_estudo(h, ids, consulta, amostra=False, detalhes=None):
     if not ids: return [], []
     if any(f['estado'] not in ('pronto', 'parcial') for f in fontes): raise ValueError('Selecione apenas materiais com texto pronto ou parcial.')
     parametros = ','.join('?' for _ in ids); q = consulta_fts(consulta)
-    rows = h.db.execute(f'''SELECT t.*,m.nome,m.url,m.tipo,m.metodo,m.aviso FROM trechos_fts JOIN trechos t ON t.id=trechos_fts.rowid
+    rows = h.db.execute(f'''SELECT t.*,m.nome,m.url,m.tipo,m.metodo,m.aviso,m.origem_titulo FROM trechos_fts JOIN trechos t ON t.id=trechos_fts.rowid
         JOIN materiais m ON m.id=t.material_id WHERE trechos_fts MATCH ? AND m.id IN ({parametros}) ORDER BY bm25(trechos_fts),t.id LIMIT 30''', (q, *ids)).fetchall() if q else []
     estrategia = 'busca textual'
     from .semantica import IndiceSemantico
@@ -84,7 +84,7 @@ def recuperar_estudo(h, ids, consulta, amostra=False, detalhes=None):
         rows=index.candidatos(ids,consulta,detalhes)
     elif detalhes is not None:detalhes.update(metodo='busca textual',aviso='',escopo='Materiais selecionados para o estudo')
     if not rows and amostra:
-        rows = h.db.execute(f'''SELECT t.*,m.nome,m.url,m.tipo,m.metodo,m.aviso FROM trechos t JOIN materiais m ON m.id=t.material_id
+        rows = h.db.execute(f'''SELECT t.*,m.nome,m.url,m.tipo,m.metodo,m.aviso,m.origem_titulo FROM trechos t JOIN materiais m ON m.id=t.material_id
             WHERE m.id IN ({parametros}) AND t.ordem=0 ORDER BY t.pagina,t.id LIMIT 30''', ids).fetchall()
         estrategia = 'amostra inicial; não representa o documento inteiro'
     trechos = []; tamanho = 0; por_pagina = {}

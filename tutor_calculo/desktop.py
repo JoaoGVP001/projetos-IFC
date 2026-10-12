@@ -1,6 +1,7 @@
 """Janela desktop com interface React compilada e ponte Python restrita."""
 import argparse
 import os
+import time
 from pathlib import Path
 from threading import Event, Thread
 
@@ -27,18 +28,33 @@ def abrir(aplicacao=None,debug=False):
         # Qt dispara closing na thread da janela. Avaliar JS nela causaria
         # deadlock; adiar o fechamento permite salvar o ultimo caractere.
         def concluir():
+            has_page_flush=False
             try:
                 if janela.events.loaded.is_set():
+                    # A fila de autosave de páginas é drenada antes de ler a revisão.
+                    has_page_flush=janela.evaluate_js('typeof window.cadernoMatFlushPage === "function"')
+                    if has_page_flush:
+                        janela.evaluate_js('window.cadernoMatPageCloseReady=null; window.cadernoMatFlushPage().then(()=>{window.cadernoMatPageCloseReady=true}).catch((e)=>{window.cadernoMatPageCloseError=e.message;window.cadernoMatPageCloseReady=false}); null')
+                        deadline=time.monotonic()+8
+                        ready=None
+                        while ready is None and time.monotonic()<deadline:
+                            ready=janela.evaluate_js('window.cadernoMatPageCloseReady');time.sleep(.05)
+                        if ready is not True:
+                            encerrando.clear()
+                            janela.evaluate_js('window.dispatchEvent(new CustomEvent("cadernoMatSaveError",{detail:"Não foi possível salvar a página. A janela foi mantida aberta para preservar suas alterações."})); null')
+                            return
                     for global_name, operacao in [('cadernoMatDraft','rascunho'),('cadernoMatStudyDraft','tentativa_salvar')]:
                         try:
                             rascunho=janela.evaluate_js(f'window.{global_name} || null')
-                            if isinstance(rascunho,dict) and rascunho.get('id'):
-                                app.executar(operacao,rascunho)
+                            if isinstance(rascunho,dict) and rascunho.get('id'):app.executar(operacao,rascunho)
                         except Exception:pass
-            except Exception:pass
-            finally:
-                app.fechar()
-                janela.destroy()
+            except Exception:
+                # Se a página ainda está acessível, conserve o editor em vez de descartar o rascunho.
+                if has_page_flush:
+                    encerrando.clear()
+                    return
+            app.fechar()
+            janela.destroy()
         Thread(target=concluir,name='cadernomat-fechar').start()
         return False
     janela.events.closing+=fechar

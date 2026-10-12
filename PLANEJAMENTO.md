@@ -2,6 +2,27 @@
 
 Atualizado em 11/10/2026.
 
+## Entregue — L4: páginas de estudo e exportação
+
+Editor por caderno com seções Markdown/KaTeX, busca, arquivo/duplicação,
+rascunhos com revisão e versões independentes. Prévia no chat e na área de
+páginas; origens de mensagens/cálculos/questões, recursos congelados por hash e
+proteção de soluções ocultas. SQLite v11 com backup v10; preserva a tabela
+paginas da biblioteca. Fechamento drena autosave e mantém o editor aberto em
+falha. Exportação isolada/cancelável, A4 paginado, tabelas com cabeçalhos
+repetidos, PDF selecionável e PNGs. Valores/hipóteses/verificações L3 não mudam.
+
+Proposta JSON revisável nos três provedores, seções/fontes explícitas e prévia;
+nenhuma alteração automática do rascunho, gabarito ou nota. Inclusão explícita
+de versão revisada na biblioteca como Markdown, deduplicada/desmarcada e com
+proveniência em cada trecho. Qt foi escolhido após prova real de exportação;
+Windows/macOS seguem sem aceite. Limites e usos em [Páginas](docs/PAGINAS_ESTUDO.md).
+Aceite: 207 Python aprovados/dez opcionais ignorados, 33 React, build e seis
+fluxos Qt. Catorze folhas conferidas; casos inválidos recusados. Ollama real em
+CPU com rede externa bloqueada (~72 s), versão anterior preservada. Migração
+v10 → v11 manteve as 27 tabelas antigas, arquivos/configurações, seis materiais
+e 678 trechos/vetores. L5, orientação/zoom e instaladores permanecem futuros.
+
 ## Entregue — complemento L3: Matemática Discreta
 
 Reutilizados tarefas/artefatos de Cálculo e o chat React. Entrada manual com
@@ -12,7 +33,7 @@ revisáveis com fontes selecionadas/parciais e origem persistida; campos
 inexistentes/ambíguos ficam em branco. Explicações não alteram resultados.
 Vínculos a atividade/versão/questão/tentativa, comparação objetiva separada
 após solução revelada ou finalização, preservando gabaritos e notas.
-SQLite v10 com backup v9 e rollback. Páginas/PDF continuam em L4.
+SQLite v10 com backup v9 e rollback nessa entrega. Páginas/PDF L4 entregues acima.
 [Uso, limites e validação](docs/DISCRETA.md). Aceite: 196 Python aprovados/dez
 legados ignorados, 27 React, build e quatro fluxos Qt. Ollama real com rede
 externa bloqueada (~30 s proposta/~46 s explicação), reinício e preservação das

@@ -43,6 +43,11 @@ if [[ "${1:-}" == '--discreta' ]]; then
     .venv/bin/python tests/aceite_discreta_local.py
     exit
 fi
+if [[ "${1:-}" == '--paginas' ]]; then
+    cd -- "$integracao_repo"
+    .venv/bin/python tests/aceite_paginas_local.py
+    exit
+fi
 export CADERNOMAT_REAL_LOCAL=1
 if [[ "${1:-}" != '--so-estudo' ]]; then
     cd -- "$integracao_repo/frontend"

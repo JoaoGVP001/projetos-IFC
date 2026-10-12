@@ -37,9 +37,10 @@ class EstudoTest(unittest.TestCase):
 
             for table in ('semantica_config','semantica_vetores','semantica_preparo','semantica_trabalho'):db.execute('DROP TABLE IF EXISTS '+table)
             db.execute('DROP TRIGGER IF EXISTS semantica_texto_alterado')
+            for l4_table in ('pagina_materiais','pagina_jobs','pagina_navegacao','pagina_versoes','paginas_estudo','pagina_recursos'):db.execute('DROP TABLE IF EXISTS '+l4_table)
             db.execute('DROP TABLE IF EXISTS calculos');db.execute('PRAGMA user_version=5')
         self.h=Historico(self.path)
-        self.assertEqual(self.h.db.execute('PRAGMA user_version').fetchone()[0],10)
+        self.assertEqual(self.h.db.execute('PRAGMA user_version').fetchone()[0],11)
         self.assertEqual(self.h.obter(cid)['rascunho'],'rascunho'); self.assertEqual(self.h.mensagens(cid)[0]['texto'],'preservar')
         with sqlite3.connect(str(self.path)+'.v5.backup') as db: self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],5)
     def test_rollback_ddl(self):
@@ -49,6 +50,7 @@ class EstudoTest(unittest.TestCase):
 
             for table in ('semantica_config','semantica_vetores','semantica_preparo','semantica_trabalho'):db.execute('DROP TABLE IF EXISTS '+table)
             db.execute('DROP TRIGGER IF EXISTS semantica_texto_alterado')
+            for l4_table in ('pagina_materiais','pagina_jobs','pagina_navegacao','pagina_versoes','paginas_estudo','pagina_recursos'):db.execute('DROP TABLE IF EXISTS '+l4_table)
             db.execute('DROP TABLE IF EXISTS calculos');db.execute('PRAGMA user_version=5')
         def falha(db): db.execute('CREATE TABLE parcial(id)'); raise RuntimeError('simulada')
         with patch('tutor_calculo.atividades.migrar_atividades',side_effect=falha), self.assertRaises(RuntimeError): Historico(self.path)
@@ -138,6 +140,7 @@ class EstudoTest(unittest.TestCase):
 
             for table in ('semantica_config','semantica_vetores','semantica_preparo','semantica_trabalho'):db.execute('DROP TABLE IF EXISTS '+table)
             db.execute('DROP TRIGGER IF EXISTS semantica_texto_alterado')
+            for l4_table in ('pagina_materiais','pagina_jobs','pagina_navegacao','pagina_versoes','paginas_estudo','pagina_recursos'):db.execute('DROP TABLE IF EXISTS '+l4_table)
             db.execute('DROP TABLE IF EXISTS calculos');db.execute('PRAGMA user_version=5')
         self.h=Historico(self.path)
         self.assertEqual(antes,{k:[tuple(r) for r in self.h.db.execute('SELECT * FROM '+k)] for k in tabelas})

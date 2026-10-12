@@ -191,6 +191,7 @@ class AtividadeDiscretaTest(unittest.TestCase):
         self.app.fechar()
         with sqlite3.connect(self.path) as db:
             for col in ('questao_id','tentativa_id','conferencia','proposta_id'):db.execute('ALTER TABLE calculos DROP COLUMN '+col) if col!='questao_id' else None
+            for l4_table in ('pagina_materiais','pagina_jobs','pagina_navegacao','pagina_versoes','paginas_estudo','pagina_recursos'):db.execute('DROP TABLE IF EXISTS '+l4_table)
             db.execute('DROP INDEX calculos_atividade');db.execute('ALTER TABLE calculos DROP COLUMN questao_id');db.execute('PRAGMA user_version=9')
         def falhar(db):db.execute('ALTER TABLE calculos ADD COLUMN parcial TEXT');raise RuntimeError('simulado')
         with patch('tutor_calculo.discreta_servico.migrar_discreta',side_effect=falhar),self.assertRaises(RuntimeError):Historico(self.path)

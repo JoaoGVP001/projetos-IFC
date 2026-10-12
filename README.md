@@ -28,6 +28,15 @@ localmente. Diagramas pequenos podem ser exportados em PNG. A IA propõe dados
 revisáveis e explica resultados; atividades conservam versão/questão/tentativa,
 com comparação separada de notas. [Uso, exemplos e limites](docs/DISCRETA.md).
 
+## Páginas de estudo e PDF/PNG (L4)
+
+Abra **Páginas de estudo → Nova página**, edite seções Markdown/LaTeX e insira
+resultados locais. **Salvar versão** conserva uma versão independente do
+rascunho. Em **Versões, exportação e biblioteca**, gere PDF e um PNG por folha,
+escolha o destino e adicione a cópia textual revisada à biblioteca. Mensagens
+e questões também podem criar páginas, com origem e proteção de gabaritos.
+A IA propõe uma organização editável por seleção explícita. [Uso e limites](docs/PAGINAS_ESTUDO.md).
+
 ## Abrir no computador atual
 
 Feche a versão anterior e abra **CadernoMat** pelo atalho da área de trabalho.
@@ -97,7 +106,7 @@ citações, blocos de código e matemática com `$`, `$$`, `\(...\)` e `\[...\]`
 Fórmulas largas e tabelas podem rolar horizontalmente. Fórmulas inválidas têm
 alternativa textual. **Copiar** preserva o Markdown/LaTeX original.
 
-Os três cadernos iniciais são criados apenas na migração original. A migração atual para SQLite **v10** cria backup v9 e preserva IDs, mensagens, rascunhos, arquivos, índices e seleções existentes. Veja [Cadernos](docs/CADERNOS.md) e [IA local](docs/OLLAMA.md) e [busca híbrida](docs/BUSCA_SEMANTICA.md).
+Os três cadernos iniciais são criados apenas na migração original. A migração atual para SQLite **v11** cria backup v10 e preserva IDs, mensagens, rascunhos, arquivos, índices e seleções existentes. Veja [Cadernos](docs/CADERNOS.md) e [IA local](docs/OLLAMA.md) e [busca híbrida](docs/BUSCA_SEMANTICA.md).
 
 ## Praticar com atividades
 
@@ -237,11 +246,14 @@ pnpm e2e:local
 pnpm e2e:semantica
 pnpm e2e:matematica
 pnpm e2e:discreta
+pnpm e2e:paginas
 ```
 
-A entrega foi validada com **196 testes Python aprovados** (10 opcionais Tk ignorados), **27 testes de interface** e um
-fluxo completo na janela Qt, incluindo reinício, dois temas, tamanho mínimo e
-teclado. Testes usam bancos temporários e IA simulada; não consomem créditos.
+A entrega foi validada com **207 testes Python aprovados** (10 opcionais Tk ignorados), **33 testes de interface**, build e seis
+fluxos na janela Qt, incluindo reinício, dois temas, tamanho mínimo e teclado.
+Exportação real: catorze folhas inspecionadas, incluindo gráficos e tabela de
+64 linhas. Ollama real foi validado com rede externa bloqueada; Gemini/OpenAI
+usaram simulações. Testes não consumiram créditos.
 Os testes da interface anterior são opcionais sem Tkinter/display.
 
 [Arquitetura e contrato](docs/INTERFACE.md) · [Sistema de design](docs/DESIGN.md) ·
@@ -250,8 +262,8 @@ Os testes da interface anterior são opcionais sem Tkinter/display.
 [Piloto local executado](docs/PILOTO_LOCAL.md).
 
 Atividades, tentativas, Ollama, busca híbrida local, gráficos e verificações
-limitadas de Cálculo/Discreta estão disponíveis. Provas cronometradas, páginas de
-caderno/PDF, visão e verificações fora desse escopo permanecem planejadas. A trilha
+limitadas de Cálculo/Discreta estão disponíveis. Páginas de estudo/PDF/PNG também estão disponíveis. Provas cronometradas, visão
+e verificações fora desse escopo permanecem planejadas. A trilha
 local foi detalhada para um PC Windows com 16 GB RAM e RTX 3060 de 8/12 GB VRAM;
 um piloto independente foi depois executado no notebook Linux. O computador
 de casa ainda precisa ser testado.

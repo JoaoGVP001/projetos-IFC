@@ -1,6 +1,8 @@
 import { BuscaSemantica } from "./BuscaSemantica";
 import { MathTools, MathCard } from "./MathTools";
 import { DiscreteTools, DiscreteCard } from "./DiscreteTools";
+import { Pages } from "./Pages";
+import { PageChatPreview } from "./StudyDocument";
 import {
   useCallback,
   useEffect,
@@ -93,6 +95,7 @@ type Modal =
   | { tipo: "link" }
   | { tipo: "matematica"; proposta?: string }
   | { tipo: "discreta"; proposta?: string }
+  | { tipo: "pagina"; id: string }
   | { tipo: "config" }
   | { tipo: "material"; item: Material }
   | { tipo: "detalhe"; id: string }
@@ -102,7 +105,9 @@ export default function App() {
   const [state, setState] = useState<Estado | null>(null),
     [erro, setErro] = useState(""),
     [toast, setToast] = useState(""),
-    [view, setView] = useState<"chat" | "materiais" | "atividades">("chat"),
+    [view, setView] = useState<"chat" | "materiais" | "atividades" | "paginas">(
+      "chat",
+    ),
     [busca, setBusca] = useState(""),
     [archBooks, setArchBooks] = useState(false),
     [modal, setModal] = useState<Modal | null>(null),
@@ -115,6 +120,7 @@ export default function App() {
     assunto?: string;
     nonce: number;
   } | null>(null);
+  const [pageSeed, setPageSeed] = useState<string | null>(null);
   const firstView = useRef(true);
   const pendingSend = useRef<{
     id: string;
@@ -133,6 +139,11 @@ export default function App() {
   const notify = useCallback((m: string) => {
     setToast(m);
   }, []);
+  useEffect(() => {
+    const handler = (e: Event) => notify((e as CustomEvent<string>).detail);
+    window.addEventListener("cadernoMatSaveError", handler);
+    return () => window.removeEventListener("cadernoMatSaveError", handler);
+  }, [notify]);
   useEffect(() => {
     if (toast) {
       const t = setTimeout(() => setToast(""), 6000);
@@ -186,6 +197,7 @@ export default function App() {
   }, [busca, refresh, notify]);
   const flush = useCallback(async () => {
     await window.cadernoMatFlushStudy?.();
+    await window.cadernoMatFlushPage?.();
     const d = draftRef.current;
     if (d && dirty.current) {
       await api("rascunho", d);
@@ -252,7 +264,10 @@ export default function App() {
   ) => {
     if (await run("navegar", { caderno, conversa, arquivadas })) {
       setBusca("");
-      const area = view === "atividades" && !conversa ? "atividades" : "chat";
+      const area =
+        (view === "atividades" || view === "paginas") && !conversa
+          ? view
+          : "chat";
       await api("estudo_navegar", { area, atividade: null, tentativa: null });
       setView(area);
     }
@@ -268,7 +283,9 @@ export default function App() {
     }
     return ok;
   };
-  const switchView = async (area: "chat" | "materiais" | "atividades") => {
+  const switchView = async (
+    area: "chat" | "materiais" | "atividades" | "paginas",
+  ) => {
     try {
       await flush();
       await api("estudo_navegar", {
@@ -590,6 +607,19 @@ export default function App() {
             </>
           )}
         </Button>
+        <Button
+          variant={view === "paginas" ? "soft" : "ghost"}
+          icon={BookOpen}
+          className="library-nav"
+          aria-label="Abrir páginas de estudo"
+          onClick={() => void switchView("paginas")}
+        >
+          {!collapsed && (
+            <>
+              Páginas de estudo<span className="nav-caption">Folhas</span>
+            </>
+          )}
+        </Button>
         {!collapsed ? (
           <>
             <div className="section-title">
@@ -776,6 +806,8 @@ export default function App() {
             <span className="breadcrumb-icon">
               {view === "chat" ? (
                 <BookOpen size={19} />
+              ) : view === "paginas" ? (
+                <BookOpen size={19} />
               ) : view === "atividades" ? (
                 <ClipboardList size={19} />
               ) : (
@@ -793,7 +825,9 @@ export default function App() {
                   ? state.conversa?.titulo || "Um novo espaço para aprender"
                   : view === "atividades"
                     ? "Atividades"
-                    : "Materiais"}
+                    : view === "paginas"
+                      ? "Páginas de estudo"
+                      : "Materiais"}
               </h1>
             </div>
           </div>
@@ -989,6 +1023,44 @@ export default function App() {
                             ),
                           )}
                       </div>
+                      <Button
+                        variant="ghost"
+                        disabled={!!currentBook?.arquivado || occupied}
+                        onClick={() =>
+                          void (async () => {
+                            try {
+                              await flush();
+                              const p = await api<{ id: string }>(
+                                "pagina_criar",
+                                {
+                                  caderno: state.navegacao.caderno_id,
+                                  mensagem: m.id,
+                                },
+                              );
+                              setPageSeed(p.id);
+                              await switchView("paginas");
+                              await refresh();
+                            } catch (e) {
+                              notify((e as Error).message);
+                            }
+                          })()
+                        }
+                      >
+                        Criar página de estudo
+                      </Button>
+                      {state.paginas_chat
+                        ?.filter((p) => p.mensagem === m.id)
+                        .map((p) => (
+                          <Button
+                            key={p.id}
+                            variant="soft"
+                            onClick={() =>
+                              setModal({ tipo: "pagina", id: p.id })
+                            }
+                          >
+                            Ver página: {p.titulo}
+                          </Button>
+                        ))}
                       <button
                         className="copy-message"
                         aria-label={`Copiar ${m.papel === "assistant" ? "resposta" : "mensagem"} ${m.id}`}
@@ -1256,8 +1328,15 @@ export default function App() {
               </div>
             </div>
           </div>
+        ) : view === "paginas" ? (
+          <Pages state={state} notify={notify} seed={pageSeed} />
         ) : view === "atividades" ? (
           <Activities
+            onPage={async (id) => {
+              setPageSeed(id);
+              await switchView("paginas");
+              await refresh();
+            }}
             state={state}
             notify={notify}
             seed={studySeed}
@@ -1308,22 +1387,47 @@ export default function App() {
                         ? "Organizar material"
                         : modal.tipo === "detalhe"
                           ? "Visualizar material"
-                          : modal.tipo === "discreta"
-                            ? "Ferramentas de Matemática Discreta"
-                            : modal.tipo === "matematica"
-                              ? "Cálculos e gráficos locais"
-                              : "Prévia do envio"
+                          : modal.tipo === "pagina"
+                            ? "Página de estudo"
+                            : modal.tipo === "discreta"
+                              ? "Ferramentas de Matemática Discreta"
+                              : modal.tipo === "matematica"
+                                ? "Cálculos e gráficos locais"
+                                : "Prévia do envio"
           }
           subtitle={
             modal.tipo === "config"
               ? "Escolha IA local ou online e onde aplicar a configuração."
               : undefined
           }
-          wide={["detalhe", "previa", "matematica", "discreta"].includes(
-            modal.tipo,
-          )}
+          wide={[
+            "detalhe",
+            "previa",
+            "matematica",
+            "discreta",
+            "pagina",
+          ].includes(modal.tipo)}
           onClose={() => setModal(null)}
         >
+          {modal.tipo === "pagina" && (
+            <PageChatPreview
+              id={modal.id}
+              notify={notify}
+              onOpen={(p) =>
+                void (async () => {
+                  try {
+                    await flush();
+                    await navigate(p.caderno_id);
+                    setPageSeed(p.id);
+                    setModal(null);
+                    await switchView("paginas");
+                  } catch (e) {
+                    notify((e as Error).message);
+                  }
+                })()
+              }
+            />
+          )}
           {modal.tipo === "discreta" && state.conversa && (
             <DiscreteTools
               chat={state.conversa.id}

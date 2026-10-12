@@ -58,6 +58,8 @@ class Aplicacao:
         self._calculos=Calculos(self)
         from .discreta_servico import Discreta
         self._discreta=Discreta(self)
+        from .paginas_servico import PaginasServico
+        self._paginas=PaginasServico(self)
         with self._banco() as (h,c,b):
             Biblioteca(h,recuperar=True)
             from .semantica import IndiceSemantico
@@ -68,6 +70,7 @@ class Aplicacao:
                 if chats:c.salvar_navegacao(nav['caderno_id'],chats[0]['id'])
         self._estudo.recuperar()
         self._calculos.recuperar()
+        self._paginas.recuperar()
         self._recuperar_consultas()
 
     @contextmanager
@@ -146,11 +149,24 @@ class Aplicacao:
         operacoes.update({op:(lambda d, op=op:self._calculos.executar(op,d)) for op in MATH_OPS})
         from .discreta_servico import OPERACOES as DISCRETA_OPS
         operacoes.update({op:(lambda d,op=op:self._discreta.executar(op,d)) for op in DISCRETA_OPS})
+        from .paginas_servico import OPERACOES as PAGE_OPS
+        operacoes.update({op:(lambda d,op=op:self._paginas.executar(op,d)) for op in PAGE_OPS})
         if not isinstance(operacao,str) or operacao not in operacoes:raise ValueError('Operacao nao permitida.')
         if not isinstance(dados,dict) or len(dados)>15:raise ValueError('Parametros invalidos.')
         with self._lock:
             if self._fechado:raise ValueError('Aplicativo encerrado.')
             return operacoes[operacao](dados)
+
+    def _paginas_chat(self,h,cid):
+        if not cid:return []
+        messages={r[0] for r in h.db.execute('SELECT id FROM mensagens WHERE conversa_id=?',(cid,))}
+        calculations={r['id']:r['mensagem_id'] for r in h.db.execute('SELECT id,mensagem_id FROM calculos WHERE conversa_id=?',(cid,))}
+        result=[]
+        for row in h.db.execute("SELECT id,origens,json_extract(rascunho,'$.titulo') AS titulo,versao FROM paginas_estudo WHERE arquivada=0 ORDER BY rowid DESC LIMIT 100"):
+            for origin in json.loads(row['origens']):
+                mid=origin['id'] if origin.get('tipo')=='mensagem' else calculations.get(origin['id']) if origin.get('tipo')=='calculo' else None
+                if mid in messages:result.append({'id':row['id'],'titulo':row['titulo'],'versao':row['versao'],'mensagem':mid});break
+        return result
 
     def _estado(self,d):
         busca=texto(d.get('busca',''),300)
@@ -164,7 +180,7 @@ class Aplicacao:
                 'anexos':[self._material(b,m,cid) for m in b.anexos(cid)],
                 'config':self._config(h,cid),'preferencias':self._preferencias(),
                 'ocupado':self._ocupado(),'tarefas':list(self._tarefas.values())[-20:],
-                'estudo':self._estudo_navegacao(h)}
+                'estudo':self._estudo_navegacao(h),'pagina':h.db.execute('SELECT pagina_id FROM pagina_navegacao WHERE id=1').fetchone()[0],'paginas_chat':self._paginas_chat(h,cid)}
 
     def _estudo_navegacao(self,h):
         from .atividades import Atividades

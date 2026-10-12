@@ -134,6 +134,7 @@ class PersistenciaTest(unittest.TestCase):
     def test_migracao_v8_backup_preserva_e_rollback(self):
         self.app.fechar();self.app._executor.shutdown(wait=True)
         with sqlite3.connect(self.path) as db:
+            for l4_table in ('pagina_materiais','pagina_jobs','pagina_navegacao','pagina_versoes','paginas_estudo','pagina_recursos'):db.execute('DROP TABLE IF EXISTS '+l4_table)
             db.execute('DROP TABLE calculos');db.execute('PRAGMA user_version=8')
             old=db.execute('SELECT * FROM conversas').fetchall()
         def falhar(db):db.execute('CREATE TABLE falha(v)');raise RuntimeError('falha')
@@ -143,7 +144,7 @@ class PersistenciaTest(unittest.TestCase):
             self.assertFalse(db.execute("SELECT name FROM sqlite_master WHERE name='falha'").fetchone())
         self.app=Aplicacao(self.path)
         with sqlite3.connect(self.path) as db:
-            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],10)
+            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],11)
             self.assertEqual(db.execute('SELECT * FROM conversas').fetchall(),old)
             self.assertEqual(db.execute('PRAGMA foreign_key_check').fetchall(),[])
         with sqlite3.connect(str(self.path)+'.v8.backup') as db:self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],8)

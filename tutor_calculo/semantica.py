@@ -84,7 +84,7 @@ class IndiceSemantico:
 
     def _trechos(self,ids=None):
         filtro='' if ids is None else ' AND m.id IN (SELECT value FROM json_each(?))'
-        return [dict(r) for r in self.db.execute('''SELECT t.*,m.nome,m.tipo,m.url,m.metodo,m.aviso FROM trechos t
+        return [dict(r) for r in self.db.execute('''SELECT t.*,m.nome,m.tipo,m.url,m.metodo,m.aviso,m.origem_titulo FROM trechos t
             JOIN materiais m ON m.id=t.material_id WHERE m.estado IN ('pronto','parcial')'''+filtro+
             ' ORDER BY t.id LIMIT ?', (MAX_TRECHOS+1,) if ids is None else (json.dumps(ids),MAX_TRECHOS+1))]
 
@@ -169,7 +169,7 @@ class IndiceSemantico:
         if not ids:return []
         ids=list(dict.fromkeys(ids));q=consulta_fts(consulta)
         args=json.dumps(ids)
-        lexical=[dict(r) for r in self.db.execute('''SELECT t.*,m.nome,m.tipo,m.url,m.metodo,m.aviso FROM trechos_fts
+        lexical=[dict(r) for r in self.db.execute('''SELECT t.*,m.nome,m.tipo,m.url,m.metodo,m.aviso,m.origem_titulo FROM trechos_fts
             JOIN trechos t ON t.id=trechos_fts.rowid JOIN materiais m ON m.id=t.material_id
             WHERE trechos_fts MATCH ? AND m.id IN (SELECT value FROM json_each(?))
             AND m.estado IN ('pronto','parcial') ORDER BY bm25(trechos_fts),t.id LIMIT 30''',(q,args))] if q else []
