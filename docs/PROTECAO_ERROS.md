@@ -72,6 +72,8 @@ indutivo apresentado para “algum k” sem indicar escolha arbitrária, “ass�
 removível” e afirmação de que a simplificação remove o buraco. Não certifica
 que a frase esteja sempre errada: é uma recusa conservadora para revisão. Negações
 e correções explicitamente marcadas não devem ser confundidas com afirmações.
+O quantificador deve se referir ao k do passo: “para algum inteiro m” usado
+como testemunha de divisibilidade não é confundido com “para algum k”.
 Pode haver falsos positivos e erros não detectados. A resposta retida não vira
 contexto aceito; o rascunho permanece no diagnóstico.
 
@@ -104,7 +106,7 @@ relatórios e credenciais permanecem fora do Git.
 
 ## Validação
 
-Regressão: 297 testes Python (287 aprovados, dez opcionais do legado ignorados),
+Regressão: 298 testes Python (288 aprovados, dez opcionais do legado ignorados),
 45 React, TypeScript e build. Testes adversários usam somente dados fictícios:
 troca de 23 por 40, `l` por `1`, `Z` por `2`, mudança de desigualdade, referência
 inexistente, conteúdo fora do trecho abreviado, JSON inválido/duplicado, controle

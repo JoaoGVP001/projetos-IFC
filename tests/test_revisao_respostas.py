@@ -35,6 +35,9 @@ class RevisaoRespostasTest(unittest.TestCase):
         self.assertIn('não verifica',r['aviso'].lower());self.assertNotIn('correta',str(r))
         self.assertEqual(escopo('Olá','Explicar'),[])
         self.assertEqual(escopo('indução','Gerar atividade'),[])
+    def test_testemunha_inteira_m_nao_e_quantificador_sobre_k(self):
+        t='Fixe k arbitrário>=1 e suponha 5^k−1=4m para algum inteiro m. Então 5^(k+1)−1=4(5m+1).'
+        self.assertEqual(conferir('Prove por indução a divisibilidade.',t,'Explicar')['sinais_encontrados'],0)
     def test_http_retem_antes_de_exibir_e_sem_segunda_chamada(self):
         r=RuntimeSimulado();self.addCleanup(r.close);r.text='Se P(k) vale para algum inteiro k, então P(k+1) vale.';pieces=[];metrics={}
         with self.assertRaises(RespostaRetida):perguntar('Explique indução.',modo='Explicar',provedor='ollama',local=r.config,trecho=pieces.append,metricas=metrics.update)

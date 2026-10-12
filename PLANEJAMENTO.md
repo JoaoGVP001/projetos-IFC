@@ -14,7 +14,7 @@ das redações observadas: k específico, assíntota removível e remoção de b
 por simplificação. Parciais de matemática preservados durante a conferência
 e nas interrupções, sem aprovar universalmente uma prova por palavras-chave.
 
-297 testes Python (287 aprovados/dez opcionais ignorados), 45 React, build e
+298 testes Python (288 aprovados/dez opcionais ignorados), 45 React, build e
 quatro fluxos Qt: estudo com citações e indução retidas, estabilidade/continuação,
 desktop e Ollama/RAG/cancelamento/repetição. Dez gerações reais em CPU e um
 bloqueio sem inferência; três redações gravadas retidas na revisão local final.

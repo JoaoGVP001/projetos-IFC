@@ -36,7 +36,7 @@ def conferir(pergunta,texto,modo):
         sinais=[]
         if 'inducao' in areas:
             # Regras de recusa, não critérios suficientes de validade de prova.
-            m=re.search(r'\b(?:se|suponha|assuma)\b.{0,140}\bpara (?:algum|um certo)\b.{0,35}\bk\b',n)
+            m=re.search(r'\b(?:se|suponha|assuma)\b.{0,140}\bpara (?:algum|um certo)\s+(?:(?:numero\s+)?(?:inteiro|natural)\s+)?[$\\({\s]*k\b',n)
             if m:sinais.append((m,'No passo indutivo, confira se k foi escolhido arbitrariamente, em vez de um caso específico.'))
         if 'calculo' in areas:
             for pattern,msg in (
