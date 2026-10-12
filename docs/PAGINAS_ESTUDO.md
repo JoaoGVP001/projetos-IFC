@@ -1,5 +1,12 @@
 # Páginas de estudo - L4
 
+Atualização de 12/10: novas propostas por IA preservam a presença literal das
+fórmulas marcadas nas seções selecionadas. Omissão/reescrita da notação é recusada,
+sem mudar rascunho/versões. Não é teste de equivalência nem de correção matemática;
+prosa e fórmulas novas continuam revisáveis. Matemática sem delimitadores não
+possui essa proteção. Previews antigos permanecem compatíveis. Limites, falhas
+reais do 4B e procedimento em [Calibração local](CALIBRACAO_IA_LOCAL.md).
+
 Abra **Páginas de estudo** na lateral do caderno e clique em **Nova página**.
 Edite título, assunto, papel e seções em Markdown/LaTeX. **Adicionar seção**,
 setas e remover permitem organizar enunciado, etapas, resumo e prática. Imagens

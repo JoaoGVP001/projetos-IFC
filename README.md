@@ -39,6 +39,8 @@ O botão **Ilustração de indução** produz um diagrama local revisável, reut
 nas páginas de estudo e exportações; não certifica a demonstração. O diagnóstico
 mostra CPU/GPU/contexto observado e memória, sem inventar dados indisponíveis.
 [Padrões, medições, limites e testes](docs/ESTABILIDADE_IA_LOCAL.md).
+Para avaliar tarefas com dados fictícios e relatório privado, veja
+[Calibração por tarefa](docs/CALIBRACAO_IA_LOCAL.md).
 
 ## Páginas de estudo e PDF/PNG (L4)
 
@@ -262,8 +264,10 @@ pnpm e2e:paginas
 pnpm e2e:estabilidade
 ```
 
-A entrega foi validada com **218 testes Python aprovados** (10 opcionais Tk ignorados), **35 testes de interface**, build e oito
-fluxos na janela Qt, incluindo reinício, dois temas, tamanho mínimo e teclado.
+A suíte atual tem **232 testes Python aprovados** (10 opcionais Tk ignorados).
+A interface da entrega de estabilidade teve **35 testes**, build e oito fluxos
+na janela Qt, incluindo reinício, dois temas, tamanho mínimo e teclado. A calibração
+adicionou aceite Qt de recusa de notação alterada, preservação e proposta válida.
 Exportação real: catorze folhas inspecionadas, incluindo gráficos e tabela de
 64 linhas. Ollama real foi validado com rede externa bloqueada; Gemini/OpenAI
 usaram simulações. Testes não consumiram créditos.

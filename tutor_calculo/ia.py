@@ -2,6 +2,7 @@
 
 import os
 import re
+import unicodedata
 from pathlib import Path
 
 from dotenv import dotenv_values, set_key
@@ -73,6 +74,13 @@ erros em formulas; indique duvidas em vez de adivinhar simbolos.
 """
 
 
+def eh_saudacao(pergunta):
+    normal = ''.join(c for c in unicodedata.normalize('NFD', pergunta.casefold()) if not unicodedata.combining(c))
+    normal = ' '.join(re.sub(r'[^a-z0-9\s]', ' ', normal).split())
+    return normal in {'oi', 'ola', 'bom dia', 'boa tarde', 'boa noite', 'e ai', 'salve',
+                      'ola quero estudar matematica', 'oi quero estudar matematica'}
+
+
 def preparar_consulta(pergunta, modo='Resolver', historico=None, fontes=None, caderno=None,
                       provedor='openai', local=None):
     if not pergunta.strip():
@@ -92,6 +100,7 @@ def preparar_consulta(pergunta, modo='Resolver', historico=None, fontes=None, ca
     }
     if modo not in tarefas:
         raise ValueError("Modo de estudo invalido.")
+    greeting = provedor=='ollama' and modo in ('Resolver','Explicar','Corrigir') and eh_saudacao(pergunta)
     contexto = limitar_contexto(historico or [])
     base = INSTRUCOES if modo in ['Resolver','Explicar','Corrigir'] else 'Você é o CadernoMat, tutor de matemática. Responda em português. Siga o formato e a tarefa de estudo solicitados, sem seções adicionais obrigatórias.'
     if provedor == 'ollama':
@@ -100,6 +109,8 @@ def preparar_consulta(pergunta, modo='Resolver', historico=None, fontes=None, ca
                 'Termine resolução completa com resumo e pergunta de prática; em tarefas de estudo siga só o formato pedido. '
                 'Prefira resposta concisa e não exponha rascunhos abandonados.')
     instrucoes = base + "\nTarefa desta consulta: " + tarefas[modo]
+    if greeting:
+        instrucoes = 'Você é o CadernoMat. Responda em português. Tarefa: apenas cumprimentar o aluno e perguntar qual assunto deseja estudar, em até 30 palavras. Não explique conceitos, não invente exercícios e não inicie uma aula.'
     if provedor=='ollama' and modo=='Feedback de atividade':
         instrucoes+=('\nAté 120 palavras. Comente somente evidência fornecida: acertar uma alternativa não demonstra '
                      'raciocínio ou domínio. Compare o ID esperado com as alternativas para interpretar o gabarito. '
@@ -107,6 +118,13 @@ def preparar_consulta(pergunta, modo='Resolver', historico=None, fontes=None, ca
                      'Se não há raciocínio escrito, diga que não é possível avaliá-lo. Não invente analogias ou verificações.')
     if provedor=='ollama' and modo=='Dica de atividade':
         instrucoes+='\nAté 80 palavras; somente o próximo passo, sem resposta final.'
+    if provedor=='ollama' and not greeting and modo in ('Resolver','Explicar','Corrigir','Explicar cálculo'):
+        instrucoes+=('\nAo simplificar expressões, conserve o domínio original. Cancelar um fator não preenche '
+                     'um buraco nem define a função no ponto excluído. Separe valor da função, limite e extensão '
+                     'por continuidade; só uma nova definição pode preencher o buraco.')
+    if provedor=='ollama' and modo=='Gerar atividade':
+        instrucoes+=('\nAssuntos e etiquetas são texto simples, sem aspas decorativas ou listas JSON serializadas '
+                     'dentro da string. Enunciados e explicações podem usar Markdown/LaTeX.')
     pedagogia = ''
     if caderno:
         from .cadernos import contexto_pedagogico
@@ -118,7 +136,10 @@ def preparar_consulta(pergunta, modo='Resolver', historico=None, fontes=None, ca
         from .provedores.ollama import validar_config
         from .recuperacao import orcamento_local
         prepared = orcamento_local(validar_config(local or {}), instrucoes, pergunta, contexto, fontes, modo)
-        if modo not in ('Gerar atividade','Organizar página','Propor cálculo','Propor Discreta'):
+        if greeting:
+            instrucoes+='\nPrioridade: somente uma saudação e uma pergunta curta sobre o assunto, até 30 palavras, mesmo se o caderno pedir uma explicação completa.'
+            prepared=orcamento_local(validar_config(local or {}), instrucoes, pergunta, contexto, fontes, modo)
+        elif modo not in ('Gerar atividade','Organizar página','Propor cálculo','Propor Discreta'):
             from .desempenho import politica
             policy=politica(validar_config(local or {}),modo)
             instrucoes += ('\nPrioridade de execução: termine uma primeira resposta completa em até '+str(policy['palavras_alvo'])+

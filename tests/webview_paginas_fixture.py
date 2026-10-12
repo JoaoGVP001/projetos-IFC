@@ -19,7 +19,11 @@ if __name__=='__main__':
     (root/'sair').unlink();webview.windows[0].destroy()
    time.sleep(.1)
  def forbidden(*a,**k):raise AssertionError('Provedor online acionado no aceite.')
- def ia(*a,**k):return json.dumps({'titulo':'Revisão organizada','assunto':'Cálculo e Discreta','secoes':[{'id':'ia1','titulo':'Resumo','texto':'Uma proposta da IA, para revisão. Prática: qual é a derivada de $x^2$?','recurso':None}]})
+ def ia(*a,**k):
+  if (root/'formula-invalida').exists():return json.dumps({'titulo':'Soma alterada','assunto':'','secoes':[{'id':'ia1','titulo':'Resumo','texto':'Notação alterada: $n=-2$.','recurso':None}]})
+  data=json.JSONDecoder().raw_decode(k['preparada']['pergunta'].split('Dados escolhidos pelo usuário:\n',1)[1])[0]
+  text='Uma proposta da IA, para revisão.\n'+'\n'.join(s['texto'] for s in data['trechos'])+'\nPrática: qual é a derivada de $x^2$?'
+  return json.dumps({'titulo':'Revisão organizada','assunto':'Cálculo e Discreta','secoes':[{'id':'ia1','titulo':'Resumo','texto':text,'recurso':None}]})
  def dialog(self,dialog_type,*a,**k):
   import webview
   return [str(root/'copia.pdf' if dialog_type==webview.FileDialog.SAVE else root/'pngs')]

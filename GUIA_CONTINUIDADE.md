@@ -2,6 +2,29 @@ Para continuar em outra máquina, leia primeiro o
 [resumo completo e transferência para o PC de casa](docs/TRANSFERENCIA_PC_CASA.md).
 Ele consolida as entregas; as seções abaixo preservam o histórico de cada fase.
 
+## Entrega atual — calibração por tarefa (12/10/2026)
+
+Leia docs/CALIBRACAO_IA_LOCAL.md. avaliacao_local.py usa a fachada/orçamento real,
+casos fictícios e contratos de atividade/página. Modelos já instalados, máximo
+12 consultas/1800 s, checkpoints privados/atômicos, erros/parciais e rubricas
+pendentes; não chamar stop/JSON válido de correção matemática. Perfil/configuração
+pessoal e acervo não mudam. Roteamento de instruções para saudações exatas evita
+converter “Olá” em aula; pedidos com assunto adicional seguem a tarefa normal.
+
+Doze gerações em três rodadas CPU offline, incluindo falhas matemáticas em JSON.
+Páginas agora capturam formulas_protegidas na prévia: preservar presença literal
+de matemática marcada, ignorando espaços/código, nunca equivalência simbólica.
+validar_proposta recusa omissão/reescrita sem mudar rascunho/versões. Legado sem
+esse campo continua legível. Novas afirmações ainda podem estar erradas mesmo
+com as originais presentes: revisão explícita permanece obrigatória. Sem DDL,
+SQLite v11. Não tentar consertar texto da IA automaticamente. 4B continua sem
+aceite de fidelidade para página na última rodada. CPU/GPU seguem como antes.
+
+Aceite: 232 Python aprovados/dez opcionais ignorados; Qt com recusa visível,
+rascunho e versão preservados, depois proposta válida, PDF/PNG e reinício.
+Sem alteração React/CSS/assets; os testes de interface da entrega anterior
+continuam referência, sem alegar uma nova rodada dos oito fluxos.
+
 ## Entrega atual — estabilidade local (12/10/2026)
 
 Leia docs/ESTABILIDADE_IA_LOCAL.md. SQLite permanece v11. Adapter Ollama guarda

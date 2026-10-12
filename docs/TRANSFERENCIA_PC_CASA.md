@@ -266,6 +266,14 @@ Detalhes: [Estabilidade da IA local](ESTABILIDADE_IA_LOCAL.md).
 
 ## 4. Arquitetura e arquivos para o próximo desenvolvedor
 
+**Continuação no notebook após este resumo:** a calibração por tarefa está em
+[CALIBRACAO_IA_LOCAL.md](CALIBRACAO_IA_LOCAL.md). Inclui avaliador privado com
+limites, saudações curtas e proteção de presença da notação original em novas
+propostas de página. O 4B produziu JSON matematicamente incorreto e ainda falhou
+no contrato de fidelidade; a recusa preserva os dados. Foram doze respostas
+reais CPU/offline e 232 testes Python aprovados/dez opcionais ignorados. Mantém
+SQLite v11 e não altera o plano de transferência Windows.
+
 ```text
 React/TypeScript → ponte de operações permitidas → serviço Python
                                                   ├─ SQLite/arquivos locais
@@ -497,6 +505,7 @@ Começar por este resumo e pelos documentos atuais:
 - [Ollama](OLLAMA.md), [Piloto](PILOTO_LOCAL.md), [Busca híbrida](BUSCA_SEMANTICA.md).
 - [Cálculo](MATEMATICA_LOCAL.md), [Discreta](DISCRETA.md), [Páginas](PAGINAS_ESTUDO.md).
 - [Estabilidade](ESTABILIDADE_IA_LOCAL.md): causa do corte, contratos e medições.
+- [Calibração](CALIBRACAO_IA_LOCAL.md): avaliação por tarefa e relatórios privados.
 
 Marcos no Git:
 

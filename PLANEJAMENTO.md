@@ -2,6 +2,28 @@
 
 Atualizado em 12/10/2026.
 
+## Entregue — calibração por tarefa no notebook
+
+Continuar a estabilidade publicada em 1bcbaba: avaliação reproduzível pela mesma
+fachada e orçamento usados no aplicativo, com casos fictícios de indução,
+Cálculo, Discreta, consulta documental e JSON. Comparar somente modelos locais
+já instalados, sem mudar configuração pessoal, baixar pesos ou alterar drivers.
+Limitar chamadas/tempo, salvar resultados e parciais atomicamente fora do Git,
+registrar carga/dispositivo antes e durante cada consulta. Separar contrato JSON,
+gabarito pontual e revisão matemática da narrativa; não certificar por keywords.
+
+Doze respostas reais offline em CPU, com revisão separada da conclusão do
+runtime. Corrigidas orientações de domínio/metadados e a tarefa de saudação
+(22 tokens/~6,5 s no último caso). JSON de página revelou alteração matemática:
+novas propostas preservam notação marcada da origem e são recusadas se a omitirem
+ou reescreverem. Isso não verifica equivalência, prosa ou fórmulas adicionais.
+O 4B ainda falhou nesse contrato; geração matemática de páginas exige revisão.
+232 testes Python aprovados/dez opcionais ignorados e fluxo Qt de páginas com
+erro, rascunho/versão preservados, proposta válida e PDF/PNG. GPU segue indisponível no kernel 7.0.0-38;
+reconferida em 12/10, sem mudança administrativa. Windows permanece preparado
+em docs/TRANSFERENCIA_PC_CASA.md, sem bloquear a continuidade no notebook.
+[Protocolo, resultados e limitações](docs/CALIBRACAO_IA_LOCAL.md).
+
 ## Entregue — estabilidade da IA local
 
 Métricas preservadas nas interrupções, avisos separados do Markdown, perfis de

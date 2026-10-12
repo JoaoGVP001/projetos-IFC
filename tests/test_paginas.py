@@ -12,7 +12,7 @@ from unittest.mock import patch
 from tutor_calculo.servico import Aplicacao
 from tutor_calculo.armazenamento import Historico
 from tutor_calculo.paginas import nova,validar,Paginas
-from tutor_calculo.paginas_servico import exportar_worker
+from tutor_calculo.paginas_servico import exportar_worker,formulas_marcadas,validar_proposta
 from tutor_calculo.provedores.contratos import Cancelamento,ConsultaCancelada
 
 
@@ -101,7 +101,7 @@ class PaginasTest(unittest.TestCase):
             self.assertIn('sem verificação global',contexto_documental(fontes))
     def test_propostas_tres_provedores_explicitamente_aplicadas(self):
         content=nova('Lógica');content['secoes'][0]['texto']='Explique $p -> q$.';self.edit(content);row=self.app.executar('pagina_obter',{'id':self.pid})
-        raw={'titulo':'Implicação','assunto':'Lógica','secoes':[{'id':'s1','titulo':'Resumo','texto':'Uma proposta revisável.','recurso':None}]}
+        raw={'titulo':'Implicação','assunto':'Lógica','secoes':[{'id':'s1','titulo':'Resumo','texto':'Uma proposta revisável: $p -> q$.','recurso':None}]}
         for provider in ('ollama','gemini','openai'):
             self.app._ia_preferencias.salvar(provider)
             with patch('tutor_calculo.ia.configuracao',return_value=('simulada','modelo')),patch('tutor_calculo.ia.perguntar',return_value=json.dumps(raw)):
@@ -119,6 +119,35 @@ class PaginasTest(unittest.TestCase):
                 j=self.app.executar('pagina_previa',{'id':self.pid,'secoes':[sid]});self.app.executar('pagina_consultar',{'id':j['id']});self.assertEqual(self.wait(j['id'])['estado'],'erro')
         j=self.app.executar('pagina_previa',{'id':self.pid,'secoes':[sid]});c=row['rascunho'];c['titulo']='Editado';self.edit(c)
         with self.assertRaisesRegex(ValueError,'mudou'):self.app.executar('pagina_consultar',{'id':j['id']})
+
+    def test_notacao_protegida_ignora_codigo_e_aceita_delimitadores_espacos(self):
+        self.assertEqual(formulas_marcadas(r'`$codigo$` e $x ^ 2$ e \(x^2\) e $$x^2$$'),['x^2'])
+        self.assertEqual(formulas_marcadas('```tex\n$x$\n```'),[])
+        prev={'fontes':[],'recursos':[],'fundo':'branco','formulas_protegidas':['x^2']}
+        raw={'titulo':'X','assunto':'','secoes':[{'id':'s1','titulo':'','texto':r'\(x ^ 2\)', 'recurso':None}]}
+        self.assertEqual(validar_proposta(raw,prev)['secoes'][0]['origem'],'ia')
+        # Ter a fórmula de origem presente não certifica uma afirmação nova errada.
+        raw['secoes'][0]['texto']='$x^2$. Texto incorreto: $1=2$.'
+        self.assertIsInstance(validar_proposta(raw,prev),dict)
+        raw['secoes'][0]['texto']='$x*x$.'
+        with self.assertRaisesRegex(ValueError,'notação'):validar_proposta(raw,prev)
+        # Prévia legada sem o campo continua legível.
+        prev.pop('formulas_protegidas');self.assertIsInstance(validar_proposta(raw,prev),dict)
+
+    def test_formula_alterada_recusa_proposta_preserva_rascunho_e_versao(self):
+        content=nova('Indução');content['secoes'][0]['texto']=r'$n\ge1$ e $1+2+\cdots+n=\frac{n(n+1)}{2}$.'
+        self.edit(content);self.app.executar('pagina_salvar',{'id':self.pid})
+        before=self.app.executar('pagina_obter',{'id':self.pid});version=self.app.executar('pagina_versao',{'id':self.pid,'versao':1})
+        self.app._ia_preferencias.salvar('ollama')
+        raw={'titulo':'Soma','assunto':'','secoes':[{'id':'s1','titulo':'Resumo','texto':r'$1+2+\frac{n(n+1)}{2}$. Condição inventada: $n\ne-2$.','recurso':None}]}
+        with patch('tutor_calculo.ia.perguntar',return_value=json.dumps(raw)):
+            j=self.app.executar('pagina_previa',{'id':self.pid,'secoes':[content['secoes'][0]['id']]})
+            self.assertEqual(len(j['previa']['formulas_protegidas']),2)
+            self.app.executar('pagina_consultar',{'id':j['id']});result=self.wait(j['id'])
+        self.assertEqual(result['estado'],'erro');self.assertIsNone(result['resultado']);self.assertIn('notação',result['erro'])
+        self.assertEqual(self.app.executar('pagina_obter',{'id':self.pid})['rascunho'],before['rascunho'])
+        self.assertEqual(self.app.executar('pagina_versao',{'id':self.pid,'versao':1}),version)
+        with self.assertRaises(ValueError):self.app.executar('pagina_aceitar',{'id':self.pid,'trabalho':j['id']})
     def test_exportacao_versao_fixa_cancelamento_recuperacao_integridade(self):
         self.app.executar('pagina_salvar',{'id':self.pid});captured=[]
         def fake(doc,dest,token):

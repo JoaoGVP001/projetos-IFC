@@ -242,6 +242,18 @@ try {
   await evaluate(
     'document.querySelector(".page-ai input[type=checkbox]").click();true',
   );
+  const beforeProposal = await rpc("pagina_obter", { id: pid });
+  await writeFile(resolve(pasta, "formula-invalida"), "1");
+  await click("Preparar proposta de página");
+  await click("Pedir organização à IA");
+  await wait(() => evaluate('document.body.innerText.includes("notação de fórmulas selecionadas")'));
+  assert.deepEqual((await rpc("pagina_obter", { id: pid })).rascunho, beforeProposal.rascunho);
+  assert.equal((await rpc("pagina_obter", { id: pid })).versao, 1);
+  assert.equal(await evaluate('Array.from(document.querySelectorAll("button")).some(b=>b.textContent.includes("Aplicar proposta ao rascunho"))'), false);
+  await evaluate('document.querySelector(".page-ai [role=alert]").scrollIntoView({block:"center"});true');
+  assert.ok(await evaluate('(()=>{const r=document.querySelector(".page-ai [role=alert]").getBoundingClientRect();return r.top>=0&&r.bottom<=window.innerHeight})()'));
+  await captura("paginas-formula-preservada.png");
+  await unlink(resolve(pasta, "formula-invalida"));
   await click("Preparar proposta de página");
   await click("Pedir organização à IA");
   await wait(() =>
