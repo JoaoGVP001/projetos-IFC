@@ -1,5 +1,13 @@
 # CadernoMat
 
+## ⏸️ Desenvolvimento pausado
+
+Este projeto está pausado por tempo indeterminado. Pretendo voltar a mexer nele no futuro, mas ainda não há uma data definida para retomar o desenvolvimento.
+
+O código e a documentação ficam guardados para consulta e continuidade. Uma cópia também está organizada em [`MATEMATICA GERAL/caderno-mat` no repositório projetos-IFC](https://github.com/JoaoGVP001/projetos-IFC/tree/main/MATEMATICA%20GERAL/caderno-mat).
+
+As instruções e os recursos descritos abaixo registram o estado do projeto no momento da pausa.
+
 Um espaço desktop para estudar matemática: chats, cadernos por matéria e uma
 biblioteca de materiais e atividades com tentativas persistentes. Consulte
 materiais com Ollama, Gemini ou OpenAI. Foco
