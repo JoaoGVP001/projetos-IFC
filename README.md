@@ -1,49 +1,35 @@
-# Projetos IFC
+# Meus projetos do IFC
 
-Projetos reunidos em um único repositório. Cada pasta mantém os arquivos da branch principal do projeto de origem.
+Criei este repositório para reunir os trabalhos, exercícios e projetos que fiz durante o técnico em Informática para Internet e a graduação em Ciência da Computação no IFC, Campus Concórdia.
 
-## Organização
+A ideia é deixar tudo organizado em um lugar só, tanto para consultar o que já estudei quanto para continuar os projetos quando der vontade. Tem trabalho de aula, projeto em grupo, teste e coisa que comecei por curiosidade. Cada um está no ponto em que parei de mexer.
 
-```text
-MATEMATICA GERAL/
-└── caderno-mat/          # desenvolvimento pausado
-ENSINO MEDIO/
-└── OUTROS/              # 12 projetos existentes
-ENSINO SUPERIOR/
-├── 02 - SEGUNDO SEMESTRE/
-│   ├── POO 1/
-│   └── BD 1/
-├── 03 - TERCEIRO SEMESTRE/
-├── 04 - QUARTO SEMESTRE/
-├── 05 - QUINTO SEMESTRE/
-├── 06 - SEXTO SEMESTRE/
-├── 07 - SÉTIMO SEMESTRE/
-├── 08 - OITAVO SEMESTRE/
-├── 09 - NONO SEMESTRE/
-└── 10 - DÉCIMO SEMESTRE/
-```
+## Onde encontrar as coisas
 
-## Projetos do ensino médio
+- **[Ensino médio](./ENSINO%20MEDIO/OUTROS/)** — projetos da época do técnico.
+- **[Ensino superior](./ENSINO%20SUPERIOR/)** — atividades da graduação, separadas por semestre e disciplina. Por enquanto, os trabalhos estão na pasta do segundo semestre; as outras pastas ficam para organizar os próximos.
+- **[Matemática geral](./MATEMATICA%20GERAL/)** — projetos que fiz para ajudar nos estudos de matemática.
 
-- [sigilrpg](./ENSINO%20MEDIO/OUTROS/sigilrpg/): Projeto sigilrpg
-- [BookReadNet](./ENSINO%20MEDIO/OUTROS/BookReadNet/): Projeto BookReadNet
-- [ResolveHub](./ENSINO%20MEDIO/OUTROS/ResolveHub/): Projeto ResolveHub
-- [dashboard](./ENSINO%20MEDIO/OUTROS/dashboard/): Projeto dashboard
-- [merge-sort-c](./ENSINO%20MEDIO/OUTROS/merge-sort-c/): Projeto merge-sort-c
-- [atena-next](./ENSINO%20MEDIO/OUTROS/atena-next/): Projeto atena-next
-- [notepad.py](./ENSINO%20MEDIO/OUTROS/notepad.py/): Projeto notepad.py
-- [v0-TrustV](./ENSINO%20MEDIO/OUTROS/v0-TrustV/): Projeto v0-TrustV
-- [RoguePiece](./ENSINO%20MEDIO/OUTROS/RoguePiece/): Projeto RoguePiece
-- [Truco-DSDM](./ENSINO%20MEDIO/OUTROS/Truco-DSDM/): Projeto Truco-DSDM
-- [API_FILMES](./ENSINO%20MEDIO/OUTROS/API_FILMES/): aulas de dw3
-- [Projeto-Integrador-II---2024](./ENSINO%20MEDIO/OUTROS/Projeto-Integrador-II---2024/): Repositório destinado ao desenvolvimento do site
+## Graduação
 
-## Matemática geral
+No [segundo semestre](./ENSINO%20SUPERIOR/02%20-%20SEGUNDO%20SEMESTRE/), separei as atividades de [Programação Orientada a Objetos I](./ENSINO%20SUPERIOR/02%20-%20SEGUNDO%20SEMESTRE/POO%201/) e [Banco de Dados I](./ENSINO%20SUPERIOR/02%20-%20SEGUNDO%20SEMESTRE/BD%201/).
 
-- [CadernoMat](./MATEMATICA%20GERAL/caderno-mat/): assistente de estudos de matemática. Desenvolvimento pausado por tempo indeterminado; preservado para retomar no futuro.
+Vou acrescentando os outros trabalhos conforme for fazendo.
 
-## Histórico
+## Técnico
 
-O histórico original de commits foi preservado. As branches originais estão em `origens/<projeto>/<branch>` e as tags em `<projeto>/<tag>`.
+Os projetos do técnico ficam em `ENSINO MEDIO/OUTROS`. Mantive os nomes das pastas para ficar mais fácil encontrar os trabalhos antigos:
 
-Os projetos continuam independentes; consulte o README de cada pasta para executar ou configurar cada um.
+`sigilrpg` · `BookReadNet` · `ResolveHub` · `dashboard` · `merge-sort-c` · `atena-next` · `notepad.py` · `v0-TrustV` · `RoguePiece` · `Truco-DSDM` · `API_FILMES` · `Projeto-Integrador-II---2024`
+
+## CadernoMat
+
+O [CadernoMat](./MATEMATICA%20GERAL/caderno-mat/) é um projeto de assistente para estudar matemática, principalmente Cálculo I e Matemática Discreta.
+
+Por enquanto, deixei o desenvolvimento parado. Quero voltar a mexer nele algum dia, mas ainda não tenho uma data. Guardei o código e as anotações aqui para conseguir retomar de onde parei.
+
+## Para consultar ou rodar
+
+Cada pasta é um projeto separado, então as linguagens, dependências e formas de executar variam. Quando houver um README dentro da pasta, é por ele que vale começar.
+
+Também mantive o histórico dos projetos que reuni aqui. Ele ajuda a acompanhar como os trabalhos foram mudando ao longo do tempo.
