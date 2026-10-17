@@ -5,6 +5,8 @@ Projetos reunidos em um único repositório. Cada pasta mantém os arquivos da b
 ## Organização
 
 ```text
+MATEMATICA GERAL/
+└── caderno-mat/          # desenvolvimento pausado
 ENSINO MEDIO/
 └── OUTROS/              # 12 projetos existentes
 ENSINO SUPERIOR/
@@ -35,6 +37,10 @@ ENSINO SUPERIOR/
 - [Truco-DSDM](./ENSINO%20MEDIO/OUTROS/Truco-DSDM/): Projeto Truco-DSDM
 - [API_FILMES](./ENSINO%20MEDIO/OUTROS/API_FILMES/): aulas de dw3
 - [Projeto-Integrador-II---2024](./ENSINO%20MEDIO/OUTROS/Projeto-Integrador-II---2024/): Repositório destinado ao desenvolvimento do site
+
+## Matemática geral
+
+- [CadernoMat](./MATEMATICA%20GERAL/caderno-mat/): assistente de estudos de matemática. Desenvolvimento pausado por tempo indeterminado; preservado para retomar no futuro.
 
 ## Histórico
 

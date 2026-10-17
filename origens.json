@@ -171,5 +171,21 @@
       "main"
     ],
     "tags": []
+  },
+  {
+    "name": "caderno-mat",
+    "default_branch": "main",
+    "private": true,
+    "description": "Assistente de estudos de matemática — desenvolvimento pausado, sem previsão de retorno.",
+    "url": "https://github.com/JoaoGVP001/caderno-mat",
+    "fork": false,
+    "head": "e4abd4fe2b3408020ff53dac98a1c1117eb0e5e3",
+    "tree": "cac421b8c909ec54564dc7565ffd8cdd938cf06a",
+    "branches": [
+      "main"
+    ],
+    "tags": [],
+    "path": "MATEMATICA GERAL/caderno-mat",
+    "status": "pausado"
   }
 ]
