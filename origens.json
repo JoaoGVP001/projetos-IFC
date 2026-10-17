@@ -6,8 +6,8 @@
     "description": null,
     "url": "https://github.com/JoaoGVP001/sigilrpg",
     "fork": false,
-    "head": "082dec250262579ee633ffa580ea89879314b537",
-    "tree": "a42e4068a9a5e2107e53a23f3430c73ee93c6687",
+    "head": "b738ad10703c8d1ae396e6efd8d3cce823adb889",
+    "tree": "eac90b9dbe2548f80669230767421c00d7f2a557",
     "branches": [
       "main"
     ],
@@ -136,8 +136,8 @@
     "description": null,
     "url": "https://github.com/JoaoGVP001/Truco-DSDM",
     "fork": false,
-    "head": "82b81cb012f05d80bac573efcf1dbc602da9fcd5",
-    "tree": "4be09e4c2a101a219c2a3a28cc4cb52180c1948c",
+    "head": "bdb917aa531ae3772e971d382adbf58a3fac31c5",
+    "tree": "060bb8f87f7e394477b1cba31c19f8714bc479ea",
     "branches": [
       "main"
     ],
@@ -164,8 +164,8 @@
     "description": "Repositório destinado ao desenvolvimento do site",
     "url": "https://github.com/JoaoGVP001/Projeto-Integrador-II---2024",
     "fork": false,
-    "head": "124d9eff807aacf7564156bc0b991133d61cc0f2",
-    "tree": "dfe79d5b00ded9f58c15435af2ddba8702b26a2f",
+    "head": "ebdd5733d51642a00d35d5d3d6f377dcbb416304",
+    "tree": "c4814d1c56120055daf77247e031c45405963ca3",
     "branches": [
       "login",
       "main"
