@@ -1,0 +1,114 @@
+import { memo } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
+import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
+import rehypeKatex from "rehype-katex";
+import { api } from "./bridge";
+export function normalizarMatematica(texto: string) {
+  const converter = (parte: string) =>
+    parte
+      .split(/(`+[^`\n]*`+)/g)
+      .map((p, i) =>
+        i % 2
+          ? p
+          : p
+              .replace(/\\\[([\s\S]*?)\\\]/g, "\n\n$$$$\n$1\n$$$$\n\n")
+              .replace(/\\\(([\s\S]*?)\\\)/g, "$$$1$"),
+      )
+      .join("");
+  // Uma citação pode conter ``` dentro de um fence maior. Proteja até o
+  // fechamento com o mesmo caractere e comprimento mínimo do fence original.
+  let fence: { char: string; tamanho: number } | null = null;
+  let fora = "",
+    resultado = "";
+  for (const linha of texto.match(/[^\n]*(?:\n|$)/g) || []) {
+    if (!linha) continue;
+    if (fence) {
+      resultado += linha;
+      const close = linha.match(/^ {0,3}(`{3,}|~{3,})[ \t]*(?:\r?\n)?$/);
+      if (
+        close &&
+        close[1][0] === fence.char &&
+        close[1].length >= fence.tamanho
+      )
+        fence = null;
+    } else {
+      const open = linha.match(/^ {0,3}(`{3,}|~{3,})/);
+      if (open) {
+        resultado += converter(fora) + linha;
+        fora = "";
+        fence = { char: open[1][0], tamanho: open[1].length };
+      } else fora += linha;
+    }
+  }
+  return resultado + converter(fora);
+}
+const schema = {
+  ...defaultSchema,
+  attributes: {
+    ...defaultSchema.attributes,
+    code: [
+      ...(defaultSchema.attributes?.code || []),
+      ["className", /^language-./, "math-inline", "math-display"],
+    ],
+  },
+};
+export const Markdown = memo(function Markdown({
+  texto,
+  onError,
+  semImagens = false,
+}: {
+  texto: string;
+  onError?: (m: string) => void;
+  semImagens?: boolean;
+}) {
+  return (
+    <div className="markdown">
+      <ReactMarkdown
+        skipHtml
+        remarkPlugins={[remarkGfm, remarkMath]}
+        rehypePlugins={[
+          [rehypeSanitize, schema],
+          [
+            rehypeKatex,
+            { throwOnError: false, strict: "ignore", trust: false },
+          ],
+        ]}
+        components={{
+          ...(semImagens
+            ? {
+                img: ({ alt }: { alt?: string }) => (
+                  <span>
+                    [Imagem Markdown omitida:{" "}
+                    {alt || "insira um resultado matemático pelo aplicativo"}]
+                  </span>
+                ),
+              }
+            : {}),
+          a: ({ href, children }) => (
+            <a
+              href={href}
+              onClick={(e) => {
+                e.preventDefault();
+                if (href)
+                  api("abrir_link", { url: href }).catch((e) =>
+                    onError?.(e.message),
+                  );
+              }}
+            >
+              {children}
+            </a>
+          ),
+          table: ({ children }) => (
+            <div className="table-scroll">
+              <table>{children}</table>
+            </div>
+          ),
+        }}
+      >
+        {normalizarMatematica(texto)}
+      </ReactMarkdown>
+    </div>
+  );
+});

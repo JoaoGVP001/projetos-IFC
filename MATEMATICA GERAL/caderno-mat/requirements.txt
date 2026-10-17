@@ -1,0 +1,12 @@
+openai>=3.28,<4
+sympy>=1.13
+matplotlib>=3.10,<4
+Pillow>=11,<13
+pywebview[pyside6]>=6.2,<7; sys_platform == "linux"
+pywebview>=6.2,<7; sys_platform != "linux"
+python-dotenv>=1.0
+pypdf>=6,<7
+pypdfium2>=4,<6
+
+# Compositor PDF/PNG independente do backend da janela (WebView2/Cocoa).
+PySide6>=6.8,<7; sys_platform != "linux"
