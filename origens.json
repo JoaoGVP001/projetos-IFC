@@ -6,8 +6,8 @@
     "description": null,
     "url": "https://github.com/JoaoGVP001/sigilrpg",
     "fork": false,
-    "head": "d9c151ee665e536e7ddecc0bbfad60f8c8972548",
-    "tree": "f55f617cd44b07a6d5b0cbcf71dbc993b37689f9",
+    "head": "082dec250262579ee633ffa580ea89879314b537",
+    "tree": "a42e4068a9a5e2107e53a23f3430c73ee93c6687",
     "branches": [
       "main"
     ],
@@ -65,7 +65,7 @@
     "description": null,
     "url": "https://github.com/JoaoGVP001/merge-sort-c",
     "fork": false,
-    "head": "614a75e3f119846e8ffc1bb3dfe17beddfddebfc",
+    "head": "b83e349ec15979b8c3e725997fc5077cbefbfbc3",
     "tree": "f86e914e346e8eceb079a2b696e31c94ab7b59c1",
     "branches": [
       "main"
@@ -94,7 +94,7 @@
     "description": null,
     "url": "https://github.com/JoaoGVP001/notepad.py",
     "fork": false,
-    "head": "6b13010bd4a387647a1e7d56dea6a2a0be0828de",
+    "head": "2094ac700a5ebdb5d31b1f85fd508eb6e48d1807",
     "tree": "613101aaf8c21a370d3924f132f8d92560a0af95",
     "branches": [
       "main"
@@ -150,7 +150,7 @@
     "description": "aulas de dw3",
     "url": "https://github.com/JoaoGVP001/API_FILMES",
     "fork": false,
-    "head": "3b7281b8fc6c3f24ecd4fbdffff3c53d24df118a",
+    "head": "03ae76e12a26ee9c72f4408d81df10d9cce5424c",
     "tree": "6266a2bb061b6a8ed7f8e6e81dfb14e2b914a7a8",
     "branches": [
       "master"
@@ -164,7 +164,7 @@
     "description": "Repositório destinado ao desenvolvimento do site",
     "url": "https://github.com/JoaoGVP001/Projeto-Integrador-II---2024",
     "fork": false,
-    "head": "f0fd76678d5a1ef7aa38a8a7f91ad7c24226068f",
+    "head": "124d9eff807aacf7564156bc0b991133d61cc0f2",
     "tree": "dfe79d5b00ded9f58c15435af2ddba8702b26a2f",
     "branches": [
       "login",
